@@ -3,9 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Banco Gonçalo</title>
+<title>Banco Gonçalo - Movimentos</title>
 <style>
-/* Reset básico */
 body, html {
   margin: 0;
   padding: 0;
@@ -13,14 +12,12 @@ body, html {
   background: #f1f1f5;
 }
 
-/* Container principal */
 .app {
   max-width: 420px;
   margin: auto;
   padding: 20px;
 }
 
-/* Header estilo Nubank */
 .header {
   background: #820ad1;
   color: white;
@@ -30,86 +27,59 @@ body, html {
   text-align: center;
 }
 
-.header h1 {
-  margin: 0;
-  font-size: 24px;
-}
+.header h1 { margin:0; font-size:24px; }
+.header p { margin:5px 0 0 0; font-size:14px; opacity:0.8; }
 
-.header p {
-  margin: 5px 0 0 0;
-  font-size: 14px;
-  opacity: 0.8;
-}
-
-/* Cartões de totais */
-.card {
-  background: white;
-  border-radius: 15px;
-  padding: 15px;
+.tabs {
+  display:flex;
+  justify-content:space-around;
   margin-bottom: 15px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+.tab {
+  padding:10px 15px;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+  background:#ddd;
+}
+
+.tab.active { background:#820ad1; color:white; }
+
+.card {
+  background:white;
+  border-radius:15px;
+  padding:15px;
+  margin-bottom:15px;
+  box-shadow:0 4px 10px rgba(0,0,0,0.05);
 }
 
 .total-card {
   background: linear-gradient(135deg, #820ad1, #a45de9);
-  color: white;
-  text-align: center;
+  color:white;
+  text-align:center;
 }
 
-.total-card h2 {
-  margin: 10px 0 0 0;
-  font-size: 28px;
-}
+.total-card h2 { margin:10px 0 0 0; font-size:28px; }
 
-.card.small {
-  display: flex;
-  justify-content: space-between;
-  padding: 10px 15px;
-}
+.card.small { display:flex; justify-content:space-between; padding:10px 15px; }
+.card.small span { font-size:14px; color:#666; }
 
-.card.small span {
-  font-size: 14px;
-  color: #666;
-}
+.list h3 { margin-bottom:10px; font-size:18px; }
 
-/* Lista de saldos */
-.list h3 {
-  margin-bottom: 10px;
-  font-size: 18px;
-}
+.item { display:flex; justify-content:space-between; align-items:center; background:white; padding:12px; border-radius:10px; margin-bottom:8px; }
+.item span { font-size:14px; }
+.item input { width:100px; text-align:right; border:none; font-size:14px; }
+.item input:focus { outline:none; }
 
-.item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: white;
-  padding: 12px;
-  border-radius: 10px;
-  margin-bottom: 8px;
-}
+.moedas { background:#fef3c7; }
+.cartao { background:#e0f2fe; }
 
-.item span {
-  font-size: 14px;
-}
-
-.item input {
-  width: 100px;
-  text-align: right;
-  border: none;
-  font-size: 14px;
-}
-
-.item input:focus {
-  outline: none;
-}
-
-.moedas {
-  background: #fef3c7;
-}
-
-.cartao {
-  background: #e0f2fe;
-}
+.movimentos h3 { margin-bottom:10px; }
+.movimento { display:flex; justify-content:space-between; align-items:center; padding:10px; border-radius:8px; margin-bottom:5px; }
+.movimento.ganho { background:#e0fbe0; color:green; }
+.movimento.gasto { background:#fbe0e0; color:red; }
+.movimento span { font-size:14px; }
 </style>
 </head>
 <body>
@@ -120,66 +90,115 @@ body, html {
     <p>Resumo financeiro</p>
   </header>
 
-  <section class="card total-card">
-    <span>Total geral</span>
-    <h2>€ <span id="total">0.00</span></h2>
+  <div class="tabs">
+    <button class="tab active" onclick="openTab('saldos', this)">Saldos</button>
+    <button class="tab" onclick="openTab('movimentos', this)">Movimentos do Mês</button>
+  </div>
+
+  <!-- ABAS -->
+  <section id="saldos" class="tab-content">
+    <section class="card total-card">
+      <span>Total geral</span>
+      <h2>€ <span id="total">0.00</span></h2>
+    </section>
+
+    <section class="card small">
+      <span>Sem moedas</span>
+      <strong>€ <span id="sem-moedas">0.00</span></strong>
+    </section>
+
+    <section class="card small">
+      <span>Sem moedas e sem cartão</span>
+      <strong>€ <span id="sem-moedas-cartao">0.00</span></strong>
+    </section>
+
+    <section class="list">
+      <h3>Saldos</h3>
+      <div class="item"><span>Ibiza</span></span><input type="number" value="245" data-name="Ibiza"></div>
+      <div class="item"><span>Dela</span><input type="number" value="4010" data-name="Dela"></div>
+      <div class="item"><span>Money 2026</span><input type="number" value="2775" data-name="Money 2026"></div>
+      <div class="item"><span>Notas de 5 (capa)</span><input type="number" value="100" data-name="Notas de 5 (capa)"></div>
+      <div class="item"><span>Capa 1 (azul)</span><input type="number" value="50" data-name="Capa 1 (azul)"></div>
+      <div class="item"><span>Capa 2 (caixa Apple)</span><input type="number" value="55" data-name="Capa 2 (caixa Apple)"></div>
+      <div class="item"><span>Porta cartões</span><input type="number" value="25" data-name="Porta cartões"></div>
+      <div class="item"><span>Capa 3 (preta MagSafe)</span><input type="number" value="50" data-name="Capa 3 (preta MagSafe)"></div>
+      <div class="item"><span>Cartão</span><input type="number" value="19.62" data-name="Cartão"></div>
+      <div class="item"><span>Capa 4 (iPhone 13)</span><input type="number" value="60" data-name="Capa 4 (iPhone 13)"></div>
+      <div class="item"><span>Capa 5 (azul)</span><input type="number" value="15" data-name="Capa 5 (azul)"></div>
+      <div class="item"><span>Moedas carteira</span><input type="number" value="131.92" data-name="Moedas carteira"></div>
+    </section>
   </section>
 
-  <section class="card small">
-    <span>Sem moedas</span>
-    <strong>€ <span id="sem-moedas">0.00</span></strong>
+  <section id="movimentos" class="tab-content" style="display:none;">
+    <div class="movimentos">
+      <h3>Movimentos do mês (<span id="mes-atual"></span>)</h3>
+      <div id="movimento-list">
+        <!-- Movimentos vão aparecer aqui -->
+      </div>
+    </div>
   </section>
 
-  <section class="card small">
-    <span>Sem moedas e sem cartão</span>
-    <strong>€ <span id="sem-moedas-cartao">0.00</span></strong>
-  </section>
-
-  <section class="list">
-    <h3>Saldos</h3>
-
-    <div class="item"><span>Ibiza</span><input type="number" value="245" data-type="normal"></div>
-    <div class="item"><span>Dela</span><input type="number" value="4010" data-type="normal"></div>
-    <div class="item"><span>Money 26</span><input type="number" value="2775" data-type="normal"></div>
-
-    <div class="item"><span>Notas de 5 (capa)</span><input type="number" value="100" data-type="normal"></div>
-    <div class="item"><span>Capa 1 (azul)</span><input type="number" value="50" data-type="normal"></div>
-    <div class="item"><span>Capa 2 (caixa Apple)</span><input type="number" value="55" data-type="normal"></div>
-    <div class="item"><span>Porta cartões</span><input type="number" value="25" data-type="normal"></div>
-    <div class="item"><span>Capa 3 (preta MagSafe)</span><input type="number" value="50" data-type="normal"></div>
-
-    <div class="item cartao"><span>Cartão</span><input type="number" value="19.62" data-type="cartao"></div>
-
-    <div class="item"><span>Capa 4 (iPhone 13)</span><input type="number" value="60" data-type="normal"></div>
-    <div class="item"><span>Capa 5 (azul)</span><input type="number" value="15" data-type="normal"></div>
-
-    <div class="item moedas"><span>Moedas carteira</span><input type="number" value="131.51" data-type="moedas"></div>
-  </section>
 </div>
 
 <script>
-function calcular() {
-  let total = 0;
-  let semMoedas = 0;
-  let semMoedasCartao = 0;
+let saldosAntigos = {};
 
-  document.querySelectorAll('.item input').forEach(input => {
-    const valor = parseFloat(input.value) || 0;
-    const tipo = input.dataset.type;
-
-    total += valor;
-
-    if (tipo !== 'moedas') semMoedas += valor;
-    if (tipo !== 'moedas' && tipo !== 'cartao') semMoedasCartao += valor;
-  });
-
-  document.getElementById('total').textContent = total.toLocaleString('pt-PT', { minimumFractionDigits: 2 });
-  document.getElementById('sem-moedas').textContent = semMoedas.toLocaleString('pt-PT', { minimumFractionDigits: 2 });
-  document.getElementById('sem-moedas-cartao').textContent = semMoedasCartao.toLocaleString('pt-PT', { minimumFractionDigits: 2 });
+// Função de abas
+function openTab(id, el){
+  document.querySelectorAll('.tab-content').forEach(t=>t.style.display='none');
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).style.display='block';
+  el.classList.add('active');
 }
 
-// Atualiza ao digitar
-document.querySelectorAll('input').forEach(input => input.addEventListener('input', calcular));
+// Função de cálculo totais
+function calcular(){
+  let total=0, semMoedas=0, semMoedasCartao=0;
+  document.querySelectorAll('#saldos .item input').forEach(input=>{
+    const valor = parseFloat(input.value)||0;
+    const nome = input.dataset.name;
+    const tipo = (nome.toLowerCase().includes('moedas')) ? 'moedas' : ((nome.toLowerCase().includes('cartao'))?'cartao':'normal');
+    
+    // Verificar diferença e adicionar movimento
+    if(saldosAntigos[nome]!==undefined){
+      let diff = valor - saldosAntigos[nome];
+      if(diff!==0){
+        adicionarMovimento(nome, diff);
+      }
+    }
+    saldosAntigos[nome]=valor;
+
+    total+=valor;
+    if(tipo!=='moedas') semMoedas+=valor;
+    if(tipo!=='moedas' && tipo!=='cartao') semMoedasCartao+=valor;
+  });
+
+  document.getElementById('total').textContent=total.toLocaleString('pt-PT',{minimumFractionDigits:2});
+  document.getElementById('sem-moedas').textContent=semMoedas.toLocaleString('pt-PT',{minimumFractionDigits:2});
+  document.getElementById('sem-moedas-cartao').textContent=semMoedasCartao.toLocaleString('pt-PT',{minimumFractionDigits:2});
+}
+
+// Função para adicionar movimento
+function adicionarMovimento(nome, diff){
+  const lista = document.getElementById('movimento-list');
+  const div = document.createElement('div');
+  const hoje = new Date();
+  const dia = hoje.toLocaleDateString('pt-PT');
+  div.classList.add('movimento');
+  if(diff>0) div.classList.add('ganho');
+  else div.classList.add('gasto');
+  div.innerHTML=`<span>${nome}</span> <span>€ ${diff.toFixed(2)}</span> <span>${dia}</span>`;
+  lista.prepend(div); // adiciona no topo
+}
+
+// Inicializar mês atual
+const meses = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+document.getElementById('mes-atual').textContent = meses[new Date().getMonth()];
+
+// Evento para inputs
+document.querySelectorAll('#saldos .item input').forEach(input=>{
+  input.addEventListener('input', calcular);
+});
 
 // Inicializa
 calcular();
