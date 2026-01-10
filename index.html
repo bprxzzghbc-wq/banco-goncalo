@@ -35,7 +35,7 @@ body, html{font-family:'Helvetica Neue', Arial,sans-serif;background:#f5f5f7;col
 .add-button{background:#d71c1c;color:white;border:none;padding:8px 12px;border-radius:12px;font-weight:600;cursor:pointer;margin:10px 0;transition:0.3s;}
 .add-button:hover{background:#a80000;}
 #novo-movimento{display:none;background:white;padding:15px;border-radius:18px;box-shadow:0 4px 14px rgba(0,0,0,0.1);margin-bottom:15px;}
-#novo-movimento input,#novo-movimento select{margin-bottom:8px;padding:5px;width:100%;border-radius:8px;border:1px solid #ccc;}
+#novo-movimento input,#novo-movimento select,#novo-movimento textarea{margin-bottom:8px;padding:5px;width:100%;border-radius:8px;border:1px solid #ccc;}
 #novo-movimento label{font-weight:600;font-size:14px;display:block;margin-top:5px;}
 </style>
 </head>
@@ -97,10 +97,13 @@ body, html{font-family:'Helvetica Neue', Arial,sans-serif;background:#f5f5f7;col
       <select id="aba-movimento"></select>
       <label>Descrição</label>
       <input type="text" id="descricao-movimento" placeholder="Ex: Compra supermercado">
+      <label>Data</label>
+      <input type="date" id="data-movimento">
       <button class="add-button" onclick="adicionarMovimento()">Adicionar</button>
     </div>
 
-    <ul id="lista-movimentos" style="list-style:none;padding-left:0;margin-top:15px;"></ul>
+    <!-- Lista de Movimentos -->
+    <div id="lista-movimentos-mensal"></div>
   </div>
 
   <!-- ABA PLANEAMENTO -->
@@ -114,10 +117,9 @@ body, html{font-family:'Helvetica Neue', Arial,sans-serif;background:#f5f5f7;col
   </div>
 
 </div>
-<!-- Chart.js CDN -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-// ================= DADOS INICIAIS =================
+// ================== DADOS INICIAIS ==================
 let abas = {
   "Ibiza":245,
   "Dela":4010,
@@ -130,159 +132,191 @@ let abas = {
   "Cartão":19.62,
   "Capa 4 (iPhone 13)":60,
   "Capa 5 (azul)":15,
+  "Nova Capa":0,           // ← Nova aba adicionada
   "Moedas carteira":131.92
 };
 
-let movimentos = [];
+// Movimentos armazenados por mês/ano
+let movimentos = {}; // Ex: {'2026-01':[ {tipo:'gasto',valor:50,aba:'Ibiza',desc:'Supermercado',data:'2026-01-10'} ] }
 
-let planeamentoData = {
-  "Money 2026":[
-    {mes:"Janeiro",entradas:60,gastos:120,saldo:2835},
-    {mes:"Fevereiro",entradas:50,gastos:0,saldo:2885},
-    {mes:"Março",entradas:50,gastos:0,saldo:2935},
-    {mes:"Abril",entradas:60,gastos:70,saldo:2925},
-    {mes:"Maio",entradas:50,gastos:0,saldo:2975},
-    {mes:"Junho",entradas:350,gastos:80,saldo:3245},
-    {mes:"Julho",entradas:60,gastos:90,saldo:3215},
-    {mes:"Agosto",entradas:60,gastos:90,saldo:3185},
-    {mes:"Setembro",entradas:50,gastos:70,saldo:3165},
-    {mes:"Outubro",entradas:50,gastos:0,saldo:3215},
-    {mes:"Novembro",entradas:50,gastos:0,saldo:3265},
-    {mes:"Dezembro",entradas:600,gastos:120,saldo:3745}
-  ],
-  "Dela":[
-    {mes:"Janeiro",entradas:0,gastos:0,saldo:4010},
-    {mes:"Fevereiro",entradas:0,gastos:0,saldo:4010},
-    {mes:"Março",entradas:0,gastos:0,saldo:4010},
-    {mes:"Abril",entradas:0,gastos:70,saldo:3940},
-    {mes:"Maio",entradas:0,gastos:0,saldo:3940},
-    {mes:"Junho",entradas:0,gastos:60,saldo:3880},
-    {mes:"Julho",entradas:0,gastos:90,saldo:3790},
-    {mes:"Agosto",entradas:0,gastos:90,saldo:3700},
-    {mes:"Setembro",entradas:0,gastos:50,saldo:3650},
-    {mes:"Outubro",entradas:0,gastos:0,saldo:3650},
-    {mes:"Novembro",entradas:0,gastos:0,saldo:3650},
-    {mes:"Dezembro",entradas:0,gastos:120,saldo:3530}
-  ]
-};
-
-// ================= ABAS =================
+// ================== ABAS ==================
 function abrirAba(id){
-  document.querySelectorAll('.tab-content').forEach(t=>t.style.display='none');
+  const tabContents = document.querySelectorAll('.tab-content');
+  tabContents.forEach(tc => tc.style.display='none');
   document.getElementById(id).style.display='block';
-  document.querySelectorAll('.tab-button').forEach(b=>b.classList.remove('active'));
+
+  const tabButtons = document.querySelectorAll('.tab-button');
+  tabButtons.forEach(btn => btn.classList.remove('active'));
   event.target.classList.add('active');
 }
 
-// ================= SALDOS =================
+// ================== LISTA DE SALDOS ==================
 function atualizarSaldosLista(){
   const lista = document.getElementById('lista-saldos');
-  lista.innerHTML='';
-  for(let nome in abas){
+  lista.innerHTML=''; // limpa lista
+
+  for(const nome in abas){
+    const valor = abas[nome];
     const div = document.createElement('div');
-    div.className='item positivo';
-    const span = document.createElement('span');
-    span.textContent = nome;
-    const input = document.createElement('input');
-    input.type='number';
-    input.value=abas[nome];
-    input.addEventListener('input',()=>{
-      const diff = parseFloat(input.value)-abas[nome];
-      abas[nome]=parseFloat(input.value);
-      const hoje = new Date().toLocaleDateString('pt-PT');
-      movimentos.push({nome,nome_aba:nome,date:hoje,valor:diff,descricao:'Saldo alterado'});
-      atualizarTotais();
-    });
-    div.appendChild(span);
-    div.appendChild(input);
+    div.className='item';
+    div.innerHTML = `<span>${nome}</span><input type="number" value="${valor}" data-nome="${nome}" oninput="atualizarSaldo(this)">`;
     lista.appendChild(div);
   }
+
+  // Atualiza select de movimentos
+  const selectAba = document.getElementById('aba-movimento');
+  selectAba.innerHTML='';
+  for(const nome in abas){
+    const option = document.createElement('option');
+    option.value=nome;
+    option.textContent=nome;
+    selectAba.appendChild(option);
+  }
+
   atualizarTotais();
 }
 
-// ================= TOTAIS =================
-function atualizarTotais(){
-  let total=0, semMoedas=0, semMoedasCartao=0;
-  for(let nome in abas){
-    let valor=abas[nome];
-    total+=valor;
-    if(!nome.toLowerCase().includes('moedas')) semMoedas+=valor;
-    if(!nome.toLowerCase().includes('moedas') && !nome.toLowerCase().includes('cartão')) semMoedasCartao+=valor;
-  }
-  document.getElementById('total').textContent = total.toLocaleString('pt-PT',{minimumFractionDigits:2});
-  document.getElementById('sem-moedas').textContent = semMoedas.toLocaleString('pt-PT',{minimumFractionDigits:2});
-  document.getElementById('sem-moedas-cartao').textContent = semMoedasCartao.toLocaleString('pt-PT',{minimumFractionDigits:2});
+// ================== ATUALIZAÇÃO SALDO ==================
+function atualizarSaldo(input){
+  const nome = input.dataset.nome;
+  abas[nome] = parseFloat(input.value) || 0;
+  atualizarTotais();
   atualizarGrafico();
-  atualizarMovimentosLista();
-  atualizarAbasMovimento();
 }
 
-// ================= GRÁFICO =================
-const ctx = document.getElementById('saldoGrafico').getContext('2d');
-const saldoGrafico = new Chart(ctx,{
-  type:'line',
-  data:{ labels:[], datasets:[{label:'Total Geral', data:[], borderColor:'#d71c1c', backgroundColor:'rgba(215,28,28,0.1)', fill:true, tension:0.3}] },
-  options:{ responsive:true, plugins:{legend:{display:true}}, scales:{y:{beginAtZero:true}}}
-});
-function atualizarGrafico(){
-  const hoje = new Date().toLocaleDateString('pt-PT');
-  const totalAtual = parseFloat(document.getElementById('total').textContent.replace('.','').replace(',','.'))||0;
-  saldoGrafico.data.labels.push(hoje);
-  saldoGrafico.data.datasets[0].data.push(totalAtual);
-  saldoGrafico.update();
-}
-
-// ================= MOVIMENTOS =================
-function mostrarFormMovimento(){
-  document.getElementById('novo-movimento').style.display='block';
-  atualizarAbasMovimento();
-}
-
-function atualizarAbasMovimento(){
-  const select = document.getElementById('aba-movimento');
-  select.innerHTML='';
-  for(let nome in abas){
-    const opt = document.createElement('option');
-    opt.value=nome;
-    opt.textContent=nome;
-    select.appendChild(opt);
+// ================== CALCULO TOTAIS ==================
+function atualizarTotais(){
+  let total=0, semMoedas=0, semCartao=0;
+  for(const nome in abas){
+    total += abas[nome];
+    if(nome!=="Moedas carteira") semMoedas += abas[nome];
+    if(nome!=="Moedas carteira" && nome!=="Cartão") semCartao += abas[nome];
   }
+  document.getElementById('total').textContent = total.toFixed(2);
+  document.getElementById('sem-moedas').textContent = semMoedas.toFixed(2);
+  document.getElementById('sem-moedas-cartao').textContent = semCartao.toFixed(2);
 }
 
-function adicionarMovimento(){
-  const tipo = document.getElementById('tipo-movimento').value;
-  const valor = parseFloat(document.getElementById('valor-movimento').value);
-  const aba = document.getElementById('aba-movimento').value;
-  const descricao = document.getElementById('descricao-movimento').value || '';
-  if(isNaN(valor) || valor===0) return alert('Valor inválido');
-  const hoje = new Date().toLocaleDateString('pt-PT');
-  const movValor = tipo==='ganho'?valor:-valor;
-  abas[aba]+=movValor;
-  movimentos.push({nome:aba,nome_aba:aba,date:hoje,valor:movValor,descricao:descricao});
-  atualizarSaldosLista();
-  document.getElementById('novo-movimento').style.display='none';
-  document.getElementById('valor-movimento').value='';
-  document.getElementById('descricao-movimento').value='';
-}
+// ================== GRÁFICO ==================
+let saldoGrafico;
+function atualizarGrafico(){
+  const ctx = document.getElementById('saldoGrafico').getContext('2d');
+  const labels = Object.keys(abas);
+  const data = Object.values(abas);
 
-// ================= LISTA DE MOVIMENTOS =================
-function atualizarMovimentosLista(){
-  const lista = document.getElementById('lista-movimentos');
-  lista.innerHTML='';
-  movimentos.forEach(m=>{
-    const li = document.createElement('li');
-    li.textContent=`${m.date} | ${m.nome_aba} | ${m.valor>=0?'+':'-'}€${Math.abs(m.valor)} | ${m.descricao}`;
-    li.style.color = m.valor>=0?'green':'red';
-    li.style.marginBottom='6px';
-    lista.appendChild(li);
+  if(saldoGrafico) saldoGrafico.destroy();
+
+  saldoGrafico = new Chart(ctx,{
+    type:'bar',
+    data:{
+      labels:labels,
+      datasets:[{
+        label:'Saldo por Aba (€)',
+        data:data,
+        backgroundColor:'rgba(215,28,28,0.7)'
+      }]
+    },
+    options:{
+      responsive:true,
+      plugins:{legend:{display:false}},
+      scales:{y:{beginAtZero:true}}
+    }
   });
 }
 
-// ================= INICIALIZAÇÃO =================
+// ================== MOVIMENTOS ==================
+function mostrarFormMovimento(){
+  const form = document.getElementById('novo-movimento');
+  form.style.display = form.style.display==='none' ? 'block' : 'none';
+}
+
+// ================== INICIALIZAÇÃO ==================
 atualizarSaldosLista();
+atualizarGrafico();
 </script>
-<script>
-// ================= PLANEAMENTO =================
+  <script>
+// ================== ADICIONAR MOVIMENTO ==================
+function adicionarMovimento(){
+  const tipo = document.getElementById('tipo-movimento').value;
+  const valor = parseFloat(document.getElementById('valor-movimento').value) || 0;
+  const aba = document.getElementById('aba-movimento').value;
+  const desc = document.getElementById('descricao-movimento').value;
+  const data = document.getElementById('data-movimento').value;
+
+  if(valor <=0 || !aba || !data){alert('Preencha todos os campos corretamente'); return;}
+
+  // Atualiza saldo automaticamente
+  if(tipo==='gasto') abas[aba]-=valor;
+  else abas[aba]+=valor;
+
+  // Atualiza totais e gráfico
+  atualizarTotais();
+  atualizarGrafico();
+
+  // Guarda movimento
+  const mesAno = data.slice(0,7); // "YYYY-MM"
+  if(!movimentos[mesAno]) movimentos[mesAno]=[];
+  movimentos[mesAno].push({tipo,tipoValor:(tipo==='gasto'? -valor:valor),valor,aba,desc,data});
+
+  // Atualiza lista
+  mostrarMovimentosMes(mesAno);
+
+  // Limpa form
+  document.getElementById('valor-movimento').value='';
+  document.getElementById('descricao-movimento').value='';
+  document.getElementById('novo-movimento').style.display='none';
+}
+
+// ================== MOSTRAR MOVIMENTOS DO MÊS ==================
+function mostrarMovimentosMes(mesAno){
+  const container = document.getElementById('lista-movimentos-mensal');
+  container.innerHTML = `<h4>Movimentos de ${mesAno}</h4>`;
+  if(!movimentos[mesAno] || movimentos[mesAno].length===0){
+    container.innerHTML += '<p>Nenhum movimento neste mês.</p>';
+    return;
+  }
+
+  movimentos[mesAno].forEach(m=>{
+    const div = document.createElement('div');
+    div.className = 'item ' + (m.tipo==='gasto'?'negativo':'positivo');
+    div.innerHTML = `<span>${m.data} - ${m.aba} - ${m.desc}</span>
+                     <input type="text" value="${m.tipoValor.toFixed(2)} €" readonly>`;
+    container.appendChild(div);
+  });
+}
+
+// ================== PLANEAMENTO FINANCEIRO ==================
+const planeamentoData = {
+  "Money 2026":[
+    {mes:'Janeiro',entradas:60,gastos:120,saldo:2835},
+    {mes:'Fevereiro',entradas:50,gastos:0,saldo:2885},
+    {mes:'Março',entradas:50,gastos:0,saldo:2935},
+    {mes:'Abril',entradas:60,gastos:70,saldo:2925},
+    {mes:'Maio',entradas:50,gastos:0,saldo:2975},
+    {mes:'Junho',entradas:350,gastos:80,saldo:3245},
+    {mes:'Julho',entradas:60,gastos:90,saldo:3215},
+    {mes:'Agosto',entradas:60,gastos:90,saldo:3185},
+    {mes:'Setembro',entradas:50,gastos:70,saldo:3165},
+    {mes:'Outubro',entradas:50,gastos:0,saldo:3215},
+    {mes:'Novembro',entradas:50,gastos:0,saldo:3265},
+    {mes:'Dezembro',entradas:600,gastos:120,saldo:3745}
+  ],
+  "Dela":[
+    {mes:'Janeiro',entradas:0,gastos:0,saldo:4010},
+    {mes:'Fevereiro',entradas:0,gastos:0,saldo:4010},
+    {mes:'Março',entradas:0,gastos:0,saldo:4010},
+    {mes:'Abril',entradas:0,gastos:70,saldo:3940},
+    {mes:'Maio',entradas:0,gastos:0,saldo:3940},
+    {mes:'Junho',entradas:0,gastos:60,saldo:3880},
+    {mes:'Julho',entradas:0,gastos:90,saldo:3790},
+    {mes:'Agosto',entradas:0,gastos:90,saldo:3700},
+    {mes:'Setembro',entradas:0,gastos:50,saldo:3650},
+    {mes:'Outubro',entradas:0,gastos:0,saldo:3650},
+    {mes:'Novembro',entradas:0,gastos:0,saldo:3650},
+    {mes:'Dezembro',entradas:0,gastos:120,saldo:3530}
+  ]
+};
+
 function mostrarPlaneamento(aba){
   const container = document.getElementById('tabela-planeamento');
   container.innerHTML=''; // limpa tabela
@@ -318,18 +352,9 @@ function mostrarPlaneamento(aba){
   container.appendChild(tabela);
 }
 
-// ================= FUNÇÃO AUXILIAR =================
-function adicionarNovaAba(nome){
-  if(abas[nome]!==undefined) return alert('Aba já existe');
-  abas[nome]=0;
-  atualizarSaldosLista();
-  alert(`Aba ${nome} adicionada`);
-}
-
-// ================= CONFIGURAÇÃO INICIAL =================
+// ================== INICIALIZAÇÃO ==================
 atualizarSaldosLista();
-atualizarAbasMovimento();
+atualizarGrafico();
 </script>
-
 </body>
 </html>
