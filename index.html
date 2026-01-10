@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Banco Gonçalo - App Persistente</title>
+<title>Banco Gonçalo - App Interativa</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
-body, html{font-family:'Helvetica Neue', Arial,sans-serif;background:#f5f5f7;color:#333;}
+body, html{font-family:'Helvetica Neue',Arial,sans-serif;background:#f5f5f7;color:#333;}
 .app{max-width:420px;margin:auto;padding:15px;}
 .header{background:#d71c1c;color:white;padding:35px 25px;border-radius:30px;text-align:center;margin-bottom:20px;box-shadow:0 5px 25px rgba(0,0,0,0.25);}
 .header h1{font-size:28px;font-weight:700;text-shadow:1px 1px 2px rgba(0,0,0,0.2);}
@@ -28,17 +28,12 @@ body, html{font-family:'Helvetica Neue', Arial,sans-serif;background:#f5f5f7;col
 .item input:focus{outline:none;background:#fff;box-shadow:0 0 5px rgba(0,0,0,0.15);}
 .divider{height:1px;background:#eee;margin:15px 0;}
 @keyframes pulse{0%{box-shadow:0 0 0 rgba(215,28,28,0.4);}70%{box-shadow:0 0 20px rgba(215,28,28,0.4);}100%{box-shadow:0 0 0 rgba(215,28,28,0.4);}}
-@media screen and (max-width:450px){.app{padding:10px;}.item input{width:75px;font-size:14px;}}
-.item.positivo input{color:green;}
-.item.negativo input{color:red;}
-#grafico-container{background:white;padding:15px;border-radius:20px;box-shadow:0 4px 14px rgba(0,0,0,0.06);margin-top:20px;}
-.add-button{background:#d71c1c;color:white;border:none;padding:8px 12px;border-radius:12px;font-weight:600;cursor:pointer;margin:10px 0;transition:0.3s;}
-.add-button:hover{background:#a80000;}
 #novo-movimento{display:none;background:white;padding:15px;border-radius:18px;box-shadow:0 4px 14px rgba(0,0,0,0.1);margin-bottom:15px;}
 #novo-movimento input,#novo-movimento select,#novo-movimento textarea{margin-bottom:8px;padding:5px;width:100%;border-radius:8px;border:1px solid #ccc;}
 #novo-movimento label{font-weight:600;font-size:14px;display:block;margin-top:5px;}
-.sub-aba-mes button{margin:3px;padding:6px 10px;border-radius:10px;border:none;background:#ddd;cursor:pointer;}
-.sub-aba-mes button.active{background:#d71c1c;color:white;}
+.add-button{background:#d71c1c;color:white;border:none;padding:8px 12px;border-radius:12px;font-weight:600;cursor:pointer;margin:10px 0;transition:0.3s;}
+.add-button:hover{background:#a80000;}
+#grafico-container{background:white;padding:15px;border-radius:20px;box-shadow:0 4px 14px rgba(0,0,0,0.06);margin-top:20px;}
 </style>
 </head>
 <body>
@@ -73,20 +68,99 @@ body, html{font-family:'Helvetica Neue', Arial,sans-serif;background:#f5f5f7;col
       <canvas id="saldoGrafico" width="400" height="200"></canvas>
     </div>
   </div>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- ABA MOVIMENTOS -->
+  <div id="movimentos" class="tab-content" style="display:none;">
+    <button class="add-button" onclick="mostrarFormMovimento()">+ Adicionar Movimento</button>
+    <div id="novo-movimento">
+      <label>Tipo:</label>
+      <select id="tipo-movimento">
+        <option value="ganho">Ganho</option>
+        <option value="gasto">Gasto</option>
+      </select>
+      <label>Valor (€):</label>
+      <input type="number" id="valor-movimento">
+      <label>Descrição:</label>
+      <input type="text" id="descricao-movimento">
+      <label>Aba:</label>
+      <select id="aba-movimento"></select> <!-- Lista de todas abas + extras preenchida pelo JS -->
+      <label>Data (opcional):</label>
+      <input type="date" id="data-movimento">
+      <button class="add-button" onclick="adicionarMovimento()">Salvar Movimento</button>
+    </div>
+    <div class="divider"></div>
+    <div class="sub-aba-mes" id="sub-abas-meses"></div>
+    <div id="lista-movimentos-mensal"></div>
+  </div>
+
+  <!-- ABA PLANEAMENTO -->
+  <div id="planeamento" class="tab-content" style="display:none;">
+    <div>
+      <label>Selecione Aba:</label>
+      <select id="planeamento-aba"></select> <!-- Preenchida pelo JS -->
+      <div id="tabela-planeamento"></div>
+    </div>
+  </div>
+
 <script>
-// ================== CARREGAR E SALVAR LOCAL ==================
-let abas = {};
+// ================== ABAS ==================
+function abrirAba(id){
+  const tabs = document.querySelectorAll('.tab-content');
+  tabs.forEach(tab => tab.style.display='none');
+  document.getElementById(id).style.display='block';
+
+  const buttons = document.querySelectorAll('.tab-button');
+  buttons.forEach(btn => btn.classList.remove('active'));
+  event.target.classList.add('active');
+}
+
+// ================== CARREGAR ABAS MOVIMENTO ==================
+let abas = ["Ibiza","Dela","Money 2026","Notas de 5 (capa)","Capa 1 (azul)","Capa 2 (caixa Apple)","Porta cartões","Capa 3 (preta MagSafe)","Cartão","Capa 4 (iPhone 13)","Capa 5 (azul)","Capa Apple Azul Escura","Moedas carteira"];
+let abasExtras = ["Avô","Pais"];
 let movimentos = {};
 
-// Função para carregar dados salvos
+function carregarAbasMovimento(){
+  const select = document.getElementById('aba-movimento');
+  select.innerHTML='';
+  [...abas,...abasExtras].forEach(a=>{
+    const option = document.createElement('option');
+    option.value = a;
+    option.textContent = a;
+    select.appendChild(option);
+  });
+}
+
+// Planeamento financeiro
+function carregarPlaneamentoAbas(){
+  const select = document.getElementById('planeamento-aba');
+  select.innerHTML='';
+  ["Money 2026","Dela"].forEach(a=>{
+    const option = document.createElement('option');
+    option.value=a;
+    option.textContent=a;
+    select.appendChild(option);
+  });
+}
+
+// Inicialização
+carregarAbasMovimento();
+carregarPlaneamentoAbas();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// ================== CARREGAR E SALVAR LOCAL ==================
+let valoresAbas = {}; // armazenar valores atuais de cada aba
+let movimentos = {};  // futuro histórico de movimentos
+
+// Função para carregar valores salvos
 function carregarDados(){
-  const abasSalvas = localStorage.getItem('abas');
-  const movimentosSalvos = localStorage.getItem('movimentos');
-  if(abasSalvas) abas = JSON.parse(abasSalvas);
-  else {
-    // Valores iniciais se não existir localStorage
-    abas = {
+  const salvos = localStorage.getItem('valoresAbas');
+  const movSalvos = localStorage.getItem('movimentos');
+  if(salvos){
+    valoresAbas = JSON.parse(salvos);
+  } else {
+    // valores iniciais
+    valoresAbas = {
       "Ibiza":245,
       "Dela":4010,
       "Money 2026":2775,
@@ -102,55 +176,37 @@ function carregarDados(){
       "Moedas carteira":131.92
     };
   }
-  if(movimentosSalvos) movimentos = JSON.parse(movimentosSalvos);
+  if(movSalvos) movimentos = JSON.parse(movSalvos);
 }
 
 // Função para salvar no localStorage
 function salvarDados(){
-  localStorage.setItem('abas', JSON.stringify(abas));
+  localStorage.setItem('valoresAbas', JSON.stringify(valoresAbas));
   localStorage.setItem('movimentos', JSON.stringify(movimentos));
 }
 
-// ================== ABAS ==================
-function abrirAba(id){
-  const tabs = document.querySelectorAll('.tab-content');
-  tabs.forEach(tab => tab.style.display='none');
-  document.getElementById(id).style.display='block';
-  
-  const buttons = document.querySelectorAll('.tab-button');
-  buttons.forEach(btn => btn.classList.remove('active'));
-  event.target.classList.add('active');
-}
-
-// ================== LISTA DE SALDOS ==================
+// ================== ATUALIZAÇÃO SALDOS ==================
 function atualizarSaldosLista(){
   const lista = document.getElementById('lista-saldos');
   lista.innerHTML='';
-  
-  for(const nome in abas){
-    const valor = abas[nome];
+  for(const nome in valoresAbas){
+    const valor = valoresAbas[nome];
     const div = document.createElement('div');
     div.className='item';
-    
-    // Capa Apple Azul Escura: input apenas no valor
-    if(nome === "Capa Apple Azul Escura"){
-      div.innerHTML = `<span>${nome}</span>
-        <input type="number" value="${valor}" data-nome="${nome}" oninput="atualizarSaldo(this)">`;
-    } else {
-      div.innerHTML = `<span>${nome}</span>
-        <input type="number" value="${valor}" data-nome="${nome}" oninput="atualizarSaldo(this)">`;
-    }
+
+    // Apenas Nova Capa input no valor
+    div.innerHTML = `<span>${nome}</span>
+      <input type="number" value="${valor}" data-nome="${nome}" oninput="alterarSaldo(this)">`;
     lista.appendChild(div);
   }
-
   atualizarTotais();
   atualizarGrafico();
 }
 
-// ================== ATUALIZAÇÃO SALDO ==================
-function atualizarSaldo(input){
+// Função para alterar saldo
+function alterarSaldo(input){
   const nome = input.dataset.nome;
-  abas[nome] = parseFloat(input.value) || 0;
+  valoresAbas[nome] = parseFloat(input.value)||0;
   atualizarTotais();
   atualizarGrafico();
   salvarDados();
@@ -159,40 +215,29 @@ function atualizarSaldo(input){
 // ================== CALCULO TOTAIS ==================
 function atualizarTotais(){
   let total=0, semMoedas=0, semCartao=0;
-  for(const nome in abas){
-    total += abas[nome];
-    if(nome!=="Moedas carteira") semMoedas += abas[nome];
-    if(nome!=="Moedas carteira" && nome!=="Cartão") semCartao += abas[nome];
+  for(const nome in valoresAbas){
+    total += valoresAbas[nome];
+    if(nome!=="Moedas carteira") semMoedas+=valoresAbas[nome];
+    if(nome!=="Moedas carteira" && nome!=="Cartão") semCartao+=valoresAbas[nome];
   }
-  document.getElementById('total').textContent = total.toFixed(2);
-  document.getElementById('sem-moedas').textContent = semMoedas.toFixed(2);
-  document.getElementById('sem-moedas-cartao').textContent = semCartao.toFixed(2);
+  document.getElementById('total').textContent=total.toFixed(2);
+  document.getElementById('sem-moedas').textContent=semMoedas.toFixed(2);
+  document.getElementById('sem-moedas-cartao').textContent=semCartao.toFixed(2);
 }
 
 // ================== GRÁFICO ==================
 let saldoGrafico;
 function atualizarGrafico(){
   const ctx = document.getElementById('saldoGrafico').getContext('2d');
-  const labels = Object.keys(abas);
-  const data = Object.values(abas);
+  const labels = Object.keys(valoresAbas);
+  const data = Object.values(valoresAbas);
 
   if(saldoGrafico) saldoGrafico.destroy();
 
   saldoGrafico = new Chart(ctx,{
     type:'bar',
-    data:{
-      labels:labels,
-      datasets:[{
-        label:'Saldo por Aba (€)',
-        data:data,
-        backgroundColor:'rgba(215,28,28,0.7)'
-      }]
-    },
-    options:{
-      responsive:true,
-      plugins:{legend:{display:false}},
-      scales:{y:{beginAtZero:true}}
-    }
+    data:{labels:labels,datasets:[{label:'Saldo (€)',data:data,backgroundColor:'rgba(215,28,28,0.7)'}]},
+    options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}
   });
 }
 
@@ -200,50 +245,17 @@ function atualizarGrafico(){
 carregarDados();
 atualizarSaldosLista();
 </script>
-  <!-- ABA MOVIMENTOS -->
-<div id="movimentos" class="tab-content" style="display:none;">
-  <button class="add-button" onclick="mostrarFormMovimento()">+ Adicionar Movimento</button>
-  <div id="novo-movimento">
-    <label>Tipo:</label>
-    <select id="tipo-movimento">
-      <option value="ganho">Ganho</option>
-      <option value="gasto">Gasto</option>
-    </select>
-    <label>Valor (€):</label>
-    <input type="number" id="valor-movimento">
-    <label>Descrição:</label>
-    <input type="text" id="descricao-movimento">
-    <label>Aba:</label>
-    <select id="aba-movimento"></select>
-    <label>Data (opcional):</label>
-    <input type="date" id="data-movimento">
-    <button class="add-button" onclick="adicionarMovimento()">Salvar Movimento</button>
-  </div>
-  <div class="divider"></div>
-  <div class="sub-aba-mes" id="sub-abas-meses"></div>
-  <div id="lista-movimentos-mensal"></div>
-</div>
-
-<!-- ABA PLANEAMENTO -->
-<div id="planeamento" class="tab-content" style="display:none;">
-  <div>
-    <label>Selecione Aba:</label>
-    <select id="planeamento-aba" onchange="mostrarPlaneamento(this.value)">
-      <option value="Money 2026">Money 2026</option>
-      <option value="Dela">Dela</option>
-    </select>
-    <div id="tabela-planeamento"></div>
-  </div>
-</div>
-
-<script>
+  <script>
 // ================== MOVIMENTOS ==================
-let abasMovimentoExtras = ["Avô","Pais"]; // extras
+let abasExtras = ["Avô","Pais"];
+
+// Mostrar/ocultar form de adicionar movimento
 function mostrarFormMovimento(){
   const form = document.getElementById('novo-movimento');
   form.style.display = form.style.display==='none'?'block':'none';
 }
 
+// Adicionar movimento
 function adicionarMovimento(){
   const tipo = document.getElementById('tipo-movimento').value;
   const valor = parseFloat(document.getElementById('valor-movimento').value) || 0;
@@ -254,14 +266,14 @@ function adicionarMovimento(){
   if(!data){
     const hoje = new Date();
     data = hoje.toISOString().split('T')[0];
-    document.getElementById('data-movimento').value = data;
   }
 
-  if(valor<=0 || !aba){alert('Preencha todos os campos'); return;}
+  if(valor<=0 || !aba){ alert('Preencha todos os campos'); return; }
 
-  if(abas[aba] !== undefined){
-    if(tipo==='gasto') abas[aba]-=valor;
-    else abas[aba]+=valor;
+  // Atualiza saldo
+  if(valoresAbas[aba]!==undefined){
+    if(tipo==='gasto') valoresAbas[aba]-=valor;
+    else valoresAbas[aba]+=valor;
   }
 
   atualizarTotais();
@@ -291,6 +303,7 @@ function atualizarSubAbasMensais(){
     const btn = document.createElement('button');
     btn.textContent = mesAno;
     btn.onclick = ()=> mostrarMovimentosMes(mesAno);
+    btn.className='add-button';
     container.appendChild(btn);
   });
 }
@@ -380,10 +393,8 @@ function mostrarPlaneamento(aba){
 }
 
 // ================== INICIALIZAÇÃO FINAL ==================
-atualizarSaldosLista();
-atualizarGrafico();
 carregarDados();
+atualizarSaldosLista();
+carregarAbasMovimento();
+carregarPlaneamentoAbas();
 atualizarSubAbasMensais();
-</script>
-</body>
-</html>
