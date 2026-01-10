@@ -118,7 +118,7 @@ body, html{font-family:'Helvetica Neue', Arial,sans-serif;background:#f5f5f7;col
 
 </div>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
+  <script>
 // ================== DADOS INICIAIS ==================
 let abas = {
   "Ibiza":245,
@@ -132,9 +132,12 @@ let abas = {
   "Cartão":19.62,
   "Capa 4 (iPhone 13)":60,
   "Capa 5 (azul)":15,
-  "Nova Capa":0,           // ← Nova aba adicionada
+  "Nova Capa":0,   // ← Nome editável
   "Moedas carteira":131.92
 };
+
+// Adicionando abas extras para movimentos
+let abasMovimentoExtras = ["Avô","Pais"];
 
 // Movimentos armazenados por mês/ano
 let movimentos = {}; // Ex: {'2026-01':[ {tipo:'gasto',valor:50,aba:'Ibiza',desc:'Supermercado',data:'2026-01-10'} ] }
@@ -159,7 +162,19 @@ function atualizarSaldosLista(){
     const valor = abas[nome];
     const div = document.createElement('div');
     div.className='item';
-    div.innerHTML = `<span>${nome}</span><input type="number" value="${valor}" data-nome="${nome}" oninput="atualizarSaldo(this)">`;
+    
+    // Se for Nova Capa, permite editar nome
+    if(nome==="Nova Capa"){
+      div.innerHTML = `
+        <input type="text" value="${nome}" data-oldname="${nome}" oninput="atualizarNome(this)">
+        <input type="number" value="${valor}" data-nome="${nome}" oninput="atualizarSaldo(this)">
+      `;
+    } else {
+      div.innerHTML = `
+        <span>${nome}</span>
+        <input type="number" value="${valor}" data-nome="${nome}" oninput="atualizarSaldo(this)">
+      `;
+    }
     lista.appendChild(div);
   }
 
@@ -172,6 +187,13 @@ function atualizarSaldosLista(){
     option.textContent=nome;
     selectAba.appendChild(option);
   }
+  // Adiciona Avô e Pais
+  abasMovimentoExtras.forEach(a=>{
+    const option = document.createElement('option');
+    option.value=a;
+    option.textContent=a;
+    selectAba.appendChild(option);
+  });
 
   atualizarTotais();
 }
@@ -180,6 +202,36 @@ function atualizarSaldosLista(){
 function atualizarSaldo(input){
   const nome = input.dataset.nome;
   abas[nome] = parseFloat(input.value) || 0;
+  atualizarTotais();
+  atualizarGrafico();
+}
+
+// ================== ATUALIZAÇÃO NOME ==================
+function atualizarNome(input){
+  const oldName = input.dataset.oldname;
+  const newName = input.value.trim();
+  if(!newName) return;
+
+  // Atualiza o objeto abas
+  abas[newName] = abas[oldName];
+  delete abas[oldName];
+
+  // Atualiza select de movimentos
+  const selectAba = document.getElementById('aba-movimento');
+  selectAba.innerHTML='';
+  for(const n in abas){
+    const option = document.createElement('option');
+    option.value=n;
+    option.textContent=n;
+    selectAba.appendChild(option);
+  }
+  abasMovimentoExtras.forEach(a=>{
+    const option = document.createElement('option');
+    option.value=a;
+    option.textContent=a;
+    selectAba.appendChild(option);
+  });
+
   atualizarTotais();
   atualizarGrafico();
 }
@@ -243,25 +295,25 @@ function adicionarMovimento(){
   const desc = document.getElementById('descricao-movimento').value;
   const data = document.getElementById('data-movimento').value;
 
-  if(valor <=0 || !aba || !data){alert('Preencha todos os campos corretamente'); return;}
+  if(valor<=0 || !aba || !data){alert('Preencha todos os campos corretamente'); return;}
 
-  // Atualiza saldo automaticamente
-  if(tipo==='gasto') abas[aba]-=valor;
-  else abas[aba]+=valor;
+  // Atualiza saldo apenas se for aba principal (não Avô/Pais)
+  if(abas[aba] !== undefined){
+    if(tipo==='gasto') abas[aba]-=valor;
+    else abas[aba]+=valor;
+  }
 
-  // Atualiza totais e gráfico
   atualizarTotais();
   atualizarGrafico();
 
-  // Guarda movimento
+  // Guarda movimento no histórico por mês/ano
   const mesAno = data.slice(0,7); // "YYYY-MM"
   if(!movimentos[mesAno]) movimentos[mesAno]=[];
   movimentos[mesAno].push({tipo,tipoValor:(tipo==='gasto'? -valor:valor),valor,aba,desc,data});
 
-  // Atualiza lista
   mostrarMovimentosMes(mesAno);
 
-  // Limpa form
+  // Limpar form
   document.getElementById('valor-movimento').value='';
   document.getElementById('descricao-movimento').value='';
   document.getElementById('novo-movimento').style.display='none';
@@ -358,3 +410,4 @@ atualizarGrafico();
 </script>
 </body>
 </html>
+  
