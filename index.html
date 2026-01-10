@@ -73,8 +73,7 @@ body, html{font-family:'Helvetica Neue', Arial,sans-serif;background:#f5f5f7;col
       <canvas id="saldoGrafico" width="400" height="200"></canvas>
     </div>
   </div>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 // ================== CARREGAR E SALVAR LOCAL ==================
 let abas = {};
@@ -86,7 +85,6 @@ function carregarDados(){
   const movimentosSalvos = localStorage.getItem('movimentos');
   if(abasSalvas) abas = JSON.parse(abasSalvas);
   else {
-    // Valores iniciais se não existir localStorage
     abas = {
       "Ibiza":245,
       "Dela":4010,
@@ -146,6 +144,7 @@ function atualizarSaldosLista(){
 
   atualizarTotais();
   atualizarGrafico();
+  preencherSelectAbas();
 }
 
 // ================== ATUALIZAÇÃO SALDO ==================
@@ -197,50 +196,32 @@ function atualizarGrafico(){
   });
 }
 
+// ================== PREENCHER SELECT DE ABAS PARA MOVIMENTOS ==================
+function preencherSelectAbas(){
+  const select = document.getElementById('aba-movimento');
+  select.innerHTML='';
+  Object.keys(abas).forEach(nome=>{
+    const opt = document.createElement('option');
+    opt.value = nome;
+    opt.textContent = nome;
+    select.appendChild(opt);
+  });
+  // adicionar extras
+  ["Avô","Pais"].forEach(extra=>{
+    const opt = document.createElement('option');
+    opt.value = extra;
+    opt.textContent = extra;
+    select.appendChild(opt);
+  });
+}
+
 // ================== INICIALIZAÇÃO ==================
 carregarDados();
 atualizarSaldosLista();
+atualizarGrafico();
 </script>
-
-<!-- ABA MOVIMENTOS -->
-<div id="movimentos" class="tab-content" style="display:none;">
-  <button class="add-button" onclick="mostrarFormMovimento()">+ Adicionar Movimento</button>
-  <div id="novo-movimento">
-    <label>Tipo:</label>
-    <select id="tipo-movimento">
-      <option value="ganho">Ganho</option>
-      <option value="gasto">Gasto</option>
-    </select>
-    <label>Valor (€):</label>
-    <input type="number" id="valor-movimento">
-    <label>Descrição:</label>
-    <input type="text" id="descricao-movimento">
-    <label>Aba:</label>
-    <select id="aba-movimento"></select>
-    <label>Data (opcional):</label>
-    <input type="date" id="data-movimento">
-    <button class="add-button" onclick="adicionarMovimento()">Salvar Movimento</button>
-  </div>
-  <div class="divider"></div>
-  <div class="sub-aba-mes" id="sub-abas-meses"></div>
-  <div id="lista-movimentos-mensal"></div>
-</div>
-
-<!-- ABA PLANEAMENTO -->
-<div id="planeamento" class="tab-content" style="display:none;">
-  <div>
-    <label>Selecione Aba:</label>
-    <select id="planeamento-aba" onchange="mostrarPlaneamento(this.value)">
-      <option value="Money 2026">Money 2026</option>
-      <option value="Dela">Dela</option>
-    </select>
-    <div id="tabela-planeamento"></div>
-  </div>
-</div>
-
 <script>
 // ================== MOVIMENTOS ==================
-let abasMovimentoExtras = ["Avô","Pais"]; // extras
 function mostrarFormMovimento(){
   const form = document.getElementById('novo-movimento');
   form.style.display = form.style.display==='none'?'block':'none';
@@ -259,11 +240,15 @@ function adicionarMovimento(){
     document.getElementById('data-movimento').value = data;
   }
 
-  if(valor<=0 || !aba){alert('Preencha todos os campos'); return;}
+  if(valor<=0 || !aba || !desc){alert('Preencha todos os campos'); return;}
 
+  // Atualiza saldo da aba correspondente
   if(abas[aba] !== undefined){
     if(tipo==='gasto') abas[aba]-=valor;
     else abas[aba]+=valor;
+  } else {
+    // Caso seja Avô ou Pais, inicializa com valor negativo ou positivo
+    abas[aba] = tipo==='gasto' ? -valor : valor;
   }
 
   atualizarTotais();
@@ -271,8 +256,8 @@ function adicionarMovimento(){
 
   // Agrupamento por mês-ano
   const mesAno = data.slice(0,7); // "YYYY-MM"
-  if(!movimentos[mesAno]) movimentos[mesAno]=[];
-  movimentos[mesAno].push({tipo,tipoValor:(tipo==='gasto'? -valor:valor),valor,aba,desc,data});
+  if(!movimentos[mesAno]) movimentos[mesAno] = [];
+  movimentos[mesAno].push({tipo, tipoValor:(tipo==='gasto'? -valor : valor), valor, aba, desc, data});
 
   atualizarSubAbasMensais();
   mostrarMovimentosMes(mesAno);
@@ -382,10 +367,9 @@ function mostrarPlaneamento(aba){
 }
 
 // ================== INICIALIZAÇÃO FINAL ==================
+carregarDados();
 atualizarSaldosLista();
 atualizarGrafico();
-carregarDados();
 atualizarSubAbasMensais();
+preencherSelectAbas();
 </script>
-</body>
-</html>
