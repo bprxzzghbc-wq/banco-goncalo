@@ -77,9 +77,7 @@ body, html{font-family:'Helvetica Neue', Arial,sans-serif;background:#f5f5f7;col
   <!-- ABA MOVIMENTOS -->
   <div id="movimentos" class="tab-content" style="display:none;">
     <h3>Movimentos</h3>
-    <div class="sub-aba-mes" id="sub-abas-meses">
-      <!-- Sub-abas mensais serão criadas automaticamente -->
-    </div>
+    <div class="sub-aba-mes" id="sub-abas-meses"></div>
     <button class="add-button" onclick="mostrarFormMovimento()">+ Adicionar Movimento</button>
     <div id="novo-movimento">
       <label>Tipo</label>
@@ -112,7 +110,7 @@ body, html{font-family:'Helvetica Neue', Arial,sans-serif;background:#f5f5f7;col
 
 </div>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
+  <script>
 // ================== DADOS INICIAIS ==================
 let abas = {
   "Ibiza":245,
@@ -126,13 +124,12 @@ let abas = {
   "Cartão":19.62,
   "Capa 4 (iPhone 13)":60,
   "Capa 5 (azul)":15,
-  "Nova Capa":0,
+  "Capa Apple Azul Escura":0,
   "Moedas carteira":131.92
 };
 
 let abasMovimentoExtras = ["Avô","Pais"]; // extras que não alteram saldos
-
-let movimentos = {}; // Guarda movimentos agrupados por mês-ano, ex: {"2026-01": [...]}
+let movimentos = {}; // Guarda movimentos agrupados por mês-ano
 
 // ================== ABAS ==================
 function abrirAba(id){
@@ -155,9 +152,10 @@ function atualizarSaldosLista(){
     const div = document.createElement('div');
     div.className='item';
 
-    if(nome==="Nova Capa"){
+    // Nova Capa: input apenas no valor, nome fixo
+    if(nome==="Capa Apple Azul Escura"){
       div.innerHTML = `
-        <input type="text" value="${nome}" data-oldname="${nome}" oninput="atualizarNome(this)">
+        <span>${nome}</span>
         <input type="number" value="${valor}" data-nome="${nome}" oninput="atualizarSaldo(this)">
       `;
     } else {
@@ -195,18 +193,6 @@ function atualizarSaldo(input){
   abas[nome] = parseFloat(input.value) || 0;
   atualizarTotais();
   atualizarGrafico();
-}
-
-// ================== ATUALIZAÇÃO NOME ==================
-function atualizarNome(input){
-  const oldName = input.dataset.oldname;
-  const newName = input.value.trim();
-  if(!newName) return;
-
-  abas[newName] = abas[oldName];
-  delete abas[oldName];
-
-  atualizarSaldosLista();
 }
 
 // ================== CALCULO TOTAIS ==================
@@ -266,9 +252,16 @@ function adicionarMovimento(){
   const valor = parseFloat(document.getElementById('valor-movimento').value) || 0;
   const aba = document.getElementById('aba-movimento').value;
   const desc = document.getElementById('descricao-movimento').value;
-  const data = document.getElementById('data-movimento').value;
+  let data = document.getElementById('data-movimento').value;
 
-  if(valor<=0 || !aba || !data){alert('Preencha todos os campos corretamente'); return;}
+  // Se não preencher data, usa data atual automaticamente
+  if(!data){
+    const hoje = new Date();
+    data = hoje.toISOString().split('T')[0]; // formato YYYY-MM-DD
+    document.getElementById('data-movimento').value = data;
+  }
+
+  if(valor<=0 || !aba){alert('Preencha todos os campos corretamente'); return;}
 
   // Atualiza saldo apenas se for aba principal (não Avô/Pais)
   if(abas[aba] !== undefined){
