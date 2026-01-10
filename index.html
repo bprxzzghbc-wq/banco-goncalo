@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Banco Gonçalo - App Persistente</title>
 <style>
+/* ... mantém todo o teu CSS igual ... */
 *{margin:0;padding:0;box-sizing:border-box;}
 body, html{font-family:'Helvetica Neue', Arial,sans-serif;background:#f5f5f7;color:#333;}
 .app{max-width:420px;margin:auto;padding:15px;}
@@ -43,7 +44,6 @@ th{border-bottom:2px solid #d71c1c;}
 </head>
 <body>
 <div class="app">
-
 <header class="header">
   <h1>Olá Gonçalo!</h1>
   <p>Bem-vindo ao seu Banco</p>
@@ -193,16 +193,22 @@ function adicionarMovimento(){
   document.getElementById('data-movimento').value=data;
 
   if(valor<=0||!aba||!desc){alert('Preencha todos os campos!');return;}
-  if(abas[aba]===undefined) abas[aba]=0;
-  abas[aba]+=(tipo==='gasto'?-valor:valor);
-  atualizarTotais();
-  atualizarGrafico();
 
+  // ✅ Só mexe no saldo se não for Avô ou Pais
+  if(!extrasAbas.includes(aba)){
+    if(abas[aba]===undefined) abas[aba]=0;
+    abas[aba]+=(tipo==='gasto'?-valor:valor);
+    atualizarTotais();
+    atualizarGrafico();
+  }
+
+  // Guarda sempre o movimento no histórico
   const mesAno=data.slice(0,7);
   if(!movimentos[mesAno]) movimentos[mesAno]=[];
   movimentos[mesAno].push({tipo,tipoValor:(tipo==='gasto'?-valor:valor),valor,aba,desc,data});
   localStorage.setItem('movimentos', JSON.stringify(movimentos));
 
+  // Limpa campos
   document.getElementById('valor-movimento').value='';
   document.getElementById('descricao-movimento').value='';
   document.getElementById('data-movimento').value='';
@@ -211,6 +217,7 @@ function adicionarMovimento(){
   mostrarMovimentosMes(mesAno);
 }
 
+// ================== SUB ABAS ==================
 function atualizarSubAbasMensais(){
   const c=document.getElementById('sub-abas-meses');
   c.innerHTML='';
