@@ -104,24 +104,19 @@ th{border-bottom:2px solid #d71c1c;}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 // ================== INICIALIZAÇÃO DE DADOS ==================
-let abas = JSON.parse(localStorage.getItem('abas'));
-if(!abas){
-    abas = {
-        "Ibiza":245,"Dela":4010,"Money 2026":2775,"Notas de 5 (capa)":100,
-        "Capa 1 (azul)":50,"Capa 2 (caixa Apple)":55,"Porta cartões":25,
-        "Capa 3 (preta MagSafe)":50,"Cartão":19.62,"Capa 4 (iPhone 13)":60,
-        "Capa 5 (azul)":15,"Capa Apple Azul Escura":0,"Moedas carteira":131.92
-    };
-    localStorage.setItem('abas', JSON.stringify(abas));
-}
+let abas = JSON.parse(localStorage.getItem('abas')) || {
+    "Ibiza":245,"Dela":4010,"Money 2026":2775,"Notas de 5 (capa)":100,
+    "Capa 1 (azul)":50,"Capa 2 (caixa Apple)":55,"Porta cartões":25,
+    "Capa 3 (preta MagSafe)":50,"Cartão":19.62,"Capa 4 (iPhone 13)":60,
+    "Capa 5 (azul)":15,"Capa Apple Azul Escura":0,"Moedas carteira":131.92
+};
+localStorage.setItem('abas', JSON.stringify(abas));
 
-let movimentos = JSON.parse(localStorage.getItem('movimentos'));
-if(!movimentos) movimentos = {};
-
+let movimentos = JSON.parse(localStorage.getItem('movimentos')) || {};
 let extrasAbas = ["Avô","Pais"];
 let saldoGrafico;
 
-// ================== FUNÇÕES DE ABAS ==================
+// ================== ABAS ==================
 function abrirAba(id, btn){
   document.querySelectorAll('.tab-content').forEach(tab=>tab.style.display='none');
   document.getElementById(id).style.display='block';
@@ -129,7 +124,7 @@ function abrirAba(id, btn){
   if(btn) btn.classList.add('active');
 }
 
-// ================== FUNÇÕES DE SALDOS ==================
+// ================== SALDOS ==================
 function atualizarTotais(){
   let total=0, semMoedas=0, semCartao=0;
   for(const nome in abas){
@@ -158,10 +153,10 @@ function atualizarSaldosLista(){
 
 function atualizarSaldo(input){
   const nome=input.dataset.nome;
-  abas[nome] = parseFloat(input.value) || 0;
+  abas[nome]=parseFloat(input.value)||0;
   atualizarTotais();
   atualizarGrafico();
-  localStorage.setItem('abas', JSON.stringify(abas)); // <-- salva sempre
+  localStorage.setItem('abas', JSON.stringify(abas));
 }
 
 function atualizarGrafico(){
@@ -176,7 +171,7 @@ function atualizarGrafico(){
   });
 }
 
-// ================== FUNÇÕES DE MOVIMENTOS ==================
+// ================== MOVIMENTOS ==================
 function mostrarFormMovimento(){
   const f=document.getElementById('novo-movimento');
   f.style.display=f.style.display==='none'?'block':'none';
@@ -208,7 +203,6 @@ function adicionarMovimento(){
   movimentos[mesAno].push({tipo,tipoValor:(tipo==='gasto'?-valor:valor),valor,aba,desc,data});
   localStorage.setItem('movimentos', JSON.stringify(movimentos));
 
-  // limpar inputs
   document.getElementById('valor-movimento').value='';
   document.getElementById('descricao-movimento').value='';
   document.getElementById('data-movimento').value='';
@@ -245,7 +239,7 @@ function mostrarMovimentosMes(m){
   });
 }
 
-// ================== FUNÇÕES DE PLANEAMENTO ==================
+// ================== PLANEAMENTO ==================
 const planeamentoData={"Money 2026":[{mes:'Janeiro',entradas:60,gastos:120,saldo:2835},{mes:'Fevereiro',entradas:50,gastos:0,saldo:2885},{mes:'Março',entradas:50,gastos:0,saldo:2935},{mes:'Abril',entradas:60,gastos:70,saldo:2925},{mes:'Maio',entradas:50,gastos:0,saldo:2975},{mes:'Junho',entradas:350,gastos:80,saldo:3245},{mes:'Julho',entradas:60,gastos:90,saldo:3215},{mes:'Agosto',entradas:60,gastos:90,saldo:3185},{mes:'Setembro',entradas:50,gastos:70,saldo:3165},{mes:'Outubro',entradas:50,gastos:0,saldo:3215},{mes:'Novembro',entradas:50,gastos:0,saldo:3265},{mes:'Dezembro',entradas:600,gastos:120,saldo:3745}],"Dela":[{mes:'Janeiro',entradas:0,gastos:0,saldo:4010},{mes:'Fevereiro',entradas:0,gastos:0,saldo:4010},{mes:'Março',entradas:0,gastos:0,saldo:4010},{mes:'Abril',entradas:0,gastos:70,saldo:3940},{mes:'Maio',entradas:0,gastos:0,saldo:3940},{mes:'Junho',entradas:0,gastos:60,saldo:3880},{mes:'Julho',entradas:0,gastos:90,saldo:3790},{mes:'Agosto',entradas:0,gastos:90,saldo:3700},{mes:'Setembro',entradas:0,gastos:50,saldo:3650},{mes:'Outubro',entradas:0,gastos:0,saldo:3650},{mes:'Novembro',entradas:0,gastos:0,saldo:3650},{mes:'Dezembro',entradas:0,gastos:120,saldo:3530}]};
 
 function mostrarPlaneamento(aba){
@@ -270,4 +264,8 @@ function mostrarPlaneamento(aba){
 // ================== INICIALIZAÇÃO ==================
 atualizarSaldosLista();
 preencherSelectAbas();
-mostrarPlaneamento(document.getElement
+mostrarPlaneamento(document.getElementById('planeamento-aba').value);
+atualizarSubAbasMensais();
+</script>
+</body>
+</html>
