@@ -3,182 +3,244 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Banco Gonçalo - Mini-App Santander com Gráfico</title>
+<title>Banco Gonçalo - App Completa</title>
 <style>
-/* ===== RESET E BASE ===== */
+/* ================= RESET ================= */
 * { margin:0; padding:0; box-sizing:border-box; }
 body, html { font-family:'Helvetica Neue', Arial, sans-serif; background:#f5f5f7; color:#333; }
 .app { max-width:420px; margin:auto; padding:15px; }
 
-/* ===== HEADER ===== */
-.header { background:#d71c1c; color:white; padding:35px 25px; border-radius:30px; text-align:center; margin-bottom:25px; box-shadow:0 5px 25px rgba(0,0,0,0.25); transition:all 0.3s; }
-.header h1 { font-size:30px; font-weight:700; text-shadow:1px 1px 2px rgba(0,0,0,0.2); }
-.header p { margin-top:10px; font-size:16px; opacity:0.9; }
+/* ================= HEADER ================= */
+.header { background:#d71c1c; color:white; padding:35px 25px; border-radius:30px; text-align:center; margin-bottom:20px; box-shadow:0 5px 25px rgba(0,0,0,0.25); }
+.header h1 { font-size:28px; font-weight:700; text-shadow:1px 1px 2px rgba(0,0,0,0.2); }
+.header p { margin-top:6px; font-size:16px; opacity:0.9; }
 
-/* ===== TOTAL GERAL ===== */
-.card { border-radius:22px; padding:20px; margin-bottom:20px; box-shadow:0 6px 18px rgba(0,0,0,0.08); position:relative; transition:all 0.3s; }
+/* ================= ABAS ================= */
+.tabs { display:flex; justify-content:space-around; margin-bottom:15px; }
+.tab-button { padding:10px 12px; border:none; border-radius:12px; background:#ddd; cursor:pointer; font-weight:600; transition:all 0.3s; }
+.tab-button.active { background:#d71c1c; color:white; }
+
+/* ================= CARDS ================= */
+.card { border-radius:22px; padding:18px 20px; margin-bottom:15px; box-shadow:0 5px 18px rgba(0,0,0,0.1); position:relative; transition:all 0.3s; }
 .total-card { background:linear-gradient(135deg,#d71c1c,#a80000); color:white; text-align:center; animation:pulse 2s infinite; }
-.total-card h2 { font-size:34px; font-weight:700; letter-spacing:1px; margin-top:10px; }
+.total-card h2 { font-size:32px; font-weight:700; margin-top:8px; }
 
-/* ===== TOTAIS SECUNDÁRIOS ===== */
-.card.small { display:flex; justify-content:space-between; padding:16px 22px; background:white; border-radius:18px; box-shadow:0 4px 14px rgba(0,0,0,0.06); margin-bottom:14px; transition:all 0.3s; }
+/* ================= TOTAIS SECUNDÁRIOS ================= */
+.card.small { display:flex; justify-content:space-between; padding:14px 18px; background:white; border-radius:18px; box-shadow:0 4px 14px rgba(0,0,0,0.06); margin-bottom:12px; }
 .card.small span { font-size:14px; font-weight:500; color:#333; }
 .card.small strong { font-size:16px; font-weight:600; color:#d71c1c; }
 
-/* ===== LISTA DE SALDOS ===== */
-.list h3 { margin-bottom:14px; font-size:22px; color:#d71c1c; font-weight:600; text-shadow:1px 1px 2px rgba(0,0,0,0.2); }
-.item { display:flex; justify-content:space-between; align-items:center; background:white; padding:16px 22px; border-radius:20px; margin-bottom:12px; box-shadow:0 4px 12px rgba(0,0,0,0.08); transition:all 0.25s; position:relative; }
-.item:hover { transform:translateY(-3px); box-shadow:0 8px 22px rgba(0,0,0,0.14); }
+/* ================= LISTA DE SALDOS ================= */
+.list h3 { margin-bottom:12px; font-size:20px; color:#d71c1c; font-weight:600; }
+.item { display:flex; justify-content:space-between; align-items:center; background:white; padding:14px 18px; border-radius:18px; margin-bottom:10px; box-shadow:0 3px 10px rgba(0,0,0,0.08); transition:all 0.25s; position:relative; }
+.item:hover { transform:translateY(-2px); box-shadow:0 6px 18px rgba(0,0,0,0.12); }
 .item span { font-size:16px; font-weight:500; }
-.item input { width:100px; text-align:right; border:none; font-size:16px; font-weight:600; border-radius:10px; padding:6px; transition:all 0.2s; background:#f9f9f9; }
-.item input:focus { outline:none; background:#fff; box-shadow:0 0 6px rgba(0,0,0,0.15); }
+.item input { width:90px; text-align:right; border:none; font-size:16px; font-weight:600; border-radius:8px; padding:5px; transition:all 0.2s; background:#f9f9f9; }
+.item input:focus { outline:none; background:#fff; box-shadow:0 0 5px rgba(0,0,0,0.15); }
+.item span[data-info]:hover::after { content: attr(data-info); position:absolute; background:#d71c1c; color:white; padding:4px 10px; border-radius:6px; font-size:12px; top:-28px; left:0; white-space:nowrap; }
 
-/* ===== TOOLTIP ===== */
-.item span[data-info]:hover::after {
-  content: attr(data-info);
-  position:absolute;
-  background:#d71c1c; color:white; padding:5px 12px; border-radius:8px;
-  font-size:12px; top:-38px; left:0; white-space:nowrap; opacity:0.95;
-}
+/* ================= DIVISORES ================= */
+.divider { height:1px; background:#eee; margin:15px 0; }
 
-/* ===== DIVISORES ===== */
-.divider { height:1px; background:#eee; margin:20px 0; }
+/* ================= ANIMAÇÃO ================= */
+@keyframes pulse { 0% { box-shadow:0 0 0 rgba(215,28,28,0.4);} 70% { box-shadow:0 0 20px rgba(215,28,28,0.4);} 100% { box-shadow:0 0 0 rgba(215,28,28,0.4);} }
 
-/* ===== ICONES ===== */
-.item::before { content:"💰"; margin-right:12px; font-size:18px; }
+/* ================= RESPONSIVO ================= */
+@media screen and (max-width:450px){ .app{padding:10px;} .item input{width:75px;font-size:14px;} }
 
-/* ===== ANIMAÇÃO ===== */
-@keyframes pulse {
-  0% { box-shadow:0 0 0 rgba(215,28,28,0.4); }
-  70% { box-shadow:0 0 20px rgba(215,28,28,0.4); }
-  100% { box-shadow:0 0 0 rgba(215,28,28,0.4); }
-}
+/* ================= CORES POR STATUS ================= */
+.item.positivo input{color:green;}
+.item.negativo input{color:red;}
 
-/* ===== RESPONSIVO ===== */
-@media screen and (max-width:450px){
-  .app { padding:10px; }
-  .item input { width:80px; font-size:14px; }
-  .card.small { padding:12px 16px; }
-}
-
-/* ===== CORES POR STATUS ===== */
-.item.positivo input { color:green; }
-.item.negativo input { color:red; }
-
-/* ===== DETALHES ===== */
-.header h1, .list h3 { text-shadow:1px 1px 2px rgba(0,0,0,0.2); }
-
-/* ===== GRÁFICO ===== */
-#grafico-container { background:white; padding:20px; border-radius:20px; box-shadow:0 4px 14px rgba(0,0,0,0.06); margin-top:25px; }
+/* ================= GRÁFICO ================= */
+#grafico-container{background:white;padding:15px;border-radius:20px;box-shadow:0 4px 14px rgba(0,0,0,0.06); margin-top:20px;}
 </style>
 </head>
 <body>
-
 <div class="app">
+
   <!-- HEADER -->
   <header class="header">
     <h1>Olá Gonçalo!</h1>
     <p>Bem-vindo ao seu Banco</p>
   </header>
 
-  <!-- TOTAL GERAL -->
-  <section class="card total-card">
-    <span>Total geral</span>
-    <h2>€ <span id="total">0.00</span></h2>
-  </section>
-
-  <!-- TOTAIS SECUNDÁRIOS -->
-  <section class="card small">
-    <span>Sem moedas</span>
-    <strong>€ <span id="sem-moedas">0.00</span></strong>
-  </section>
-
-  <section class="card small">
-    <span>Sem moedas e sem cartão</span>
-    <strong>€ <span id="sem-moedas-cartao">0.00</span></strong>
-  </section>
-
-  <div class="divider"></div>
-
-  <!-- LISTA DE SALDOS -->
-  <section class="list">
-    <h3>Saldos</h3>
-    <div class="item positivo"><span data-info="Saldo Ibiza">Ibiza</span><input type="number" value="245"></div>
-    <div class="item positivo"><span data-info="Saldo Dela">Dela</span><input type="number" value="4010"></div>
-    <div class="item positivo"><span data-info="Saldo Money 2026">Money 2026</span><input type="number" value="2775"></div>
-    <div class="item positivo"><span data-info="Notas de 5 (capa)">Notas de 5 (capa)</span><input type="number" value="100"></div>
-    <div class="item positivo"><span data-info="Capa 1 (azul)">Capa 1 (azul)</span><input type="number" value="50"></div>
-    <div class="item positivo"><span data-info="Capa 2 (caixa Apple)">Capa 2 (caixa Apple)</span><input type="number" value="55"></div>
-    <div class="item positivo"><span data-info="Porta cartões">Porta cartões</span><input type="number" value="25"></div>
-    <div class="item positivo"><span data-info="Capa 3 (preta MagSafe)">Capa 3 (preta MagSafe)</span><input type="number" value="50"></div>
-    <div class="item positivo"><span data-info="Cartão">Cartão</span><input type="number" value="19.62"></div>
-    <div class="item positivo"><span data-info="Capa 4 (iPhone 13)">Capa 4 (iPhone 13)</span><input type="number" value="60"></div>
-    <div class="item positivo"><span data-info="Capa 5 (azul)">Capa 5 (azul)</span><input type="number" value="15"></div>
-    <div class="item positivo"><span data-info="Moedas carteira">Moedas carteira</span><input type="number" value="131.92"></div>
-  </section>
-
-  <!-- GRÁFICO -->
-  <div id="grafico-container">
-    <canvas id="saldoGrafico" width="400" height="200"></canvas>
+  <!-- ABAS -->
+  <div class="tabs">
+    <button class="tab-button active" onclick="abrirAba('saldos')">Saldos</button>
+    <button class="tab-button" onclick="abrirAba('movimentos')">Movimentos</button>
+    <button class="tab-button" onclick="abrirAba('planeamento')">Planeamento</button>
   </div>
+
+  <!-- ABA SALDOS -->
+  <div id="saldos" class="tab-content">
+    <!-- TOTAL GERAL -->
+    <section class="card total-card">
+      <span>Total geral</span>
+      <h2>€ <span id="total">0.00</span></h2>
+    </section>
+
+    <!-- TOTAIS SECUNDÁRIOS -->
+    <section class="card small"><span>Sem moedas</span><strong>€ <span id="sem-moedas">0.00</span></strong></section>
+    <section class="card small"><span>Sem moedas e sem cartão</span><strong>€ <span id="sem-moedas-cartao">0.00</span></strong></section>
+
+    <div class="divider"></div>
+
+    <!-- LISTA DE SALDOS -->
+    <section class="list">
+      <h3>Saldos</h3>
+      <div class="item positivo"><span data-info="Saldo Ibiza">Ibiza</span><input type="number" value="245"></div>
+      <div class="item positivo"><span data-info="Saldo Dela">Dela</span><input type="number" value="4010"></div>
+      <div class="item positivo"><span data-info="Saldo Money 2026">Money 2026</span><input type="number" value="2775"></div>
+      <div class="item positivo"><span data-info="Notas de 5 (capa)">Notas de 5 (capa)</span><input type="number" value="100"></div>
+      <div class="item positivo"><span data-info="Capa 1 (azul)">Capa 1 (azul)</span><input type="number" value="50"></div>
+      <div class="item positivo"><span data-info="Capa 2 (caixa Apple)">Capa 2 (caixa Apple)</span><input type="number" value="55"></div>
+      <div class="item positivo"><span data-info="Porta cartões">Porta cartões</span><input type="number" value="25"></div>
+      <div class="item positivo"><span data-info="Capa 3 (preta MagSafe)">Capa 3 (preta MagSafe)</span><input type="number" value="50"></div>
+      <div class="item positivo"><span data-info="Cartão">Cartão</span><input type="number" value="19.62"></div>
+      <div class="item positivo"><span data-info="Capa 4 (iPhone 13)">Capa 4 (iPhone 13)</span><input type="number" value="60"></div>
+      <div class="item positivo"><span data-info="Capa 5 (azul)">Capa 5 (azul)</span><input type="number" value="15"></div>
+      <div class="item positivo"><span data-info="Moedas carteira">Moedas carteira</span><input type="number" value="131.92"></div>
+    </section>
+
+    <!-- GRÁFICO -->
+    <div id="grafico-container">
+      <canvas id="saldoGrafico" width="400" height="200"></canvas>
+    </div>
+  </div>
+
+  <!-- ABA MOVIMENTOS -->
+  <div id="movimentos" class="tab-content" style="display:none;">
+    <h3>Movimentos</h3>
+    <ul id="lista-movimentos" style="list-style:none;padding-left:0;"></ul>
+  </div>
+
+  <!-- ABA PLANEAMENTO -->
+  <div id="planeamento" class="tab-content" style="display:none;">
+    <h3>Planeamento Financeiro 2026</h3>
+    <button onclick="mostrarPlaneamento('Money 2026')">Money 2026</button>
+    <button onclick="mostrarPlaneamento('Dela')">Dela</button>
+    <div id="tabela-planeamento" style="margin-top:15px;"></div>
+  </div>
+
 </div>
 
 <!-- Chart.js CDN -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <script>
-// ================= FUNÇÃO PARA ATUALIZAR TOTAIS =================
-function atualizarTotais() {
-  let total=0, semMoedas=0, semMoedasCartao=0;
+// ================= FUNÇÕES ABAS =================
+function abrirAba(id){
+  document.querySelectorAll('.tab-content').forEach(t=>t.style.display='none');
+  document.getElementById(id).style.display='block';
+  document.querySelectorAll('.tab-button').forEach(b=>b.classList.remove('active'));
+  event.target.classList.add('active');
+}
 
-  document.querySelectorAll('.item input').forEach(input=>{
+// ================= SALDOS E TOTAIS =================
+let movimentos = [];
+function atualizarTotais(){
+  let total=0, semMoedas=0, semMoedasCartao=0;
+  document.querySelectorAll('#saldos .item input').forEach(input=>{
     const valor = parseFloat(input.value)||0;
     const nome = input.previousElementSibling.textContent.toLowerCase();
-
     total += valor;
     if(!nome.includes('moedas')) semMoedas += valor;
     if(!nome.includes('moedas') && !nome.includes('cartão')) semMoedasCartao += valor;
-
     input.style.color = (valor>=0)?'green':'red';
 
-    // Atualiza histórico de cada saldo
-    if(!input.history) input.history = [];
+    // MOVIMENTOS
     const hoje = new Date().toLocaleDateString('pt-PT');
-    input.history.push({date:hoje, value:valor});
+    if(!input.prevValor) input.prevValor = valor;
+    const diff = valor - input.prevValor;
+    if(diff!==0){
+      movimentos.push({nome:input.previousElementSibling.textContent,date:hoje,valor:diff});
+      input.prevValor = valor;
+    }
   });
-
   document.getElementById('total').textContent = total.toLocaleString('pt-PT',{minimumFractionDigits:2});
   document.getElementById('sem-moedas').textContent = semMoedas.toLocaleString('pt-PT',{minimumFractionDigits:2});
   document.getElementById('sem-moedas-cartao').textContent = semMoedasCartao.toLocaleString('pt-PT',{minimumFractionDigits:2});
-
   atualizarGrafico();
+  atualizarMovimentos();
 }
 
-// ================= CRIAR GRÁFICO =================
+// ================= GRÁFICO =================
 const ctx = document.getElementById('saldoGrafico').getContext('2d');
-const saldoGrafico = new Chart(ctx, {
-  type: 'line',
-  data: { labels: [], datasets: [{ label: 'Total geral', data: [], borderColor:'#d71c1c', backgroundColor:'rgba(215,28,28,0.1)', fill:true, tension:0.3 }] },
-  options: { responsive:true, plugins:{ legend:{display:true} }, scales:{ y:{ beginAtZero:true } } }
+const saldoGrafico = new Chart(ctx,{
+  type:'line',
+  data:{ labels:[], datasets:[{label:'Total Geral', data:[], borderColor:'#d71c1c', backgroundColor:'rgba(215,28,28,0.1)', fill:true, tension:0.3}] },
+  options:{ responsive:true, plugins:{legend:{display:true}}, scales:{y:{beginAtZero:true}}}
 });
-
-function atualizarGrafico() {
+function atualizarGrafico(){
   const hoje = new Date().toLocaleDateString('pt-PT');
-  // Adiciona novo ponto
   const totalAtual = parseFloat(document.getElementById('total').textContent.replace('.','').replace(',','.'))||0;
   saldoGrafico.data.labels.push(hoje);
   saldoGrafico.data.datasets[0].data.push(totalAtual);
   saldoGrafico.update();
 }
 
+// ================= MOVIMENTOS =================
+function atualizarMovimentos(){
+  const lista = document.getElementById('lista-movimentos');
+  lista.innerHTML='';
+  movimentos.forEach(m=>{
+    const li = document.createElement('li');
+    li.textContent = `${m.date} - ${m.nome}: ${(m.valor>=0?'+':'')+m.valor.toFixed(2)} €`;
+    li.style.color = (m.valor>=0)?'green':'red';
+    lista.appendChild(li);
+  });
+}
+
+// ================= PLANEAMENTO =================
+const planeamentoData = {
+  "Money 2026":[
+    {mes:"Janeiro",entradas:60,gastos:120,saldo:2835},
+    {mes:"Fevereiro",entradas:50,gastos:0,saldo:2885},
+    {mes:"Março",entradas:50,gastos:0,saldo:2935},
+    {mes:"Abril",entradas:60,gastos:70,saldo:2925},
+    {mes:"Maio",entradas:50,gastos:0,saldo:2975},
+    {mes:"Junho",entradas:350,gastos:80,saldo:3245},
+    {mes:"Julho",entradas:60,gastos:90,saldo:3215},
+    {mes:"Agosto",entradas:60,gastos:90,saldo:3185},
+    {mes:"Setembro",entradas:50,gastos:70,saldo:3165},
+    {mes:"Outubro",entradas:50,gastos:0,saldo:3215},
+    {mes:"Novembro",entradas:50,gastos:0,saldo:3265},
+    {mes:"Dezembro",entradas:600,gastos:120,saldo:3745}
+  ],
+  "Dela":[
+    {mes:"Janeiro",entradas:0,gastos:0,saldo:4010},
+    {mes:"Fevereiro",entradas:0,gastos:0,saldo:4010},
+    {mes:"Março",entradas:0,gastos:0,saldo:4010},
+    {mes:"Abril",entradas:0,gastos:70,saldo:3940},
+    {mes:"Maio",entradas:0,gastos:0,saldo:3940},
+    {mes:"Junho",entradas:0,gastos:60,saldo:3880},
+    {mes:"Julho",entradas:0,gastos:90,saldo:3790},
+    {mes:"Agosto",entradas:0,gastos:90,saldo:3700},
+    {mes:"Setembro",entradas:0,gastos:50,saldo:3650},
+    {mes:"Outubro",entradas:0,gastos:0,saldo:3650},
+    {mes:"Novembro",entradas:0,gastos:0,saldo:3650},
+    {mes:"Dezembro",entradas:0,gastos:120,saldo:3530}
+  ]
+};
+function mostrarPlaneamento(nome){
+  const div = document.getElementById('tabela-planeamento');
+  const dados = planeamentoData[nome];
+  let html = `<table border="1" style="width:100%;border-collapse:collapse;text-align:center;">
+  <tr style="background:#d71c1c;color:white;"><th>Mês</th><th>Entradas</th><th>Gastos</th><th>Saldo</th></tr>`;
+  dados.forEach(d=>{
+    html+=`<tr><td>${d.mes}</td><td>${d.entradas} €</td><td>${d.gastos} €</td><td>${d.saldo} €</td></tr>`;
+  });
+  html+='</table>';
+  div.innerHTML=html;
+}
+
 // ================= EVENTOS =================
-document.querySelectorAll('.item input').forEach(input=>{
+document.querySelectorAll('#saldos .item input').forEach(input=>{
   input.addEventListener('input', atualizarTotais);
 });
 
 // ================= INICIALIZAÇÃO =================
 atualizarTotais();
 </script>
-
 </body>
 </html>
