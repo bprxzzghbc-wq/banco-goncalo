@@ -37,6 +37,8 @@ body, html{font-family:'Helvetica Neue', Arial,sans-serif;background:#f5f5f7;col
 #novo-movimento{display:none;background:white;padding:15px;border-radius:18px;box-shadow:0 4px 14px rgba(0,0,0,0.1);margin-bottom:15px;}
 #novo-movimento input,#novo-movimento select,#novo-movimento textarea{margin-bottom:8px;padding:5px;width:100%;border-radius:8px;border:1px solid #ccc;}
 #novo-movimento label{font-weight:600;font-size:14px;display:block;margin-top:5px;}
+.sub-aba-mes button{margin:3px;padding:6px 10px;border-radius:10px;border:none;background:#ddd;cursor:pointer;}
+.sub-aba-mes button.active{background:#d71c1c;color:white;}
 </style>
 </head>
 <body>
@@ -48,7 +50,7 @@ body, html{font-family:'Helvetica Neue', Arial,sans-serif;background:#f5f5f7;col
     <p>Bem-vindo ao seu Banco</p>
   </header>
 
-  <!-- ABAS -->
+  <!-- ABAS PRINCIPAIS -->
   <div class="tabs">
     <button class="tab-button active" onclick="abrirAba('saldos')">Saldos</button>
     <button class="tab-button" onclick="abrirAba('movimentos')">Movimentos</button>
@@ -57,24 +59,16 @@ body, html{font-family:'Helvetica Neue', Arial,sans-serif;background:#f5f5f7;col
 
   <!-- ABA SALDOS -->
   <div id="saldos" class="tab-content">
-    <!-- TOTAL GERAL -->
     <section class="card total-card">
       <span>Total geral</span>
       <h2>€ <span id="total">0.00</span></h2>
     </section>
-
-    <!-- TOTAIS SECUNDÁRIOS -->
     <section class="card small"><span>Sem moedas</span><strong>€ <span id="sem-moedas">0.00</span></strong></section>
     <section class="card small"><span>Sem moedas e sem cartão</span><strong>€ <span id="sem-moedas-cartao">0.00</span></strong></section>
-
     <div class="divider"></div>
-
-    <!-- LISTA DE SALDOS -->
     <section class="list" id="lista-saldos">
       <h3>Saldos</h3>
     </section>
-
-    <!-- GRÁFICO -->
     <div id="grafico-container">
       <canvas id="saldoGrafico" width="400" height="200"></canvas>
     </div>
@@ -83,8 +77,10 @@ body, html{font-family:'Helvetica Neue', Arial,sans-serif;background:#f5f5f7;col
   <!-- ABA MOVIMENTOS -->
   <div id="movimentos" class="tab-content" style="display:none;">
     <h3>Movimentos</h3>
+    <div class="sub-aba-mes" id="sub-abas-meses">
+      <!-- Sub-abas mensais serão criadas automaticamente -->
+    </div>
     <button class="add-button" onclick="mostrarFormMovimento()">+ Adicionar Movimento</button>
-    
     <div id="novo-movimento">
       <label>Tipo</label>
       <select id="tipo-movimento">
@@ -101,8 +97,6 @@ body, html{font-family:'Helvetica Neue', Arial,sans-serif;background:#f5f5f7;col
       <input type="date" id="data-movimento">
       <button class="add-button" onclick="adicionarMovimento()">Adicionar</button>
     </div>
-
-    <!-- Lista de Movimentos -->
     <div id="lista-movimentos-mensal"></div>
   </div>
 
@@ -118,7 +112,7 @@ body, html{font-family:'Helvetica Neue', Arial,sans-serif;background:#f5f5f7;col
 
 </div>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script>
+<script>
 // ================== DADOS INICIAIS ==================
 let abas = {
   "Ibiza":245,
@@ -132,15 +126,13 @@ let abas = {
   "Cartão":19.62,
   "Capa 4 (iPhone 13)":60,
   "Capa 5 (azul)":15,
-  "Nova Capa":0,   // ← Nome editável
+  "Nova Capa":0,
   "Moedas carteira":131.92
 };
 
-// Adicionando abas extras para movimentos
-let abasMovimentoExtras = ["Avô","Pais"];
+let abasMovimentoExtras = ["Avô","Pais"]; // extras que não alteram saldos
 
-// Movimentos armazenados por mês/ano
-let movimentos = {}; // Ex: {'2026-01':[ {tipo:'gasto',valor:50,aba:'Ibiza',desc:'Supermercado',data:'2026-01-10'} ] }
+let movimentos = {}; // Guarda movimentos agrupados por mês-ano, ex: {"2026-01": [...]}
 
 // ================== ABAS ==================
 function abrirAba(id){
@@ -156,14 +148,13 @@ function abrirAba(id){
 // ================== LISTA DE SALDOS ==================
 function atualizarSaldosLista(){
   const lista = document.getElementById('lista-saldos');
-  lista.innerHTML=''; // limpa lista
+  lista.innerHTML='';
 
   for(const nome in abas){
     const valor = abas[nome];
     const div = document.createElement('div');
     div.className='item';
-    
-    // Se for Nova Capa, permite editar nome
+
     if(nome==="Nova Capa"){
       div.innerHTML = `
         <input type="text" value="${nome}" data-oldname="${nome}" oninput="atualizarNome(this)">
@@ -187,7 +178,6 @@ function atualizarSaldosLista(){
     option.textContent=nome;
     selectAba.appendChild(option);
   }
-  // Adiciona Avô e Pais
   abasMovimentoExtras.forEach(a=>{
     const option = document.createElement('option');
     option.value=a;
@@ -196,6 +186,7 @@ function atualizarSaldosLista(){
   });
 
   atualizarTotais();
+  atualizarGrafico();
 }
 
 // ================== ATUALIZAÇÃO SALDO ==================
@@ -212,28 +203,10 @@ function atualizarNome(input){
   const newName = input.value.trim();
   if(!newName) return;
 
-  // Atualiza o objeto abas
   abas[newName] = abas[oldName];
   delete abas[oldName];
 
-  // Atualiza select de movimentos
-  const selectAba = document.getElementById('aba-movimento');
-  selectAba.innerHTML='';
-  for(const n in abas){
-    const option = document.createElement('option');
-    option.value=n;
-    option.textContent=n;
-    selectAba.appendChild(option);
-  }
-  abasMovimentoExtras.forEach(a=>{
-    const option = document.createElement('option');
-    option.value=a;
-    option.textContent=a;
-    selectAba.appendChild(option);
-  });
-
-  atualizarTotais();
-  atualizarGrafico();
+  atualizarSaldosLista();
 }
 
 // ================== CALCULO TOTAIS ==================
@@ -276,7 +249,7 @@ function atualizarGrafico(){
   });
 }
 
-// ================== MOVIMENTOS ==================
+// ================== FORM MOVIMENTO ==================
 function mostrarFormMovimento(){
   const form = document.getElementById('novo-movimento');
   form.style.display = form.style.display==='none' ? 'block' : 'none';
@@ -306,11 +279,12 @@ function adicionarMovimento(){
   atualizarTotais();
   atualizarGrafico();
 
-  // Guarda movimento no histórico por mês/ano
+  // ================== AGRUPA POR MÊS ==================
   const mesAno = data.slice(0,7); // "YYYY-MM"
   if(!movimentos[mesAno]) movimentos[mesAno]=[];
   movimentos[mesAno].push({tipo,tipoValor:(tipo==='gasto'? -valor:valor),valor,aba,desc,data});
 
+  atualizarSubAbasMensais();
   mostrarMovimentosMes(mesAno);
 
   // Limpar form
@@ -319,10 +293,25 @@ function adicionarMovimento(){
   document.getElementById('novo-movimento').style.display='none';
 }
 
-// ================== MOSTRAR MOVIMENTOS DO MÊS ==================
+// ================== SUB-ABAS MENSAIS ==================
+function atualizarSubAbasMensais(){
+  const container = document.getElementById('sub-abas-meses');
+  container.innerHTML='';
+
+  Object.keys(movimentos).sort().forEach(mesAno=>{
+    const btn = document.createElement('button');
+    btn.textContent = mesAno;
+    btn.onclick = ()=> mostrarMovimentosMes(mesAno);
+    btn.className = '';
+    container.appendChild(btn);
+  });
+}
+
+// ================== MOSTRAR MOVIMENTOS DE UM MÊS ==================
 function mostrarMovimentosMes(mesAno){
   const container = document.getElementById('lista-movimentos-mensal');
-  container.innerHTML = `<h4>Movimentos de ${mesAno}</h4>`;
+  container.innerHTML=`<h4>Movimentos de ${mesAno}</h4>`;
+
   if(!movimentos[mesAno] || movimentos[mesAno].length===0){
     container.innerHTML += '<p>Nenhum movimento neste mês.</p>';
     return;
@@ -371,13 +360,12 @@ const planeamentoData = {
 
 function mostrarPlaneamento(aba){
   const container = document.getElementById('tabela-planeamento');
-  container.innerHTML=''; // limpa tabela
+  container.innerHTML='';
 
   const tabela = document.createElement('table');
   tabela.style.width='100%';
   tabela.style.borderCollapse='collapse';
 
-  // Cabeçalho
   const cab = document.createElement('tr');
   ['Mês','Entradas (€)','Gastos (€)','Saldo (€)'].forEach(t=>{
     const th = document.createElement('th');
@@ -385,11 +373,10 @@ function mostrarPlaneamento(aba){
     th.style.borderBottom='2px solid #d71c1c';
     th.style.padding='6px 8px';
     th.style.textAlign='left';
-    tabela.appendChild(th);
+    cab.appendChild(th);
   });
   tabela.appendChild(cab);
 
-  // Linhas
   planeamentoData[aba].forEach(m=>{
     const tr = document.createElement('tr');
     [m.mes,m.entradas,m.gastos,m.saldo].forEach(v=>{
@@ -410,4 +397,3 @@ atualizarGrafico();
 </script>
 </body>
 </html>
-  
