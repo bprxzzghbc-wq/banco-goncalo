@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Banco Gonçalo - App Interativa</title>
 <style>
+/* ================== ESTILOS ================== */
 *{margin:0;padding:0;box-sizing:border-box;}
 body, html{font-family:'Helvetica Neue',Arial,sans-serif;background:#f5f5f7;color:#333;}
 .app{max-width:420px;margin:auto;padding:15px;}
@@ -28,11 +29,6 @@ body, html{font-family:'Helvetica Neue',Arial,sans-serif;background:#f5f5f7;colo
 .item input:focus{outline:none;background:#fff;box-shadow:0 0 5px rgba(0,0,0,0.15);}
 .divider{height:1px;background:#eee;margin:15px 0;}
 @keyframes pulse{0%{box-shadow:0 0 0 rgba(215,28,28,0.4);}70%{box-shadow:0 0 20px rgba(215,28,28,0.4);}100%{box-shadow:0 0 0 rgba(215,28,28,0.4);}}
-#novo-movimento{display:none;background:white;padding:15px;border-radius:18px;box-shadow:0 4px 14px rgba(0,0,0,0.1);margin-bottom:15px;}
-#novo-movimento input,#novo-movimento select,#novo-movimento textarea{margin-bottom:8px;padding:5px;width:100%;border-radius:8px;border:1px solid #ccc;}
-#novo-movimento label{font-weight:600;font-size:14px;display:block;margin-top:5px;}
-.add-button{background:#d71c1c;color:white;border:none;padding:8px 12px;border-radius:12px;font-weight:600;cursor:pointer;margin:10px 0;transition:0.3s;}
-.add-button:hover{background:#a80000;}
 #grafico-container{background:white;padding:15px;border-radius:20px;box-shadow:0 4px 14px rgba(0,0,0,0.06);margin-top:20px;}
 </style>
 </head>
@@ -71,37 +67,15 @@ body, html{font-family:'Helvetica Neue',Arial,sans-serif;background:#f5f5f7;colo
 
   <!-- ABA MOVIMENTOS -->
   <div id="movimentos" class="tab-content" style="display:none;">
-    <button class="add-button" onclick="mostrarFormMovimento()">+ Adicionar Movimento</button>
-    <div id="novo-movimento">
-      <label>Tipo:</label>
-      <select id="tipo-movimento">
-        <option value="ganho">Ganho</option>
-        <option value="gasto">Gasto</option>
-      </select>
-      <label>Valor (€):</label>
-      <input type="number" id="valor-movimento">
-      <label>Descrição:</label>
-      <input type="text" id="descricao-movimento">
-      <label>Aba:</label>
-      <select id="aba-movimento"></select> <!-- Lista de todas abas + extras preenchida pelo JS -->
-      <label>Data (opcional):</label>
-      <input type="date" id="data-movimento">
-      <button class="add-button" onclick="adicionarMovimento()">Salvar Movimento</button>
-    </div>
-    <div class="divider"></div>
-    <div class="sub-aba-mes" id="sub-abas-meses"></div>
-    <div id="lista-movimentos-mensal"></div>
+    <!-- Preparação da Parte 3 -->
   </div>
 
   <!-- ABA PLANEAMENTO -->
   <div id="planeamento" class="tab-content" style="display:none;">
-    <div>
-      <label>Selecione Aba:</label>
-      <select id="planeamento-aba"></select> <!-- Preenchida pelo JS -->
-      <div id="tabela-planeamento"></div>
-    </div>
+    <!-- Preparação da Parte 3 -->
   </div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 // ================== ABAS ==================
 function abrirAba(id){
@@ -114,78 +88,24 @@ function abrirAba(id){
   event.target.classList.add('active');
 }
 
-// ================== CARREGAR ABAS MOVIMENTO ==================
-let abas = ["Ibiza","Dela","Money 2026","Notas de 5 (capa)","Capa 1 (azul)","Capa 2 (caixa Apple)","Porta cartões","Capa 3 (preta MagSafe)","Cartão","Capa 4 (iPhone 13)","Capa 5 (azul)","Capa Apple Azul Escura","Moedas carteira"];
-let abasExtras = ["Avô","Pais"];
-let movimentos = {};
+// ================== ABAS DE SALDO ==================
+let valoresAbas = {
+  "Ibiza":245,
+  "Dela":4010,
+  "Money 2026":2775,
+  "Notas de 5 (capa)":100,
+  "Capa 1 (azul)":50,
+  "Capa 2 (caixa Apple)":55,
+  "Porta cartões":25,
+  "Capa 3 (preta MagSafe)":50,
+  "Cartão":19.62,
+  "Capa 4 (iPhone 13)":60,
+  "Capa 5 (azul)":15,
+  "Capa Apple Azul Escura":0,
+  "Moedas carteira":131.92
+};
 
-function carregarAbasMovimento(){
-  const select = document.getElementById('aba-movimento');
-  select.innerHTML='';
-  [...abas,...abasExtras].forEach(a=>{
-    const option = document.createElement('option');
-    option.value = a;
-    option.textContent = a;
-    select.appendChild(option);
-  });
-}
-
-// Planeamento financeiro
-function carregarPlaneamentoAbas(){
-  const select = document.getElementById('planeamento-aba');
-  select.innerHTML='';
-  ["Money 2026","Dela"].forEach(a=>{
-    const option = document.createElement('option');
-    option.value=a;
-    option.textContent=a;
-    select.appendChild(option);
-  });
-}
-
-// Inicialização
-carregarAbasMovimento();
-carregarPlaneamentoAbas();
-</script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-// ================== CARREGAR E SALVAR LOCAL ==================
-let valoresAbas = {}; // armazenar valores atuais de cada aba
-let movimentos = {};  // futuro histórico de movimentos
-
-// Função para carregar valores salvos
-function carregarDados(){
-  const salvos = localStorage.getItem('valoresAbas');
-  const movSalvos = localStorage.getItem('movimentos');
-  if(salvos){
-    valoresAbas = JSON.parse(salvos);
-  } else {
-    // valores iniciais
-    valoresAbas = {
-      "Ibiza":245,
-      "Dela":4010,
-      "Money 2026":2775,
-      "Notas de 5 (capa)":100,
-      "Capa 1 (azul)":50,
-      "Capa 2 (caixa Apple)":55,
-      "Porta cartões":25,
-      "Capa 3 (preta MagSafe)":50,
-      "Cartão":19.62,
-      "Capa 4 (iPhone 13)":60,
-      "Capa 5 (azul)":15,
-      "Capa Apple Azul Escura":0,
-      "Moedas carteira":131.92
-    };
-  }
-  if(movSalvos) movimentos = JSON.parse(movSalvos);
-}
-
-// Função para salvar no localStorage
-function salvarDados(){
-  localStorage.setItem('valoresAbas', JSON.stringify(valoresAbas));
-  localStorage.setItem('movimentos', JSON.stringify(movimentos));
-}
-
-// ================== ATUALIZAÇÃO SALDOS ==================
+// Atualizar lista de saldos
 function atualizarSaldosLista(){
   const lista = document.getElementById('lista-saldos');
   lista.innerHTML='';
@@ -193,8 +113,6 @@ function atualizarSaldosLista(){
     const valor = valoresAbas[nome];
     const div = document.createElement('div');
     div.className='item';
-
-    // Apenas Nova Capa input no valor
     div.innerHTML = `<span>${nome}</span>
       <input type="number" value="${valor}" data-nome="${nome}" oninput="alterarSaldo(this)">`;
     lista.appendChild(div);
@@ -203,16 +121,16 @@ function atualizarSaldosLista(){
   atualizarGrafico();
 }
 
-// Função para alterar saldo
+// Alterar saldo
 function alterarSaldo(input){
   const nome = input.dataset.nome;
   valoresAbas[nome] = parseFloat(input.value)||0;
   atualizarTotais();
   atualizarGrafico();
-  salvarDados();
+  localStorage.setItem('valoresAbas', JSON.stringify(valoresAbas));
 }
 
-// ================== CALCULO TOTAIS ==================
+// Totais
 function atualizarTotais(){
   let total=0, semMoedas=0, semCartao=0;
   for(const nome in valoresAbas){
@@ -225,15 +143,13 @@ function atualizarTotais(){
   document.getElementById('sem-moedas-cartao').textContent=semCartao.toFixed(2);
 }
 
-// ================== GRÁFICO ==================
+// Gráfico
 let saldoGrafico;
 function atualizarGrafico(){
   const ctx = document.getElementById('saldoGrafico').getContext('2d');
   const labels = Object.keys(valoresAbas);
   const data = Object.values(valoresAbas);
-
   if(saldoGrafico) saldoGrafico.destroy();
-
   saldoGrafico = new Chart(ctx,{
     type:'bar',
     data:{labels:labels,datasets:[{label:'Saldo (€)',data:data,backgroundColor:'rgba(215,28,28,0.7)'}]},
@@ -241,24 +157,74 @@ function atualizarGrafico(){
   });
 }
 
-// ================== INICIALIZAÇÃO ==================
-carregarDados();
+// Inicialização
+const salvos = localStorage.getItem('valoresAbas');
+if(salvos) valoresAbas = JSON.parse(salvos);
 atualizarSaldosLista();
 </script>
-  <script>
+</body>
+</html>
+<script>
 // ================== MOVIMENTOS ==================
-let abasExtras = ["Avô","Pais"];
+let abasExtras = ["Avô","Pais"]; // novas abas na conta
+
+// Inicializa histórico de movimentos
+let movimentos = {};
+const movSalvos = localStorage.getItem('movimentos');
+if(movSalvos) movimentos = JSON.parse(movSalvos);
 
 // Mostrar/ocultar form de adicionar movimento
 function mostrarFormMovimento(){
   const form = document.getElementById('novo-movimento');
-  form.style.display = form.style.display==='none'?'block':'none';
+  if(!form){
+    const container = document.getElementById('movimentos');
+    const htmlForm = document.createElement('div');
+    htmlForm.id='novo-movimento';
+    htmlForm.style.display='block';
+    htmlForm.style.padding='12px';
+    htmlForm.innerHTML=`
+      <h3>Adicionar Movimento</h3>
+      <label>Tipo:
+        <select id="tipo-movimento">
+          <option value="ganho">Ganho</option>
+          <option value="gasto">Gasto</option>
+        </select>
+      </label><br><br>
+      <label>Valor (€): <input type="number" id="valor-movimento"></label><br><br>
+      <label>Aba:
+        <select id="aba-movimento"></select>
+      </label><br><br>
+      <label>Descrição: <input type="text" id="descricao-movimento"></label><br><br>
+      <label>Data: <input type="date" id="data-movimento"></label><br><br>
+      <button onclick="adicionarMovimento()">Adicionar</button>
+    `;
+    container.appendChild(htmlForm);
+  } else {
+    form.style.display = form.style.display==='none'?'block':'none';
+  }
+  atualizarSelectAbas();
+}
+
+// Atualiza select com todas abas
+function atualizarSelectAbas(){
+  const select = document.getElementById('aba-movimento');
+  select.innerHTML='';
+  for(const nome in valoresAbas){
+    const opt = document.createElement('option');
+    opt.value=nome; opt.textContent=nome;
+    select.appendChild(opt);
+  }
+  abasExtras.forEach(nome=>{
+    const opt = document.createElement('option');
+    opt.value=nome; opt.textContent=nome;
+    select.appendChild(opt);
+  });
 }
 
 // Adicionar movimento
 function adicionarMovimento(){
   const tipo = document.getElementById('tipo-movimento').value;
-  const valor = parseFloat(document.getElementById('valor-movimento').value) || 0;
+  const valor = parseFloat(document.getElementById('valor-movimento').value)||0;
   const aba = document.getElementById('aba-movimento').value;
   const desc = document.getElementById('descricao-movimento').value;
   let data = document.getElementById('data-movimento').value;
@@ -272,21 +238,20 @@ function adicionarMovimento(){
 
   // Atualiza saldo
   if(valoresAbas[aba]!==undefined){
-    if(tipo==='gasto') valoresAbas[aba]-=valor;
-    else valoresAbas[aba]+=valor;
+    valoresAbas[aba] += (tipo==='ganho'? valor : -valor);
+    atualizarTotais();
+    atualizarGrafico();
+    atualizarSaldosLista();
   }
-
-  atualizarTotais();
-  atualizarGrafico();
 
   // Agrupamento por mês-ano
   const mesAno = data.slice(0,7); // "YYYY-MM"
   if(!movimentos[mesAno]) movimentos[mesAno]=[];
   movimentos[mesAno].push({tipo,tipoValor:(tipo==='gasto'? -valor:valor),valor,aba,desc,data});
+  localStorage.setItem('movimentos', JSON.stringify(movimentos));
 
   atualizarSubAbasMensais();
   mostrarMovimentosMes(mesAno);
-  salvarDados();
 
   // Limpar form
   document.getElementById('valor-movimento').value='';
@@ -296,21 +261,33 @@ function adicionarMovimento(){
 
 // ================== SUB-ABAS MENSAIS ==================
 function atualizarSubAbasMensais(){
-  const container = document.getElementById('sub-abas-meses');
+  let container = document.getElementById('sub-abas-meses');
+  if(!container){
+    container = document.createElement('div');
+    container.id='sub-abas-meses';
+    container.style.margin='15px 0';
+    document.getElementById('movimentos').appendChild(container);
+  }
   container.innerHTML='';
 
   Object.keys(movimentos).sort().forEach(mesAno=>{
     const btn = document.createElement('button');
-    btn.textContent = mesAno;
-    btn.onclick = ()=> mostrarMovimentosMes(mesAno);
-    btn.className='add-button';
+    btn.textContent=mesAno;
+    btn.onclick=()=> mostrarMovimentosMes(mesAno);
+    btn.className='tab-button';
     container.appendChild(btn);
   });
 }
 
 // ================== MOSTRAR MOVIMENTOS DE UM MÊS ==================
 function mostrarMovimentosMes(mesAno){
-  const container = document.getElementById('lista-movimentos-mensal');
+  let container = document.getElementById('lista-movimentos-mensal');
+  if(!container){
+    container = document.createElement('div');
+    container.id='lista-movimentos-mensal';
+    container.style.marginTop='10px';
+    document.getElementById('movimentos').appendChild(container);
+  }
   container.innerHTML=`<h4>Movimentos de ${mesAno}</h4>`;
 
   if(!movimentos[mesAno] || movimentos[mesAno].length===0){
@@ -327,6 +304,15 @@ function mostrarMovimentosMes(mesAno){
   });
 }
 
+// Inicializar abas e movimentos
+function inicializarMovimentos(){
+  atualizarSelectAbas();
+  atualizarSubAbasMensais();
+}
+
+inicializarMovimentos();
+</script>
+<script>
 // ================== PLANEAMENTO FINANCEIRO ==================
 const planeamentoData = {
   "Money 2026":[
@@ -359,14 +345,21 @@ const planeamentoData = {
   ]
 };
 
+// ================== FUNÇÃO PARA MOSTRAR PLANEAMENTO ==================
 function mostrarPlaneamento(aba){
   const container = document.getElementById('tabela-planeamento');
-  container.innerHTML='';
+  if(!container){
+    const div = document.createElement('div');
+    div.id='tabela-planeamento';
+    div.style.marginTop='12px';
+    document.getElementById('planeamento').appendChild(div);
+  }
 
   const tabela = document.createElement('table');
   tabela.style.width='100%';
   tabela.style.borderCollapse='collapse';
 
+  // Cabeçalho
   const cab = document.createElement('tr');
   ['Mês','Entradas (€)','Gastos (€)','Saldo (€)'].forEach(t=>{
     const th = document.createElement('th');
@@ -378,6 +371,7 @@ function mostrarPlaneamento(aba){
   });
   tabela.appendChild(cab);
 
+  // Linhas
   planeamentoData[aba].forEach(m=>{
     const tr = document.createElement('tr');
     [m.mes,m.entradas,m.gastos,m.saldo].forEach(v=>{
@@ -389,12 +383,49 @@ function mostrarPlaneamento(aba){
     tabela.appendChild(tr);
   });
 
-  container.appendChild(tabela);
+  const container2 = document.getElementById('tabela-planeamento');
+  container2.innerHTML='';
+  container2.appendChild(tabela);
+}
+
+// ================== CARREGAR ABAS DO PLANEAMENTO ==================
+function carregarPlaneamentoAbas(){
+  const container = document.getElementById('planeamento');
+  // Abas
+  const abas = ['Money 2026','Dela'];
+  const divTabs = document.createElement('div');
+  divTabs.style.display='flex';
+  divTabs.style.justifyContent='space-around';
+  divTabs.style.marginBottom='12px';
+
+  abas.forEach(nome=>{
+    const btn = document.createElement('button');
+    btn.textContent=nome;
+    btn.className='tab-button';
+    btn.onclick=()=> mostrarPlaneamento(nome);
+    divTabs.appendChild(btn);
+  });
+  container.appendChild(divTabs);
+
+  // Inicializa primeira aba
+  mostrarPlaneamento(abas[0]);
+}
+
+// ================== FUNÇÃO SALVAR E CARREGAR DADOS ==================
+function salvarDados(){
+  localStorage.setItem('valoresAbas', JSON.stringify(valoresAbas));
+  localStorage.setItem('movimentos', JSON.stringify(movimentos));
+}
+
+function carregarDados(){
+  const salvos = localStorage.getItem('valoresAbas');
+  if(salvos) valoresAbas = JSON.parse(salvos);
+  const movSalvos = localStorage.getItem('movimentos');
+  if(movSalvos) movimentos = JSON.parse(movSalvos);
 }
 
 // ================== INICIALIZAÇÃO FINAL ==================
 carregarDados();
 atualizarSaldosLista();
-carregarAbasMovimento();
 carregarPlaneamentoAbas();
 atualizarSubAbasMensais();
