@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Banco Gonçalo - App Completa</title>
+<title>Banco Gonçalo - App Avançada</title>
 <style>
 /* ================= RESET ================= */
 * { margin:0; padding:0; box-sizing:border-box; }
@@ -16,8 +16,8 @@ body, html { font-family:'Helvetica Neue', Arial, sans-serif; background:#f5f5f7
 .header p { margin-top:6px; font-size:16px; opacity:0.9; }
 
 /* ================= ABAS ================= */
-.tabs { display:flex; justify-content:space-around; margin-bottom:15px; }
-.tab-button { padding:10px 12px; border:none; border-radius:12px; background:#ddd; cursor:pointer; font-weight:600; transition:all 0.3s; }
+.tabs { display:flex; justify-content:space-around; margin-bottom:15px; flex-wrap:wrap; }
+.tab-button { padding:10px 12px; border:none; border-radius:12px; background:#ddd; cursor:pointer; font-weight:600; transition:all 0.3s; margin:3px; }
 .tab-button.active { background:#d71c1c; color:white; }
 
 /* ================= CARDS ================= */
@@ -54,6 +54,15 @@ body, html { font-family:'Helvetica Neue', Arial, sans-serif; background:#f5f5f7
 
 /* ================= GRÁFICO ================= */
 #grafico-container{background:white;padding:15px;border-radius:20px;box-shadow:0 4px 14px rgba(0,0,0,0.06); margin-top:20px;}
+
+/* ================= BOTÃO ADICIONAR ================= */
+.add-button{background:#d71c1c;color:white;border:none;padding:8px 12px;border-radius:12px;font-weight:600;cursor:pointer;margin:10px 0;transition:0.3s;}
+.add-button:hover{background:#a80000;}
+
+/* ================= FORMULÁRIO MOVIMENTO ================= */
+#novo-movimento{display:none;background:white;padding:15px;border-radius:18px;box-shadow:0 4px 14px rgba(0,0,0,0.1);margin-bottom:15px;}
+#novo-movimento input,#novo-movimento select{margin-bottom:8px;padding:5px;width:100%;border-radius:8px;border:1px solid #ccc;}
+#novo-movimento label{font-weight:600;font-size:14px;display:block;margin-top:5px;}
 </style>
 </head>
 <body>
@@ -87,20 +96,8 @@ body, html { font-family:'Helvetica Neue', Arial, sans-serif; background:#f5f5f7
     <div class="divider"></div>
 
     <!-- LISTA DE SALDOS -->
-    <section class="list">
+    <section class="list" id="lista-saldos">
       <h3>Saldos</h3>
-      <div class="item positivo"><span data-info="Saldo Ibiza">Ibiza</span><input type="number" value="245"></div>
-      <div class="item positivo"><span data-info="Saldo Dela">Dela</span><input type="number" value="4010"></div>
-      <div class="item positivo"><span data-info="Saldo Money 2026">Money 2026</span><input type="number" value="2775"></div>
-      <div class="item positivo"><span data-info="Notas de 5 (capa)">Notas de 5 (capa)</span><input type="number" value="100"></div>
-      <div class="item positivo"><span data-info="Capa 1 (azul)">Capa 1 (azul)</span><input type="number" value="50"></div>
-      <div class="item positivo"><span data-info="Capa 2 (caixa Apple)">Capa 2 (caixa Apple)</span><input type="number" value="55"></div>
-      <div class="item positivo"><span data-info="Porta cartões">Porta cartões</span><input type="number" value="25"></div>
-      <div class="item positivo"><span data-info="Capa 3 (preta MagSafe)">Capa 3 (preta MagSafe)</span><input type="number" value="50"></div>
-      <div class="item positivo"><span data-info="Cartão">Cartão</span><input type="number" value="19.62"></div>
-      <div class="item positivo"><span data-info="Capa 4 (iPhone 13)">Capa 4 (iPhone 13)</span><input type="number" value="60"></div>
-      <div class="item positivo"><span data-info="Capa 5 (azul)">Capa 5 (azul)</span><input type="number" value="15"></div>
-      <div class="item positivo"><span data-info="Moedas carteira">Moedas carteira</span><input type="number" value="131.92"></div>
     </section>
 
     <!-- GRÁFICO -->
@@ -112,14 +109,33 @@ body, html { font-family:'Helvetica Neue', Arial, sans-serif; background:#f5f5f7
   <!-- ABA MOVIMENTOS -->
   <div id="movimentos" class="tab-content" style="display:none;">
     <h3>Movimentos</h3>
-    <ul id="lista-movimentos" style="list-style:none;padding-left:0;"></ul>
+    <button class="add-button" onclick="mostrarFormMovimento()">+ Adicionar Movimento</button>
+    
+    <div id="novo-movimento">
+      <label>Tipo</label>
+      <select id="tipo-movimento">
+        <option value="ganho">Ganho</option>
+        <option value="gasto">Gasto</option>
+      </select>
+      <label>Valor (€)</label>
+      <input type="number" id="valor-movimento" placeholder="Ex: 50">
+      <label>Conta/Aba</label>
+      <select id="aba-movimento"></select>
+      <label>Descrição</label>
+      <input type="text" id="descricao-movimento" placeholder="Ex: Compra supermercado">
+      <button class="add-button" onclick="adicionarMovimento()">Adicionar</button>
+    </div>
+
+    <ul id="lista-movimentos" style="list-style:none;padding-left:0;margin-top:15px;"></ul>
   </div>
 
   <!-- ABA PLANEAMENTO -->
   <div id="planeamento" class="tab-content" style="display:none;">
     <h3>Planeamento Financeiro 2026</h3>
-    <button onclick="mostrarPlaneamento('Money 2026')">Money 2026</button>
-    <button onclick="mostrarPlaneamento('Dela')">Dela</button>
+    <div id="sub-abas-planeamento" style="margin-bottom:10px;">
+      <button class="add-button" onclick="mostrarPlaneamento('Money 2026')">Money 2026</button>
+      <button class="add-button" onclick="mostrarPlaneamento('Dela')">Dela</button>
+    </div>
     <div id="tabela-planeamento" style="margin-top:15px;"></div>
   </div>
 
@@ -128,71 +144,23 @@ body, html { font-family:'Helvetica Neue', Arial, sans-serif; background:#f5f5f7
 <!-- Chart.js CDN -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-// ================= FUNÇÕES ABAS =================
-function abrirAba(id){
-  document.querySelectorAll('.tab-content').forEach(t=>t.style.display='none');
-  document.getElementById(id).style.display='block';
-  document.querySelectorAll('.tab-button').forEach(b=>b.classList.remove('active'));
-  event.target.classList.add('active');
-}
-
-// ================= SALDOS E TOTAIS =================
+// ================= DADOS INICIAIS =================
+let abas = {
+  "Ibiza":245,
+  "Dela":4010,
+  "Money 2026":2775,
+  "Notas de 5 (capa)":100,
+  "Capa 1 (azul)":50,
+  "Capa 2 (caixa Apple)":55,
+  "Porta cartões":25,
+  "Capa 3 (preta MagSafe)":50,
+  "Cartão":19.62,
+  "Capa 4 (iPhone 13)":60,
+  "Capa 5 (azul)":15,
+  "Moedas carteira":131.92
+};
 let movimentos = [];
-function atualizarTotais(){
-  let total=0, semMoedas=0, semMoedasCartao=0;
-  document.querySelectorAll('#saldos .item input').forEach(input=>{
-    const valor = parseFloat(input.value)||0;
-    const nome = input.previousElementSibling.textContent.toLowerCase();
-    total += valor;
-    if(!nome.includes('moedas')) semMoedas += valor;
-    if(!nome.includes('moedas') && !nome.includes('cartão')) semMoedasCartao += valor;
-    input.style.color = (valor>=0)?'green':'red';
-
-    // MOVIMENTOS
-    const hoje = new Date().toLocaleDateString('pt-PT');
-    if(!input.prevValor) input.prevValor = valor;
-    const diff = valor - input.prevValor;
-    if(diff!==0){
-      movimentos.push({nome:input.previousElementSibling.textContent,date:hoje,valor:diff});
-      input.prevValor = valor;
-    }
-  });
-  document.getElementById('total').textContent = total.toLocaleString('pt-PT',{minimumFractionDigits:2});
-  document.getElementById('sem-moedas').textContent = semMoedas.toLocaleString('pt-PT',{minimumFractionDigits:2});
-  document.getElementById('sem-moedas-cartao').textContent = semMoedasCartao.toLocaleString('pt-PT',{minimumFractionDigits:2});
-  atualizarGrafico();
-  atualizarMovimentos();
-}
-
-// ================= GRÁFICO =================
-const ctx = document.getElementById('saldoGrafico').getContext('2d');
-const saldoGrafico = new Chart(ctx,{
-  type:'line',
-  data:{ labels:[], datasets:[{label:'Total Geral', data:[], borderColor:'#d71c1c', backgroundColor:'rgba(215,28,28,0.1)', fill:true, tension:0.3}] },
-  options:{ responsive:true, plugins:{legend:{display:true}}, scales:{y:{beginAtZero:true}}}
-});
-function atualizarGrafico(){
-  const hoje = new Date().toLocaleDateString('pt-PT');
-  const totalAtual = parseFloat(document.getElementById('total').textContent.replace('.','').replace(',','.'))||0;
-  saldoGrafico.data.labels.push(hoje);
-  saldoGrafico.data.datasets[0].data.push(totalAtual);
-  saldoGrafico.update();
-}
-
-// ================= MOVIMENTOS =================
-function atualizarMovimentos(){
-  const lista = document.getElementById('lista-movimentos');
-  lista.innerHTML='';
-  movimentos.forEach(m=>{
-    const li = document.createElement('li');
-    li.textContent = `${m.date} - ${m.nome}: ${(m.valor>=0?'+':'')+m.valor.toFixed(2)} €`;
-    li.style.color = (m.valor>=0)?'green':'red';
-    lista.appendChild(li);
-  });
-}
-
-// ================= PLANEAMENTO =================
-const planeamentoData = {
+let planeamentoData = {
   "Money 2026":[
     {mes:"Janeiro",entradas:60,gastos:120,saldo:2835},
     {mes:"Fevereiro",entradas:50,gastos:0,saldo:2885},
@@ -222,25 +190,108 @@ const planeamentoData = {
     {mes:"Dezembro",entradas:0,gastos:120,saldo:3530}
   ]
 };
-function mostrarPlaneamento(nome){
-  const div = document.getElementById('tabela-planeamento');
-  const dados = planeamentoData[nome];
-  let html = `<table border="1" style="width:100%;border-collapse:collapse;text-align:center;">
-  <tr style="background:#d71c1c;color:white;"><th>Mês</th><th>Entradas</th><th>Gastos</th><th>Saldo</th></tr>`;
-  dados.forEach(d=>{
-    html+=`<tr><td>${d.mes}</td><td>${d.entradas} €</td><td>${d.gastos} €</td><td>${d.saldo} €</td></tr>`;
-  });
-  html+='</table>';
-  div.innerHTML=html;
+
+// ================= ABAS =================
+function abrirAba(id){
+  document.querySelectorAll('.tab-content').forEach(t=>t.style.display='none');
+  document.getElementById(id).style.display='block';
+  document.querySelectorAll('.tab-button').forEach(b=>b.classList.remove('active'));
+  event.target.classList.add('active');
 }
 
-// ================= EVENTOS =================
-document.querySelectorAll('#saldos .item input').forEach(input=>{
-  input.addEventListener('input', atualizarTotais);
-});
+// ================= SALDOS =================
+function atualizarSaldosLista(){
+  const lista = document.getElementById('lista-saldos');
+  lista.innerHTML='';
+  for(let nome in abas){
+    const div = document.createElement('div');
+    div.className='item positivo';
+    const span = document.createElement('span');
+    span.textContent = nome;
+    span.setAttribute('data-info','Saldo '+nome);
+    const input = document.createElement('input');
+    input.type='number';
+    input.value=abas[nome];
+    input.addEventListener('input',()=>{
+      const diff = parseFloat(input.value)-abas[nome];
+      abas[nome]=parseFloat(input.value);
+      const hoje = new Date().toLocaleDateString('pt-PT');
+      movimentos.push({nome,nome_aba:nome,date:hoje,valor:diff,descricao:'Saldo alterado'});
+      atualizarTotais();
+    });
+    div.appendChild(span);
+    div.appendChild(input);
+    lista.appendChild(div);
+  }
+  atualizarTotais();
+}
 
-// ================= INICIALIZAÇÃO =================
-atualizarTotais();
-</script>
-</body>
-</html>
+// ================= TOTAIS =================
+function atualizarTotais(){
+  let total=0, semMoedas=0, semMoedasCartao=0;
+  for(let nome in abas){
+    let valor=abas[nome];
+    total+=valor;
+    if(!nome.toLowerCase().includes('moedas')) semMoedas+=valor;
+    if(!nome.toLowerCase().includes('moedas') && !nome.toLowerCase().includes('cartão')) semMoedasCartao+=valor;
+  }
+  document.getElementById('total').textContent = total.toLocaleString('pt-PT',{minimumFractionDigits:2});
+  document.getElementById('sem-moedas').textContent = semMoedas.toLocaleString('pt-PT',{minimumFractionDigits:2});
+  document.getElementById('sem-moedas-cartao').textContent = semMoedasCartao.toLocaleString('pt-PT',{minimumFractionDigits:2});
+  atualizarGrafico();
+  atualizarMovimentosLista();
+  atualizarAbasMovimento();
+}
+
+// ================= GRÁFICO =================
+const ctx = document.getElementById('saldoGrafico').getContext('2d');
+const saldoGrafico = new Chart(ctx,{
+  type:'line',
+  data:{ labels:[], datasets:[{label:'Total Geral', data:[], borderColor:'#d71c1c', backgroundColor:'rgba(215,28,28,0.1)', fill:true, tension:0.3}] },
+  options:{ responsive:true, plugins:{legend:{display:true}}, scales:{y:{beginAtZero:true}}}
+});
+function atualizarGrafico(){
+  const hoje = new Date().toLocaleDateString('pt-PT');
+  const totalAtual = parseFloat(document.getElementById('total').textContent.replace('.','').replace(',','.'))||0;
+  saldoGrafico.data.labels.push(hoje);
+  saldoGrafico.data.datasets[0].data.push(totalAtual);
+  saldoGrafico.update();
+}
+
+// ================= MOVIMENTOS =================
+function mostrarFormMovimento(){
+  document.getElementById('novo-movimento').style.display='block';
+  atualizarAbasMovimento();
+}
+function atualizarAbasMovimento(){
+  const select = document.getElementById('aba-movimento');
+  select.innerHTML='';
+  for(let nome in abas){
+    const opt = document.createElement('option');
+    opt.value=nome;
+    opt.textContent=nome;
+    select.appendChild(opt);
+  }
+}
+function adicionarMovimento(){
+  const tipo = document.getElementById('tipo-movimento').value;
+  const valor = parseFloat(document.getElementById('valor-movimento').value);
+  const aba = document.getElementById('aba-movimento').value;
+  const descricao = document.getElementById('descricao-movimento').value || '';
+  if(isNaN(valor) || valor===0) return alert('Valor inválido');
+  const hoje = new Date().toLocaleDateString('pt-PT');
+  const movValor = tipo==='ganho'?valor:-valor;
+  abas[aba]+=movValor;
+  movimentos.push({nome:aba,nome_aba:aba,date:hoje,valor:movValor,descricao:descricao});
+  atualizarSaldosLista();
+  document.getElementById('novo-movimento').style.display='none';
+  document.getElementById('valor-movimento').value='';
+  document.getElementById('descricao-movimento').value='';
+}
+
+// ================= LISTA MOVIMENTOS =================
+function atualizarMovimentosLista(){
+  const lista = document.getElementById('lista-movimentos');
+  lista.innerHTML='';
+  movimentos.forEach(m=>{
+   
