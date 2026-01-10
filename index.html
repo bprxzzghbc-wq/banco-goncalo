@@ -1,206 +1,200 @@
-DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-PT">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Banco Gonçalo - Movimentos</title>
+<title>Banco Gonçalo - Mini-App Santander Interativa</title>
 <style>
-body, html {
-  margin: 0;
-  padding: 0;
-  font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif;
-  background: #f1f1f5;
-}
+/* ================================================== */
+/* RESET E BASE                                      */
+/* ================================================== */
+* { margin:0; padding:0; box-sizing:border-box; }
+body, html { font-family:'Helvetica Neue', Arial, sans-serif; background:#f5f5f7; color:#333; }
+.app { max-width:420px; margin:auto; padding:15px; }
 
-.app {
-  max-width: 420px;
-  margin: auto;
-  padding: 20px;
-}
-
+/* ================================================== */
+/* HEADER                                           */
+/* ================================================== */
 .header {
-  background: #820ad1;
-  color: white;
-  padding: 20px;
-  border-radius: 15px;
-  margin-bottom: 20px;
-  text-align: center;
-}
-
-.header h1 { margin:0; font-size:24px; }
-.header p { margin:5px 0 0 0; font-size:14px; opacity:0.8; }
-
-.tabs {
-  display:flex;
-  justify-content:space-around;
-  margin-bottom: 15px;
-}
-
-.tab {
-  padding:10px 15px;
-  border:none;
-  border-radius:10px;
-  cursor:pointer;
-  background:#ddd;
-}
-
-.tab.active { background:#820ad1; color:white; }
-
-.card {
-  background:white;
-  border-radius:15px;
-  padding:15px;
-  margin-bottom:15px;
-  box-shadow:0 4px 10px rgba(0,0,0,0.05);
-}
-
-.total-card {
-  background: linear-gradient(135deg, #820ad1, #a45de9);
+  background:#d71c1c;
   color:white;
+  padding:35px 25px;
+  border-radius:30px;
   text-align:center;
+  margin-bottom:25px;
+  box-shadow:0 5px 25px rgba(0,0,0,0.25);
+  transition:all 0.3s;
+}
+.header h1 { font-size:30px; font-weight:700; text-shadow:1px 1px 2px rgba(0,0,0,0.2); }
+.header p { margin-top:10px; font-size:16px; opacity:0.9; }
+
+/* ================================================== */
+/* TOTAL GERAL                                     */
+/* ================================================== */
+.card { border-radius:22px; padding:20px; margin-bottom:20px; box-shadow:0 6px 18px rgba(0,0,0,0.08); position:relative; transition:all 0.3s; }
+.total-card { background:linear-gradient(135deg,#d71c1c,#a80000); color:white; text-align:center; animation:pulse 2s infinite; }
+.total-card h2 { font-size:34px; font-weight:700; letter-spacing:1px; margin-top:10px; }
+
+/* ================================================== */
+/* TOTAIS SECUNDÁRIOS                              */
+/* ================================================== */
+.card.small { display:flex; justify-content:space-between; padding:16px 22px; background:white; border-radius:18px; box-shadow:0 4px 14px rgba(0,0,0,0.06); margin-bottom:14px; transition:all 0.3s; }
+.card.small span { font-size:14px; font-weight:500; color:#333; }
+.card.small strong { font-size:16px; font-weight:600; color:#d71c1c; }
+
+/* ================================================== */
+/* LISTA DE SALDOS                                  */
+/* ================================================== */
+.list h3 { margin-bottom:14px; font-size:22px; color:#d71c1c; font-weight:600; text-shadow:1px 1px 2px rgba(0,0,0,0.2); }
+
+/* CARTÕES INDIVIDUAIS DE SALDO */
+.item {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  background:white;
+  padding:16px 22px;
+  border-radius:20px;
+  margin-bottom:12px;
+  box-shadow:0 4px 12px rgba(0,0,0,0.08);
+  transition:all 0.25s;
+  position:relative;
+}
+.item:hover { transform:translateY(-3px); box-shadow:0 8px 22px rgba(0,0,0,0.14); }
+.item span { font-size:16px; font-weight:500; }
+.item input { width:100px; text-align:right; border:none; font-size:16px; font-weight:600; border-radius:10px; padding:6px; transition:all 0.2s; background:#f9f9f9; }
+.item input:focus { outline:none; background:#fff; box-shadow:0 0 6px rgba(0,0,0,0.15); }
+
+/* ================================================== */
+/* TOOLTIP                                          */
+.item span[data-info]:hover::after {
+  content: attr(data-info);
+  position:absolute;
+  background:#d71c1c; color:white; padding:5px 12px; border-radius:8px;
+  font-size:12px; top:-38px; left:0; white-space:nowrap; opacity:0.95;
 }
 
-.total-card h2 { margin:10px 0 0 0; font-size:28px; }
+/* ================================================== */
+/* DIVISORES                                        */
+.divider { height:1px; background:#eee; margin:20px 0; }
 
-.card.small { display:flex; justify-content:space-between; padding:10px 15px; }
-.card.small span { font-size:14px; color:#666; }
+/* ================================================== */
+/* ICONES                                           */
+.item::before { content:"💰"; margin-right:12px; font-size:18px; }
 
-.list h3 { margin-bottom:10px; font-size:18px; }
+/* ================================================== */
+/* ANIMAÇÃO                                         */
+@keyframes pulse {
+  0% { box-shadow:0 0 0 rgba(215,28,28,0.4); }
+  70% { box-shadow:0 0 20px rgba(215,28,28,0.4); }
+  100% { box-shadow:0 0 0 rgba(215,28,28,0.4); }
+}
 
-.item { display:flex; justify-content:space-between; align-items:center; background:white; padding:12px; border-radius:10px; margin-bottom:8px; }
-.item span { font-size:14px; }
-.item input { width:100px; text-align:right; border:none; font-size:14px; }
-.item input:focus { outline:none; }
+/* ================================================== */
+/* RESPONSIVO                                        */
+@media screen and (max-width:450px){
+  .app { padding:10px; }
+  .item input { width:80px; font-size:14px; }
+  .card.small { padding:12px 16px; }
+}
 
-.moedas { background:#fef3c7; }
-.cartao { background:#e0f2fe; }
+/* ================================================== */
+/* CORES POR STATUS                                  */
+.item.positivo input { color:green; }
+.item.negativo input { color:red; }
 
-.movimentos h3 { margin-bottom:10px; }
-.movimento { display:flex; justify-content:space-between; align-items:center; padding:10px; border-radius:8px; margin-bottom:5px; }
-.movimento.ganho { background:#e0fbe0; color:green; }
-.movimento.gasto { background:#fbe0e0; color:red; }
-.movimento span { font-size:14px; }
+/* ================================================== */
+/* DETALHES                                        */
+.header h1, .list h3 { text-shadow:1px 1px 2px rgba(0,0,0,0.2); }
+
+/* ================================================== */
+/* MAIS ESTILO EXTRA PARA APP                        */
+.card:hover { transform:translateY(-2px); box-shadow:0 8px 20px rgba(0,0,0,0.1); }
+.item span { cursor:default; }
+.item input:hover { background:#fffde7; }
 </style>
 </head>
 <body>
 
 <div class="app">
+  <!-- HEADER -->
   <header class="header">
-    <h1>Banco Gonçalo</h1>
-    <p>Resumo financeiro</p>
+    <h1>Olá Gonçalo!</h1>
+    <p>Bem-vindo ao seu Banco</p>
   </header>
 
-  <div class="tabs">
-    <button class="tab active" onclick="openTab('saldos', this)">Saldos</button>
-    <button class="tab" onclick="openTab('movimentos', this)">Movimentos do Mês</button>
-  </div>
-
-  <!-- ABAS -->
-  <section id="saldos" class="tab-content">
-    <section class="card total-card">
-      <span>Total geral</span>
-      <h2>€ <span id="total">0.00</span></h2>
-    </section>
-
-    <section class="card small">
-      <span>Sem moedas</span>
-      <strong>€ <span id="sem-moedas">0.00</span></strong>
-    </section>
-
-    <section class="card small">
-      <span>Sem moedas e sem cartão</span>
-      <strong>€ <span id="sem-moedas-cartao">0.00</span></strong>
-    </section>
-
-    <section class="list">
-      <h3>Saldos</h3>
-      <div class="item"><span>Ibiza</span></span><input type="number" value="245" data-name="Ibiza"></div>
-      <div class="item"><span>Dela</span><input type="number" value="4010" data-name="Dela"></div>
-      <div class="item"><span>Money 2026</span><input type="number" value="2775" data-name="Money 2026"></div>
-      <div class="item"><span>Notas de 5 (capa)</span><input type="number" value="100" data-name="Notas de 5 (capa)"></div>
-      <div class="item"><span>Capa 1 (azul)</span><input type="number" value="50" data-name="Capa 1 (azul)"></div>
-      <div class="item"><span>Capa 2 (caixa Apple)</span><input type="number" value="55" data-name="Capa 2 (caixa Apple)"></div>
-      <div class="item"><span>Porta cartões</span><input type="number" value="25" data-name="Porta cartões"></div>
-      <div class="item"><span>Capa 3 (preta MagSafe)</span><input type="number" value="50" data-name="Capa 3 (preta MagSafe)"></div>
-      <div class="item"><span>Cartão</span><input type="number" value="19.62" data-name="Cartão"></div>
-      <div class="item"><span>Capa 4 (iPhone 13)</span><input type="number" value="60" data-name="Capa 4 (iPhone 13)"></div>
-      <div class="item"><span>Capa 5 (azul)</span><input type="number" value="15" data-name="Capa 5 (azul)"></div>
-      <div class="item"><span>Moedas carteira</span><input type="number" value="131.92" data-name="Moedas carteira"></div>
-    </section>
-
-  <section id="movimentos" class="tab-content" style="display:none;">
-    <div class="movimentos">
-      <h3>Movimentos do mês (<span id="mes-atual"></span>)</h3>
-      <div id="movimento-list">
-        <!-- Movimentos vão aparecer aqui -->
-      </div>
-    </div>
+  <!-- TOTAL GERAL -->
+  <section class="card total-card">
+    <span>Total geral</span>
+    <h2>€ <span id="total">0.00</span></h2>
   </section>
 
+  <!-- TOTAIS SECUNDÁRIOS -->
+  <section class="card small">
+    <span>Sem moedas</span>
+    <strong>€ <span id="sem-moedas">0.00</span></strong>
+  </section>
+
+  <section class="card small">
+    <span>Sem moedas e sem cartão</span>
+    <strong>€ <span id="sem-moedas-cartao">0.00</span></strong>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- LISTA DE SALDOS -->
+  <section class="list">
+    <h3>Saldos</h3>
+    <div class="item positivo"><span data-info="Saldo Ibiza">Ibiza</span><input type="number" value="245"></div>
+    <div class="item positivo"><span data-info="Saldo Dela">Dela</span><input type="number" value="4010"></div>
+    <div class="item positivo"><span data-info="Saldo Money 2026">Money 2026</span><input type="number" value="2775"></div>
+    <div class="item positivo"><span data-info="Notas de 5 (capa)">Notas de 5 (capa)</span><input type="number" value="100"></div>
+    <div class="item positivo"><span data-info="Capa 1 (azul)">Capa 1 (azul)</span><input type="number" value="50"></div>
+    <div class="item positivo"><span data-info="Capa 2 (caixa Apple)">Capa 2 (caixa Apple)</span><input type="number" value="55"></div>
+    <div class="item positivo"><span data-info="Porta cartões">Porta cartões</span><input type="number" value="25"></div>
+    <div class="item positivo"><span data-info="Capa 3 (preta MagSafe)">Capa 3 (preta MagSafe)</span><input type="number" value="50"></div>
+    <div class="item positivo"><span data-info="Cartão">Cartão</span><input type="number" value="19.62"></div>
+    <div class="item positivo"><span data-info="Capa 4 (iPhone 13)">Capa 4 (iPhone 13)</span><input type="number" value="60"></div>
+    <div class="item positivo"><span data-info="Capa 5 (azul)">Capa 5 (azul)</span><input type="number" value="15"></div>
+    <div class="item positivo"><span data-info="Moedas carteira">Moedas carteira</span><input type="number" value="131.92"></div>
+  </section>
 </div>
 
 <script>
-let saldosAntigos = {};
-
-// Função de abas
-function openTab(id, el){
-  document.querySelectorAll('.tab-content').forEach(t=>t.style.display='none');
-  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
-  document.getElementById(id).style.display='block';
-  el.classList.add('active');
-}
-
-// Função de cálculo totais
-function calcular(){
+// ==================================================
+// FUNÇÃO PARA ATUALIZAR TOTAIS
+// ==================================================
+function atualizarTotais() {
   let total=0, semMoedas=0, semMoedasCartao=0;
-  document.querySelectorAll('#saldos .item input').forEach(input=>{
-    const valor = parseFloat(input.value)||0;
-    const nome = input.dataset.name;
-    const tipo = (nome.toLowerCase().includes('moedas')) ? 'moedas' : ((nome.toLowerCase().includes('cartao'))?'cartao':'normal');
-    
-    // Verificar diferença e adicionar movimento
-    if(saldosAntigos[nome]!==undefined){
-      let diff = valor - saldosAntigos[nome];
-      if(diff!==0){
-        adicionarMovimento(nome, diff);
-      }
-    }
-    saldosAntigos[nome]=valor;
 
-    total+=valor;
-    if(tipo!=='moedas') semMoedas+=valor;
-    if(tipo!=='moedas' && tipo!=='cartao') semMoedasCartao+=valor;
+  document.querySelectorAll('.item input').forEach(input=>{
+    const valor = parseFloat(input.value)||0;
+    const nome = input.previousElementSibling.textContent.toLowerCase();
+
+    total += valor;
+
+    if(!nome.includes('moedas')) semMoedas += valor;
+    if(!nome.includes('moedas') && !nome.includes('cartão')) semMoedasCartao += valor;
+
+    input.style.color = (valor>=0)?'green':'red';
   });
 
-  document.getElementById('total').textContent=total.toLocaleString('pt-PT',{minimumFractionDigits:2});
-  document.getElementById('sem-moedas').textContent=semMoedas.toLocaleString('pt-PT',{minimumFractionDigits:2});
-  document.getElementById('sem-moedas-cartao').textContent=semMoedasCartao.toLocaleString('pt-PT',{minimumFractionDigits:2});
+  document.getElementById('total').textContent = total.toLocaleString('pt-PT',{minimumFractionDigits:2});
+  document.getElementById('sem-moedas').textContent = semMoedas.toLocaleString('pt-PT',{minimumFractionDigits:2});
+  document.getElementById('sem-moedas-cartao').textContent = semMoedasCartao.toLocaleString('pt-PT',{minimumFractionDigits:2});
 }
 
-// Função para adicionar movimento
-function adicionarMovimento(nome, diff){
-  const lista = document.getElementById('movimento-list');
-  const div = document.createElement('div');
-  const hoje = new Date();
-  const dia = hoje.toLocaleDateString('pt-PT');
-  div.classList.add('movimento');
-  if(diff>0) div.classList.add('ganho');
-  else div.classList.add('gasto');
-  div.innerHTML=`<span>${nome}</span> <span>€ ${diff.toFixed(2)}</span> <span>${dia}</span>`;
-  lista.prepend(div); // adiciona no topo
-}
-
-// Inicializar mês atual
-const meses = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
-document.getElementById('mes-atual').textContent = meses[new Date().getMonth()];
-
-// Evento para inputs
-document.querySelectorAll('#saldos .item input').forEach(input=>{
-  input.addEventListener('input', calcular);
+// ==================================================
+// EVENTOS
+// ==================================================
+document.querySelectorAll('.item input').forEach(input=>{
+  input.addEventListener('input', atualizarTotais);
 });
 
-// Inicializa
-calcular();
+// ==================================================
+// INICIALIZAÇÃO
+// ==================================================
+atualizarTotais();
 </script>
 
 </body>
