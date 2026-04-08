@@ -5,11 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Banco Gonçalo - App Completa</title>
 <style>
-/* ==================== RESET ==================== */
+/* ================== RESET ================== */
 *{margin:0;padding:0;box-sizing:border-box;}
-body, html{font-family:'Helvetica Neue', Arial,sans-serif;background:#f5f5f7;color:#333;transition:all 0.3s;}
+body, html{font-family:'Helvetica Neue', Arial, sans-serif;transition:background 0.3s,color 0.3s;}
 .app{max-width:420px;margin:auto;padding:15px;}
-.header{background:#d71c1c;color:white;padding:35px 25px;border-radius:30px;text-align:center;margin-bottom:20px;box-shadow:0 5px 25px rgba(0,0,0,0.25);}
+.header{padding:35px 25px;border-radius:30px;text-align:center;margin-bottom:20px;box-shadow:0 5px 25px rgba(0,0,0,0.25);}
 .header h1{font-size:28px;font-weight:700;text-shadow:1px 1px 2px rgba(0,0,0,0.2);}
 .header p{margin-top:6px;font-size:16px;opacity:0.9;}
 .tabs{display:flex;justify-content:space-around;margin-bottom:15px;flex-wrap:wrap;}
@@ -18,30 +18,37 @@ body, html{font-family:'Helvetica Neue', Arial,sans-serif;background:#f5f5f7;col
 .card{border-radius:22px;padding:18px 20px;margin-bottom:15px;box-shadow:0 5px 18px rgba(0,0,0,0.1);position:relative;transition:all 0.3s;}
 .total-card{background:linear-gradient(135deg,#d71c1c,#a80000);color:white;text-align:center;animation:pulse 2s infinite;}
 .total-card h2{font-size:32px;font-weight:700;margin-top:8px;}
-.card.small{display:flex;justify-content:space-between;padding:14px 18px;background:white;border-radius:18px;box-shadow:0 4px 14px rgba(0,0,0,0.06);margin-bottom:12px;}
+.card.small{display:flex;justify-content:space-between;padding:14px 18px;background:#fff;border-radius:18px;box-shadow:0 4px 14px rgba(0,0,0,0.06);margin-bottom:12px;transition:all 0.3s;}
 .card.small span{font-size:14px;font-weight:500;color:#333;}
 .card.small strong{font-size:16px;font-weight:600;color:#d71c1c;}
 .list h3{margin-bottom:12px;font-size:20px;color:#d71c1c;font-weight:600;}
-.item{display:flex;justify-content:space-between;align-items:center;background:white;padding:14px 18px;border-radius:18px;margin-bottom:10px;box-shadow:0 3px 10px rgba(0,0,0,0.08);position:relative;}
+.item{display:flex;justify-content:space-between;align-items:center;background:#fff;padding:14px 18px;border-radius:18px;margin-bottom:10px;box-shadow:0 3px 10px rgba(0,0,0,0.08);position:relative;transition:all 0.2s;}
 .item:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,0.12);}
 .item span{font-size:16px;font-weight:500;}
 .item input{width:90px;text-align:right;border:none;font-size:16px;font-weight:600;border-radius:8px;padding:5px;transition:all 0.2s;background:#f9f9f9;}
 .item input:focus{outline:none;background:#fff;box-shadow:0 0 5px rgba(0,0,0,0.15);}
-.item.positivo input{color:green;}
-.item.negativo input{color:red;}
-.item button{background:none;border:none;color:#d71c1c;font-size:18px;cursor:pointer;margin-left:8px;}
 .divider{height:1px;background:#eee;margin:15px 0;}
+button.delete-btn{background:none;border:none;color:#d71c1c;font-size:18px;cursor:pointer;margin-left:10px;}
+.sub-aba-mes button{margin:3px;padding:6px 10px;border-radius:10px;border:none;background:#ddd;cursor:pointer;}
+.sub-aba-mes button.active{background:#d71c1c;color:white;}
+.add-button{background:#d71c1c;color:white;border:none;padding:8px 12px;border-radius:12px;font-weight:600;cursor:pointer;margin:10px 0;transition:0.3s;}
+.add-button:hover{background:#a80000;}
+table{width:100%;border-collapse:collapse;}
+th,td{padding:6px 8px;text-align:left;}
+th{border-bottom:2px solid #d71c1c;}
 @keyframes pulse{0%{box-shadow:0 0 0 rgba(215,28,28,0.4);}70%{box-shadow:0 0 20px rgba(215,28,28,0.4);}100%{box-shadow:0 0 0 rgba(215,28,28,0.4);}}
-@media screen and (max-width:450px){.app{padding:10px;}.item input{width:75px;font-size:14px;}}
 
-/* ==================== DARK MODE ==================== */
-body.dark{background:#1c1c1c;color:#f5f5f5;}
-body.dark .card.small, body.dark .item{background:#2c2c2c;box-shadow:0 4px 14px rgba(0,0,0,0.4);}
-body.dark .item input{background:#444;color:#fff;}
-body.dark .tab-button.active{background:#a80000;color:white;}
-body.dark .divider{background:#555;}
-body.dark table{color:#f5f5f5;}
-body.dark th{border-bottom:2px solid #a80000;}
+/* ================== DARK MODE ================== */
+body.dark{background:#121212;color:#eee;}
+body.dark .header{background:#1f1f1f;color:#fff;}
+body.dark .tab-button{background:#333;color:#eee;}
+body.dark .tab-button.active{background:#d71c1c;color:white;}
+body.dark .card.small,.dark .item,.dark #grafico-container{background:#1f1f1f;color:#eee;box-shadow:0 4px 14px rgba(0,0,0,0.5);}
+body.dark .item input{background:#333;color:#eee;}
+body.dark table,body.dark th,body.dark td{color:#eee;border-color:#555;}
+body.dark .sub-aba-mes button{background:#333;color:#eee;}
+body.dark .sub-aba-mes button.active{background:#d71c1c;color:white;}
+body.dark .add-button{background:#d71c1c;color:white;}
 </style>
 </head>
 <body>
@@ -49,7 +56,7 @@ body.dark th{border-bottom:2px solid #a80000;}
 <header class="header">
   <h1>Olá Gonçalo!</h1>
   <p>Bem-vindo ao seu Banco</p>
-  <button id="darkToggle" style="margin-top:10px;padding:6px 12px;border:none;border-radius:8px;background:white;color:#d71c1c;font-weight:600;cursor:pointer;">Dark/Light</button>
+  <button class="add-button" onclick="toggleDarkMode()">🌙 / ☀️ Modo</button>
 </header>
 
 <div class="tabs">
@@ -58,9 +65,10 @@ body.dark th{border-bottom:2px solid #a80000;}
   <button class="tab-button" onclick="abrirAba('planeamento', this)">Planeamento</button>
 </div>
 
+<!-- SALDOS -->
 <div id="saldos" class="tab-content">
   <section class="card total-card">
-    <span>Total Geral Movimentado</span>
+    <span>Fluxo Total</span>
     <h2>€ <span id="total">0.00</span></h2>
   </section>
   <section class="card small"><span>Sem moedas</span><strong>€ <span id="sem-moedas">0.00</span></strong></section>
@@ -70,6 +78,7 @@ body.dark th{border-bottom:2px solid #a80000;}
   <div id="grafico-container"><canvas id="saldoGrafico" width="400" height="200"></canvas></div>
 </div>
 
+<!-- MOVIMENTOS -->
 <div id="movimentos" class="tab-content" style="display:none;">
   <button class="add-button" onclick="mostrarFormMovimento()">+ Adicionar Movimento</button>
   <div id="novo-movimento" style="display:none;margin-top:10px;">
@@ -89,11 +98,16 @@ body.dark th{border-bottom:2px solid #a80000;}
     <button class="add-button" onclick="adicionarMovimento()">Salvar Movimento</button>
   </div>
   <div class="divider"></div>
-  <div id="resumo-mes" style="margin-bottom:10px;"></div>
   <div class="sub-aba-mes" id="sub-abas-meses"></div>
+  <div id="filtro-abas-container" style="margin:10px 0;">
+    Filtrar por Aba:
+    <select id="filtro-abas" onchange="mostrarMovimentosMes(filtroMesAtual)">
+    </select>
+  </div>
   <div id="lista-movimentos-mensal"></div>
 </div>
 
+<!-- PLANEAMENTO -->
 <div id="planeamento" class="tab-content" style="display:none;">
   <label>Selecione Aba:</label>
   <select id="planeamento-aba" onchange="mostrarPlaneamento(this.value)">
@@ -102,18 +116,23 @@ body.dark th{border-bottom:2px solid #a80000;}
   </select>
   <div id="tabela-planeamento"></div>
 </div>
-
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-// ================== INICIALIZAÇÃO DE DADOS ==================
-let abas = JSON.parse(localStorage.getItem('abas')) || {"Ibiza":245,"Dela":4010,"Money 2026":2775,"Notas de 5 (capa)":100,"Capa 1 (azul)":50,"Capa 2 (caixa Apple)":55,"Porta cartões":25,"Capa 3 (preta MagSafe)":50,"Cartão":19.62,"Capa 4 (iPhone 13)":60,"Capa 5 (azul)":15,"Capa Apple Azul Escura":0,"Moedas carteira":131.92};
+// ================== INICIALIZAÇÃO ==================
+let abas = JSON.parse(localStorage.getItem('abas')) || {
+    "Ibiza":245,"Dela":4010,"Money 2026":2775,"Notas de 5 (capa)":100,
+    "Capa 1 (azul)":50,"Capa 2 (caixa Apple)":55,"Porta cartões":25,
+    "Capa 3 (preta MagSafe)":50,"Cartão":19.62,"Capa 4 (iPhone 13)":60,
+    "Capa 5 (azul)":15,"Capa Apple Azul Escura":0,"Moedas carteira":131.92
+};
 localStorage.setItem('abas', JSON.stringify(abas));
 
 let movimentos = JSON.parse(localStorage.getItem('movimentos')) || {};
 let extrasAbas = ["Avô","Pais"];
 let saldoGrafico;
+let filtroMesAtual='';
 
 // ================== ABAS ==================
 function abrirAba(id, btn){
@@ -121,11 +140,7 @@ function abrirAba(id, btn){
   document.getElementById(id).style.display='block';
   document.querySelectorAll('.tab-button').forEach(b=>b.classList.remove('active'));
   if(btn) btn.classList.add('active');
-}
-
-// ================== DARK MODE ==================
-document.getElementById('darkToggle').onclick = ()=>{
-  document.body.classList.toggle('dark');
+  if(id==='movimentos'){atualizarSubAbasMensais();}
 }
 
 // ================== SALDOS ==================
@@ -183,9 +198,10 @@ function mostrarFormMovimento(){
 
 function preencherSelectAbas(){
   const s=document.getElementById('aba-movimento');
-  s.innerHTML='';
-  Object.keys(abas).forEach(n=>{let o=document.createElement('option');o.value=n;o.textContent=n;s.appendChild(o);});
-  extrasAbas.forEach(e=>{let o=document.createElement('option');o.value=e;o.textContent=e;s.appendChild(o);});
+  const f=document.getElementById('filtro-abas');
+  s.innerHTML=''; f.innerHTML='';
+  Object.keys(abas).forEach(n=>{let o=document.createElement('option');o.value=n;o.textContent=n;s.appendChild(o); let p=o.cloneNode(true); f.appendChild(p);});
+  extrasAbas.forEach(e=>{let o=document.createElement('option');o.value=e;o.textContent=e;s.appendChild(o); let p=o.cloneNode(true); f.appendChild(p);});
 }
 
 function adicionarMovimento(){
@@ -218,17 +234,13 @@ function adicionarMovimento(){
   mostrarMovimentosMes(mesAno);
 }
 
-// ================== APAGAR MOVIMENTO ==================
-function apagarMovimento(mesAno,index){
-  const mov=movimentos[mesAno][index];
-  if(!extrasAbas.includes(mov.aba)){
-    abas[mov.aba]-=mov.tipoValor;
-    atualizarTotais();
-    atualizarGrafico();
-  }
-  movimentos[mesAno].splice(index,1);
+function apagarMovimento(mes, index){
+  const mov = movimentos[mes][index];
+  if(!extrasAbas.includes(mov.aba)) abas[mov.aba]-=mov.tipoValor;
+  movimentos[mes].splice(index,1);
   localStorage.setItem('movimentos',JSON.stringify(movimentos));
-  mostrarMovimentosMes(mesAno);
+  atualizarTotais(); atualizarGrafico();
+  mostrarMovimentosMes(mes);
 }
 
 // ================== SUB ABAS ==================
@@ -239,63 +251,59 @@ function atualizarSubAbasMensais(){
     const b=document.createElement('button');
     b.textContent=m;
     b.onclick=()=>mostrarMovimentosMes(m);
-    if(index===Object.keys(movimentos).length-1) b.classList.add('active');
+    if(index===Object.keys(movimentos).length-1){ b.classList.add('active'); filtroMesAtual=m;}
     c.appendChild(b);
   });
 }
 
+// ================== MOSTRAR MOVIMENTOS ==================
 function mostrarMovimentosMes(m){
-  const c = document.getElementById('lista-movimentos-mensal');
+  filtroMesAtual=m;
+  const c=document.getElementById('lista-movimentos-mensal');
   document.querySelectorAll('#sub-abas-meses button').forEach(b=>b.classList.remove('active'));
   const btn = Array.from(document.querySelectorAll('#sub-abas-meses button')).find(b=>b.textContent===m);
   if(btn) btn.classList.add('active');
 
-  c.innerHTML=`<h4>Movimentos de ${m}</h4>`;
+  const filtro = document.getElementById('filtro-abas').value;
+  c.innerHTML=`<h4>Movimentos de ${m} - ${filtro}</h4>`;
   if(!movimentos[m] || movimentos[m].length===0){c.innerHTML+='<p>Nenhum movimento neste mês.</p>';return;}
-
-  let totalEntradas=0, totalGastos=0;
-  movimentos[m].forEach((x,index)=>{
-    if(x.tipo==='gasto') totalGastos+=x.valor;
-    else totalEntradas+=x.valor;
-
-    const d=document.createElement('div');
-    d.className='item '+(x.tipo==='gasto'?'negativo':'positivo');
-    d.innerHTML=`<span>${x.data} - ${x.aba} - ${x.desc}</span><input type="text" value="${x.tipoValor.toFixed(2)} €" readonly><button onclick="apagarMovimento('${m}',${index})">🗑️</button>`;
-    c.appendChild(d);
+  movimentos[m].forEach((x,i)=>{
+    if(filtro==='Todos' || x.aba===filtro){
+      const d=document.createElement('div');
+      d.className='item '+(x.tipo==='gasto'?'negativo':'positivo');
+      d.innerHTML=`<span>${x.data} - ${x.aba} - ${x.desc}</span><input type="text" value="${x.tipoValor.toFixed(2)} €" readonly><button class="delete-btn" onclick="apagarMovimento('${m}',${i})">🗑️</button>`;
+      c.appendChild(d);
+    }
   });
-  document.getElementById('resumo-mes').innerHTML=`<strong>Entradas:</strong> €${totalEntradas.toFixed(2)} | <strong>Gastos:</strong> €${totalGastos.toFixed(2)} | <strong>Capital Movimentado:</strong> €${(totalEntradas+totalGastos).toFixed(2)}`;
 }
 
 // ================== PLANEAMENTO ==================
-const planeamentoData={"Money 2026":[{mes:'Janeiro',entradas:60,gastos:120,saldo:2835},{mes:'Fevereiro',entradas:50,gastos:0,saldo:2885},{mes:'Março',entradas:50,gastos:0,saldo:2935},{mes:'Abril',entradas:60,gastos:70,saldo:2925},{mes:'Maio',entradas:50,gastos:0,saldo:2975},{mes:'Junho',entradas:350,gastos:60,saldo:3265},{mes:'Julho',entradas:60,gastos:30,saldo:3295},{mes:'Agosto',entradas:60,gastos:50,saldo:3305},{mes:'Setembro',entradas:60,gastos:110,saldo:3255},{mes:'Outubro',entradas:60,gastos:0,saldo:3315},{mes:'Novembro',entradas:50,gastos:0,saldo:3365},{mes:'Dezembro',entradas:500,gastos:120,saldo:3745}],"Dela":[{mes:'Janeiro',entradas:0,gastos:0,saldo:4010},{mes:'Fevereiro',entradas:0,gastos:0,saldo:4010},{mes:'Março',entradas:0,gastos:0,saldo:4010},{mes:'Abril',entradas:0,gastos:70,saldo:3940},{mes:'Maio',entradas:0,gastos:0,saldo:3940},{mes:'Junho',entradas:0,gastos:40,saldo:3900},{mes:'Julho',entradas:0,gastos:20,saldo:3880},{mes:'Agosto',entradas:0,gastos:0,saldo:3880},{mes:'Setembro',entradas:0,gastos:0,saldo:3880},{mes:'Outubro',entradas:0,gastos:0,saldo:3880},{mes:'Novembro',entradas:0,gastos:0,saldo:3880},{mes:'Dezembro',entradas:0,gastos:0,saldo:3880}]};
+const planeamentoData={"Money 2026":[{mes:'Janeiro',entradas:60,gastos:120,saldo:2835},{mes:'Fevereiro',entradas:50,gastos:0,saldo:2885},{mes:'Março',entradas:50,gastos:0,saldo:2935},{mes:'Abril',entradas:60,gastos:70,saldo:2925},{mes:'Maio',entradas:50,gastos:0,saldo:2975},{mes:'Junho',entradas:350,gastos:60,saldo:3265},{mes:'Julho',entradas:60,gastos:30,saldo:3295},{mes:'Agosto',entradas:60,gastos:50,saldo:3305},{mes:'Setembro',entradas:60,gastos:110,saldo:3255},{mes:'Outubro',entradas:60,gastos:0,saldo:3315},{mes:'Novembro',entradas:50,gastos:0,saldo:3365},{mes:'Dezembro',entradas:60,gastos:50,saldo:3375}],
+"Dela":[{mes:'Janeiro',entradas:20,gastos:0,saldo:4010},{mes:'Fevereiro',entradas:30,gastos:0,saldo:4040},{mes:'Março',entradas:50,gastos:0,saldo:4090},{mes:'Abril',entradas:20,gastos:10,saldo:4100},{mes:'Maio',entradas:0,gastos:0,saldo:4100},{mes:'Junho',entradas:20,gastos:0,saldo:4120},{mes:'Julho',entradas:0,gastos:0,saldo:4120},{mes:'Agosto',entradas:20,gastos:0,saldo:4140},{mes:'Setembro',entradas:0,gastos:0,saldo:4140},{mes:'Outubro',entradas:0,gastos:0,saldo:4140},{mes:'Novembro',entradas:0,gastos:0,saldo:4140},{mes:'Dezembro',entradas:0,gastos:0,saldo:4140}]};
 
 function mostrarPlaneamento(aba){
-  const div=document.getElementById('tabela-planeamento');
-  div.innerHTML='';
-  const tabela=document.createElement('table');
-  tabela.style.width='100%';
-  tabela.style.borderCollapse='collapse';
-  let html='<tr><th>Mês</th><th>Entradas (€)</th><th>Gastos (€)</th><th>Saldo (€)</th></tr>';
-  planeamentoData[aba].forEach(linha=>{
-    html+=`<tr>
-      <td>${linha.mes}</td>
-      <td>${linha.entradas}</td>
-      <td>${linha.gastos}</td>
-      <td>${linha.saldo}</td>
-    </tr>`;
+  const container=document.getElementById('tabela-planeamento');
+  container.innerHTML='';
+  if(!planeamentoData[aba]) return;
+  let html=`<table><tr><th>Mês</th><th>Entradas (€)</th><th>Gastos (€)</th><th>Saldo (€)</th></tr>`;
+  planeamentoData[aba].forEach(l=>{
+    html+=`<tr><td>${l.mes}</td><td>${l.entradas}</td><td>${l.gastos}</td><td>${l.saldo}</td></tr>`;
   });
-  tabela.innerHTML=html;
-  div.appendChild(tabela);
+  html+='</table>';
+  container.innerHTML=html;
+}
+
+// ================== DARK MODE ==================
+function toggleDarkMode(){
+  document.body.classList.toggle('dark');
 }
 
 // ================== INICIALIZAÇÃO ==================
 preencherSelectAbas();
 atualizarSaldosLista();
 atualizarSubAbasMensais();
-
-// Mostra o último mês disponível
-const meses = Object.keys(movimentos).sort();
-if(meses.length>0) mostrarMovimentosMes(meses[meses.length-1]);
+mostrarMovimentosMes(filtroMesAtual);
+mostrarPlaneamento(document.getElementById('planeamento-aba').value);
 </script>
 </body>
 </html>
