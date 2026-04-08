@@ -70,6 +70,7 @@ input.table-edit:focus{outline:none;background:#fff;padding:2px;border-radius:4p
   <button class="tab-button" onclick="abrirAba('planeamento', this)">Planeamento</button>
 </div>
 
+<!-- SALDOS -->
 <div id="saldos" class="tab-content">
   <section class="card total-card">
     <span>Fluxo Total</span>
@@ -82,6 +83,7 @@ input.table-edit:focus{outline:none;background:#fff;padding:2px;border-radius:4p
   <div id="grafico-container"><canvas id="saldoGrafico" width="400" height="200"></canvas></div>
 </div>
 
+<!-- MOVIMENTOS -->
 <div id="movimentos" class="tab-content" style="display:none;">
   <button class="add-button" onclick="mostrarFormMovimento()">+ Adicionar Movimento</button>
   <div id="novo-movimento" style="display:none;">
@@ -115,6 +117,7 @@ input.table-edit:focus{outline:none;background:#fff;padding:2px;border-radius:4p
   <div id="lista-movimentos-mensal"></div>
 </div>
 
+<!-- PLANEAMENTO -->
 <div id="planeamento" class="tab-content" style="display:none;">
   <label>Selecione Aba:</label>
   <select id="planeamento-aba" onchange="mostrarPlaneamento(this.value)">
@@ -126,6 +129,7 @@ input.table-edit:focus{outline:none;background:#fff;padding:2px;border-radius:4p
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+// --- DADOS INICIAIS ---
 let abas = JSON.parse(localStorage.getItem('abas')) || {
   "Ibiza":245,"Dela":4010,"Money 2026":2775,"Notas de 5 (capa)":100,
   "Capa 1 (azul)":50,"Capa 2 (caixa Apple)":55,"Porta cartões":25,
@@ -133,26 +137,34 @@ let abas = JSON.parse(localStorage.getItem('abas')) || {
   "Capa 5 (azul)":15,"Capa Apple Azul Escura":0,"Moedas carteira":131.92
 };
 localStorage.setItem('abas', JSON.stringify(abas));
+
 let movimentos = JSON.parse(localStorage.getItem('movimentos')) || {};
+if(Object.keys(movimentos).length===0){
+  // Movimento de teste para ver algo inicial
+  movimentos["2026-04"] = [{tipo:"ganho", valor:100, tipoValor:100, aba:"Money 2026", desc:"Exemplo", data:"2026-04-08"}];
+  localStorage.setItem('movimentos', JSON.stringify(movimentos));
+}
+
 let extrasAbas = ["Avô","Pais"];
 let saldoGrafico;
 
-// Dark mode toggle
+// --- FUNÇÕES GERAIS ---
 function toggleDarkMode(){ document.body.classList.toggle('dark'); document.body.classList.toggle('light'); }
 function abrirAba(id, btn){ document.querySelectorAll('.tab-content').forEach(t=>t.style.display='none'); document.getElementById(id).style.display='block'; document.querySelectorAll('.tab-button').forEach(b=>b.classList.remove('active')); if(btn) btn.classList.add('active'); }
 
-// Inicialização filtros
+// --- FILTROS ---
 function inicializarFiltros(){
   const filtroMes=document.getElementById('filtro-mes');
   filtroMes.innerHTML='<option value="todos">Todos os meses</option>';
-  Object.keys(movimentos).sort().forEach(m=>{let o=document.createElement('option');o.value=m;o.textContent=m;filtroMes.appendChild(o);});
+  Object.keys(movimentos).sort().forEach(m=>{
+    let o=document.createElement('option'); o.value=m; o.textContent=m; filtroMes.appendChild(o);
+  });
   const filtroAba=document.getElementById('filtro-aba');
   filtroAba.innerHTML='<option value="todas">Todas as abas</option>';
-  Object.keys(abas).forEach(a=>{let o=document.createElement('option');o.value=a;o.textContent=a;filtroAba.appendChild(o);});
-  extrasAbas.forEach(e=>{let o=document.createElement('option');o.value=e;o.textContent=e;filtroAba.appendChild(o);});
+  Object.keys(abas).forEach(a=>{let o=document.createElement('option');o.value=a;o.textContent=a; filtroAba.appendChild(o);});
+  extrasAbas.forEach(e=>{let o=document.createElement('option');o.value=e;o.textContent=e; filtroAba.appendChild(o);});
 }
 
-<script>
 // --- SALDOS ---
 function atualizarTotais(){
   let total=0, semMoedas=0, semCartao=0;
@@ -209,12 +221,10 @@ function preencherSelectAbas(){
   const s=document.getElementById('aba-movimento'); 
   s.innerHTML='';
   Object.keys(abas).forEach(n=>{
-    let o=document.createElement('option');
-    o.value=n; o.textContent=n; s.appendChild(o);
+    let o=document.createElement('option'); o.value=n; o.textContent=n; s.appendChild(o);
   });
   extrasAbas.forEach(e=>{
-    let o=document.createElement('option');
-    o.value=e; o.textContent=e; s.appendChild(o);
+    let o=document.createElement('option'); o.value=e; o.textContent=e; s.appendChild(o);
   });
 }
 
@@ -242,10 +252,10 @@ function adicionarMovimento(){
   document.getElementById('data-movimento').value='';
   
   inicializarFiltros();
-  mostrarMovimentosMes(mesAno);
+  filtrarMovimentos();
 }
 
-// --- FILTRAGEM AVANÇADA ---
+// --- FILTRAGEM ---
 function filtrarMovimentos(){
   const mes=document.getElementById('filtro-mes').value;
   const aba=document.getElementById('filtro-aba').value;
@@ -261,99 +271,65 @@ function filtrarMovimentos(){
 
     let entradas=0, gastos=0;
     movMes.forEach(x=>{if(x.tipo==='ganho') entradas+=x.valor; else gastos+=x.valor;});
-    let fluxo=entradas+gastos;
+    let fluxo=entradas-gastos;
     c.innerHTML+=`<div class="card small">Movimentos de ${mesAtual} | Entradas: €${entradas.toFixed(2)} | Saídas: €${gastos.toFixed(2)} | Fluxo: €${fluxo.toFixed(2)}</div>`;
     
-    movMes.forEach((x,i)=>{
-      const d=document.createElement('div');
-      d.className='item '+(x.tipo==='gasto'?'negativo':'positivo');
-      d.innerHTML=`<span>${x.data} - ${x.aba} - ${x.desc}</span>
-        <div>
-          <input type="text" class="table-edit" value="${x.tipoValor.toFixed(2)} €" data-mes="${mesAtual}" data-idx="${i}" onchange="editarMovimento(this)">
-          <button class="delete-btn" onclick="apagarMovimento('${mesAtual}',${i})">🗑️</button>
-        </div>`;
-      c.appendChild(d);
+       movMes.forEach((x,i)=>{
+      const div=document.createElement('div');
+      div.className='item';
+      div.innerHTML=`
+        <span>${x.data} | ${x.desc} (${x.aba})</span>
+        <span>€ ${x.valor.toFixed(2)}</span>
+        <button class="delete-btn" onclick="apagarMovimento('${mesAtual}',${i})">&times;</button>
+      `;
+      c.appendChild(div);
     });
   });
 }
 
-// --- EDITAR MOVIMENTO ---
-function editarMovimento(input){
-  const mes=input.dataset.mes;
-  const idx=parseInt(input.dataset.idx);
-  let valorStr=input.value.replace(/[€\s]/g,'');
-  let novoValor=parseFloat(valorStr)||0;
-  const mov=movimentos[mes][idx];
-  
-  if(!extrasAbas.includes(mov.aba)){
-    abas[mov.aba]-=mov.tipoValor;
-    abas[mov.aba]+=(mov.tipo==='gasto'?-novoValor:novoValor);
+// --- DELETAR MOVIMENTO ---
+function apagarMovimento(mes,i){
+  if(confirm('Quer mesmo apagar este movimento?')){
+    let mov = movimentos[mes][i];
+    if(!extrasAbas.includes(mov.aba)){
+      if(abas[mov.aba]!==undefined){
+        abas[mov.aba]-=mov.tipoValor;
+        atualizarTotais(); atualizarGrafico();
+      }
+    }
+    movimentos[mes].splice(i,1);
+    if(movimentos[mes].length===0) delete movimentos[mes];
+    localStorage.setItem('movimentos',JSON.stringify(movimentos));
+    filtrarMovimentos(); inicializarFiltros();
   }
-  
-  mov.tipoValor=(mov.tipo==='gasto'?-novoValor:novoValor);
-  mov.valor=novoValor;
-  
-  localStorage.setItem('movimentos', JSON.stringify(movimentos));
-  atualizarTotais(); atualizarGrafico();
-}
-
-// --- APAGAR MOVIMENTO ---
-function apagarMovimento(mes, idx){
-  const mov = movimentos[mes][idx];
-  if(!extrasAbas.includes(mov.aba)) abas[mov.aba]-=mov.tipoValor;
-  movimentos[mes].splice(idx,1);
-  localStorage.setItem('movimentos', JSON.stringify(movimentos));
-  atualizarTotais(); atualizarGrafico();
-  inicializarFiltros();
-  filtrarMovimentos();
 }
 
 // --- PLANEAMENTO ---
-const mesesAno = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
-const planeamentoData = {
-  "Money 2026":[
-    {entradas:60,gastos:120},{entradas:50,gastos:0},{entradas:0,gastos:0},{entradas:0,gastos:0},
-    {entradas:0,gastos:0},{entradas:0,gastos:0},{entradas:0,gastos:0},{entradas:0,gastos:0},
-    {entradas:0,gastos:0},{entradas:0,gastos:0},{entradas:0,gastos:0},{entradas:0,gastos:0}
-  ],
-  "Dela":[
-    {entradas:0,gastos:0},{entradas:0,gastos:0},{entradas:0,gastos:0},{entradas:0,gastos:0},
-    {entradas:0,gastos:0},{entradas:0,gastos:0},{entradas:0,gastos:0},{entradas:0,gastos:0},
-    {entradas:0,gastos:0},{entradas:0,gastos:0},{entradas:0,gastos:0},{entradas:0,gastos:0}
-  ]
-};
-
 function mostrarPlaneamento(aba){
-  const c=document.getElementById('tabela-planeamento'); c.innerHTML='';
-  const dados=planeamentoData[aba]; if(!dados){c.innerHTML='Sem dados'; return;}
-  let html='<table><tr><th>Mês <span class="editar-icon" title="Editar">✎</span></th><th>Entradas (€)</th><th>Gastos (€)</th><th>Saldo (€)</th></tr>';
-  let saldo = abas[aba] || 0;
-  mesesAno.forEach((mes,i)=>{
-    const entradas=dados[i]?.entradas||0;
-    const gastos=dados[i]?.gastos||0;
-    saldo = saldo + entradas - gastos;
-    html+=`<tr>
-      <td>${mes}</td>
-      <td><input class="table-edit" type="number" value="${entradas}" onchange="editarPlaneamento('${aba}',${i},'entradas',this.value)"></td>
-      <td><input class="table-edit" type="number" value="${gastos}" onchange="editarPlaneamento('${aba}',${i},'gastos',this.value)"></td>
-      <td>${saldo.toFixed(2)}</td>
-    </tr>`;
-  });
-  html+='</table>'; c.innerHTML=html;
+  const container=document.getElementById('tabela-planeamento');
+  container.innerHTML='';
+  if(!abas[aba]) abas[aba]=0;
+  container.innerHTML=`
+    <table>
+      <tr><th>Categoria</th><th>Valor (€)</th></tr>
+      <tr><td>${aba}</td><td><input class="table-edit" type="number" value="${abas[aba]}" oninput="atualizarSaldoTabela(this,'${aba}')"></td></tr>
+    </table>
+  `;
 }
 
-function editarPlaneamento(aba, idx, tipo, valor){
-  planeamentoData[aba][idx][tipo]=parseFloat(valor)||0;
-  mostrarPlaneamento(aba);
+function atualizarSaldoTabela(input,aba){
+  abas[aba]=parseFloat(input.value)||0;
+  atualizarTotais(); atualizarGrafico();
+  localStorage.setItem('abas',JSON.stringify(abas));
 }
 
 // --- INICIALIZAÇÃO ---
-window.onload = function(){
-  preencherSelectAbas(); atualizarSaldosLista(); inicializarFiltros();
-  const ultMes = Object.keys(movimentos).sort().pop();
-  if(ultMes) filtrarMovimentos();
-};
+preencherSelectAbas();
+inicializarFiltros();
+atualizarSaldosLista();
+filtrarMovimentos();
+mostrarPlaneamento('Money 2026');
 </script>
+</div>
 </body>
 </html>
- 
