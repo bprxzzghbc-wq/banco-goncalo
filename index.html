@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Banco Gonçalo - App Expandida</title>
 <style>
+/* -------------------- Estilo -------------------- */
 *{margin:0;padding:0;box-sizing:border-box;}
 body, html{font-family:'Helvetica Neue', Arial,sans-serif;transition:0.3s;}
 body.light{background:#f5f5f7;color:#333;}
@@ -44,6 +45,8 @@ body.dark .divider{background:#555;}
 @keyframes pulse{0%{box-shadow:0 0 0 rgba(215,28,28,0.4);}70%{box-shadow:0 0 20px rgba(215,28,28,0.4);}100%{box-shadow:0 0 0 rgba(215,28,28,0.4);}}
 #grafico-container{background:white;padding:15px;border-radius:20px;box-shadow:0 4px 14px rgba(0,0,0,0.06);margin-top:20px;}
 body.dark #grafico-container{background:#2b2b2b;box-shadow:0 4px 14px rgba(0,0,0,0.5);}
+#grafico-categorias-container{background:white;padding:15px;border-radius:20px;box-shadow:0 4px 14px rgba(0,0,0,0.06);margin-top:20px;}
+body.dark #grafico-categorias-container{background:#2b2b2b;box-shadow:0 4px 14px rgba(0,0,0,0.5);}
 .sub-aba-mes button{margin:3px;padding:6px 10px;border-radius:10px;border:none;background:#ddd;cursor:pointer;}
 .sub-aba-mes button.active{background:#d71c1c;color:white;}
 body.dark .sub-aba-mes button{background:#555;color:#eee;}
@@ -98,6 +101,12 @@ input.table-edit:focus{outline:none;background:#fff;padding:2px;border-radius:4p
     <input type="text" id="descricao-movimento">
     <label>Aba:</label>
     <select id="aba-movimento"></select>
+    <label>Categoria:</label>
+    <select id="categoria">
+      <option value="Compras">Compras</option>
+      <option value="Comida">Comida</option>
+      <option value="Outros">Outros</option>
+    </select>
     <label>Data (opcional):</label>
     <input type="date" id="data-movimento">
     <button class="add-button" onclick="adicionarMovimento()">Salvar Movimento</button>
@@ -115,6 +124,9 @@ input.table-edit:focus{outline:none;background:#fff;padding:2px;border-radius:4p
   <div class="sub-aba-mes" id="sub-abas-meses"></div>
   <div id="resumo-mensal"></div>
   <div id="lista-movimentos-mensal"></div>
+  <div id="grafico-categorias-container">
+    <canvas id="graficoCategorias" width="400" height="200"></canvas>
+  </div>
 </div>
 
 <!-- PLANEAMENTO -->
@@ -129,7 +141,7 @@ input.table-edit:focus{outline:none;background:#fff;padding:2px;border-radius:4p
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-// --- DADOS INICIAIS ---
+// -------------------- DADOS --------------------
 let abas = JSON.parse(localStorage.getItem('abas')) || {
   "Ibiza":245,"Dela":4010,"Money 2026":2775,"Notas de 5 (capa)":100,
   "Capa 1 (azul)":50,"Capa 2 (caixa Apple)":55,"Porta cartões":25,
@@ -140,19 +152,24 @@ localStorage.setItem('abas', JSON.stringify(abas));
 
 let movimentos = JSON.parse(localStorage.getItem('movimentos')) || {};
 if(Object.keys(movimentos).length===0){
-  // Movimento de teste para ver algo inicial
   movimentos["2026-04"] = [{tipo:"ganho", valor:100, tipoValor:100, aba:"Money 2026", desc:"Exemplo", data:"2026-04-08"}];
   localStorage.setItem('movimentos', JSON.stringify(movimentos));
 }
 
 let extrasAbas = ["Avô","Pais"];
 let saldoGrafico;
+let graficoPizza;
 
-// --- FUNÇÕES GERAIS ---
+// -------------------- FUNÇÕES --------------------
 function toggleDarkMode(){ document.body.classList.toggle('dark'); document.body.classList.toggle('light'); }
-function abrirAba(id, btn){ document.querySelectorAll('.tab-content').forEach(t=>t.style.display='none'); document.getElementById(id).style.display='block'; document.querySelectorAll('.tab-button').forEach(b=>b.classList.remove('active')); if(btn) btn.classList.add('active'); }
+function abrirAba(id, btn){
+  document.querySelectorAll('.tab-content').forEach(t=>t.style.display='none');
+  document.getElementById(id).style.display='block';
+  document.querySelectorAll('.tab-button').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+}
 
-// --- FILTROS ---
+// -------------------- FILTROS --------------------
 function inicializarFiltros(){
   const filtroMes=document.getElementById('filtro-mes');
   filtroMes.innerHTML='<option value="todos">Todos os meses</option>';
@@ -165,7 +182,7 @@ function inicializarFiltros(){
   extrasAbas.forEach(e=>{let o=document.createElement('option');o.value=e;o.textContent=e; filtroAba.appendChild(o);});
 }
 
-// --- SALDOS ---
+// -------------------- SALDOS --------------------
 function atualizarTotais(){
   let total=0, semMoedas=0, semCartao=0;
   for(const nome in abas){
@@ -211,7 +228,7 @@ function atualizarGrafico(){
   });
 }
 
-// --- MOVIMENTOS ---
+// -------------------- MOVIMENTOS --------------------
 function mostrarFormMovimento(){
   const f=document.getElementById('novo-movimento'); 
   f.style.display=f.style.display==='none'?'block':'none';
@@ -229,40 +246,89 @@ function preencherSelectAbas(){
 }
 
 function adicionarMovimento(){
-  const tipo=document.getElementById('tipo-movimento').value;
-  const valor=parseFloat(document.getElementById('valor-movimento').value)||0;
-  const aba=document.getElementById('aba-movimento').value;
-  const desc=document.getElementById('descricao-movimento').value;
-  let data=document.getElementById('data-movimento').value||new Date().toISOString().split('T')[0];
-  if(valor<=0||!aba||!desc){alert('Preencha todos os campos!');return;}
-  
+  const tipo = document.getElementById('tipo-movimento').value;
+  const valor = parseFloat(document.getElementById('valor-movimento').value) || 0;
+  const aba = document.getElementById('aba-movimento').value;
+  const desc = document.getElementById('descricao-movimento').value;
+  const categoria = document.getElementById('categoria').value;
+  let data = document.getElementById('data-movimento').value || new Date().toISOString().split('T')[0];
+
+  if(valor <= 0 || !aba || !desc){ alert('Preencha todos os campos!'); return; }
+
   if(!extrasAbas.includes(aba)){
     if(abas[aba]===undefined) abas[aba]=0;
-    abas[aba]+=(tipo==='gasto'?-valor:valor);
-    atualizarTotais(); atualizarGrafico();
+    abas[aba] += (tipo==='gasto' ? -valor : valor);
+    atualizarTotais();
+    atualizarGrafico();
   }
 
-  const mesAno=data.slice(0,7);
+  const mesAno = data.slice(0,7);
   if(!movimentos[mesAno]) movimentos[mesAno]=[];
-  movimentos[mesAno].push({tipo,tipoValor:(tipo==='gasto'?-valor:valor),valor,aba,desc,data});
-  
+
+  movimentos[mesAno].push({
+    tipo,
+    tipoValor: (tipo==='gasto' ? -valor : valor),
+    valor,
+    aba,
+    desc,
+    data,
+    categoria
+  });
+
   localStorage.setItem('movimentos', JSON.stringify(movimentos));
+
   document.getElementById('valor-movimento').value='';
   document.getElementById('descricao-movimento').value='';
   document.getElementById('data-movimento').value='';
-  
+
   inicializarFiltros();
   filtrarMovimentos();
+
+  const mesNumero = parseInt(mesAno.split('-')[1], 10);
+  if(mesNumero >= 5) atualizarGraficoCategorias(mesAno);
+
 }
 
-// --- FILTRAGEM ---
+// -------------------- GRÁFICO DE CATEGORIAS --------------------
+function atualizarGraficoCategorias(mes){
+  if(!movimentos[mes]) return;
+
+  let categorias = {};
+  movimentos[mes].forEach(m=>{
+    if(m.tipo==='gasto'){ // apenas gastos entram no gráfico
+      if(!categorias[m.categoria]) categorias[m.categoria]=0;
+      categorias[m.categoria] += m.valor;
+    }
+  });
+
+  const ctx = document.getElementById('graficoCategorias').getContext('2d');
+  if(graficoPizza) graficoPizza.destroy();
+
+  graficoPizza = new Chart(ctx,{
+    type:'pie',
+    data:{
+      labels: Object.keys(categorias),
+      datasets:[{
+        data: Object.values(categorias),
+        backgroundColor:['#ff6384','#36a2eb','#ffce56','#4caf50','#9c27b0','#ff9f40']
+      }]
+    },
+    options:{
+      responsive:true,
+      plugins:{legend:{position:'bottom'}}
+    }
+  });
+}
+
+// -------------------- FILTRAGEM --------------------
 function filtrarMovimentos(){
-  const mes=document.getElementById('filtro-mes').value;
-  const aba=document.getElementById('filtro-aba').value;
-  let mesesFiltrados = mes==='todos'?Object.keys(movimentos).sort():[mes];
-  const c=document.getElementById('lista-movimentos-mensal');
-  c.innerHTML='';
-  
+  const mes = document.getElementById('filtro-mes').value;
+  const aba = document.getElementById('filtro-aba').value;
+  const lista = document.getElementById('lista-movimentos-mensal');
+  lista.innerHTML='';
+
+  let mesesFiltrados = mes==='todos' ? Object.keys(movimentos).sort() : [mes];
+
   mesesFiltrados.forEach(mesAtual=>{
     if(!movimentos[mesAtual]) return;
     let movMes = movimentos[mesAtual];
@@ -271,40 +337,39 @@ function filtrarMovimentos(){
 
     let entradas=0, gastos=0;
     movMes.forEach(x=>{if(x.tipo==='ganho') entradas+=x.valor; else gastos+=x.valor;});
-    let fluxo=entradas-gastos;
-    c.innerHTML+=`<div class="card small">Movimentos de ${mesAtual} | Entradas: €${entradas.toFixed(2)} | Saídas: €${gastos.toFixed(2)} | Fluxo: €${fluxo.toFixed(2)}</div>`;
-    
-       movMes.forEach((x,i)=>{
-      const div=document.createElement('div');
+    let fluxo = entradas - gastos;
+
+    lista.innerHTML += `<div class="card small">Movimentos de ${mesAtual} | Entradas: €${entradas.toFixed(2)} | Saídas: €${gastos.toFixed(2)} | Fluxo: €${fluxo.toFixed(2)}</div>`;
+
+    movMes.forEach((x,i)=>{
+      const div = document.createElement('div');
       div.className='item';
-      div.innerHTML=`
-        <span>${x.data} | ${x.desc} (${x.aba})</span>
-        <span>€ ${x.valor.toFixed(2)}</span>
-        <button class="delete-btn" onclick="apagarMovimento('${mesAtual}',${i})">&times;</button>
-      `;
-      c.appendChild(div);
+      div.innerHTML = `<span>${x.data} | ${x.desc} (${x.aba})</span><span>€ ${x.valor.toFixed(2)}</span>
+        <button class="delete-btn" onclick="apagarMovimento('${mesAtual}',${i})">&times;</button>`;
+      lista.appendChild(div);
     });
   });
 }
 
-// --- DELETAR MOVIMENTO ---
+// -------------------- APAGAR MOVIMENTO --------------------
 function apagarMovimento(mes,i){
   if(confirm('Quer mesmo apagar este movimento?')){
     let mov = movimentos[mes][i];
-    if(!extrasAbas.includes(mov.aba)){
-      if(abas[mov.aba]!==undefined){
-        abas[mov.aba]-=mov.tipoValor;
-        atualizarTotais(); atualizarGrafico();
-      }
+    if(!extrasAbas.includes(mov.aba) && abas[mov.aba] !== undefined){
+      abas[mov.aba] -= mov.tipoValor;
+      atualizarTotais();
+      atualizarGrafico();
     }
     movimentos[mes].splice(i,1);
     if(movimentos[mes].length===0) delete movimentos[mes];
-    localStorage.setItem('movimentos',JSON.stringify(movimentos));
-    filtrarMovimentos(); inicializarFiltros();
+    localStorage.setItem('movimentos', JSON.stringify(movimentos));
+    filtrarMovimentos();
+    inicializarFiltros();
+    atualizarGraficoCategorias(mes);
   }
 }
 
-// --- PLANEAMENTO ---
+// -------------------- PLANEAMENTO --------------------
 function mostrarPlaneamento(aba){
   const container=document.getElementById('tabela-planeamento');
   container.innerHTML='';
@@ -318,17 +383,32 @@ function mostrarPlaneamento(aba){
 }
 
 function atualizarSaldoTabela(input,aba){
-  abas[aba]=parseFloat(input.value)||0;
-  atualizarTotais(); atualizarGrafico();
+  abas[aba] = parseFloat(input.value)||0;
+  atualizarTotais();
+  atualizarGrafico();
   localStorage.setItem('abas',JSON.stringify(abas));
 }
 
-// --- INICIALIZAÇÃO ---
+// -------------------- SUB-ABAS DE MESES --------------------
+function criarSubAbasMeses(){
+  const container = document.getElementById('sub-abas-meses');
+  container.innerHTML='';
+  Object.keys(movimentos).sort().forEach(m=>{
+    const btn = document.createElement('button');
+    btn.textContent = m;
+    btn.onclick = ()=>{ document.getElementById('filtro-mes').value=m; filtrarMovimentos(); atualizarGraficoCategorias(m); };
+    container.appendChild(btn);
+  });
+}
+
+// -------------------- INICIALIZAÇÃO --------------------
 preencherSelectAbas();
 inicializarFiltros();
 atualizarSaldosLista();
 filtrarMovimentos();
 mostrarPlaneamento('Money 2026');
+criarSubAbasMeses();
+
 </script>
 </div>
 </body>
