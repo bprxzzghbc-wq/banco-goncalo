@@ -101,6 +101,19 @@ h1,h2,.num{font-family:'Sora',sans-serif;}
   color:var(--text);font-size:13px;font-weight:600;padding-top:6px;font-family:'Sora',sans-serif;}
 .acc-edit:focus{outline:none;color:var(--brand-a);}
  
+.wallet-toggle{
+  border:none;background:var(--surface-2);color:var(--text);width:32px;height:32px;border-radius:50%;
+  font-size:14px;cursor:pointer;flex-shrink:0;
+}
+.wallet-vertical{display:flex;flex-direction:column;gap:8px;}
+.wallet-vertical .acc-card{
+  width:100%;display:flex;align-items:center;gap:12px;padding:12px 14px;
+}
+.wallet-vertical .acc-dot{margin-bottom:0;}
+.wallet-vertical .acc-name{flex:1;height:auto;font-size:13px;}
+.wallet-vertical .acc-val{margin-top:0;text-align:right;}
+.wallet-vertical .acc-edit{width:84px;margin-top:0;border-top:none;text-align:right;flex-shrink:0;}
+ 
 /* transaction rows */
 .tx-list{display:flex;flex-direction:column;gap:8px;}
 .tx{
@@ -196,6 +209,37 @@ td:first-child{font-family:'Inter',sans-serif;font-weight:600;}
 /* edit button on tx */
 .tx-edit{background:none;border:none;color:var(--muted);font-size:15px;cursor:pointer;padding:2px 4px 0 0;}
  
+.tx-info{
+  border:none;background:var(--surface-2);color:var(--text);width:30px;height:30px;border-radius:50%;
+  font-size:14px;font-weight:700;cursor:pointer;flex-shrink:0;font-family:'Sora',sans-serif;
+}
+.tx-info:active{transform:scale(0.92);}
+ 
+.sheet-overlay{
+  position:fixed;inset:0;background:rgba(15,10,30,0.45);display:none;align-items:flex-end;justify-content:center;z-index:60;
+}
+.sheet-overlay.open{display:flex;}
+.sheet-panel{
+  width:100%;max-width:460px;background:var(--surface);border-radius:24px 24px 0 0;
+  padding:10px 18px 22px;box-shadow:0 -14px 40px rgba(0,0,0,0.3);
+  transform:translateY(100%);transition:transform .28s cubic-bezier(.22,1,.36,1);max-height:82vh;overflow-y:auto;
+}
+.sheet-overlay.open .sheet-panel{transform:translateY(0);}
+.sheet-handle{width:38px;height:4px;border-radius:999px;background:var(--line);margin:4px auto 14px;}
+.sheet-title{font-family:'Sora',sans-serif;font-weight:700;font-size:16px;}
+.sheet-sub{font-size:11.5px;color:var(--muted);margin-top:2px;margin-bottom:14px;}
+.sheet-actions{display:flex;gap:10px;margin-bottom:14px;}
+.sheet-btn{
+  flex:1;padding:11px;border-radius:var(--radius-s);border:1.5px solid var(--line);background:var(--surface-2);
+  font-size:12.5px;font-weight:700;cursor:pointer;color:var(--text);
+}
+.sheet-btn.danger{color:var(--neg);border-color:rgba(240,72,62,0.3);}
+.sheet-btn.primary{color:var(--brand-a);border-color:rgba(108,76,241,0.3);}
+.sheet-notes{
+  width:100%;min-height:70px;border-radius:var(--radius-s);border:1.5px solid var(--line);
+  background:var(--surface-2);padding:10px;font-size:13px;font-family:'Inter',sans-serif;color:var(--text);resize:vertical;
+}
+ 
 /* evolution chart */
 .evo-card{background:var(--surface);border-radius:var(--radius-m);padding:16px;box-shadow:var(--shadow-sm);border:1px solid var(--line);}
 .evo-legend{display:flex;gap:16px;justify-content:center;margin-top:10px;font-size:11.5px;color:var(--muted);}
@@ -260,7 +304,10 @@ td:first-child{font-family:'Inter',sans-serif;font-weight:600;}
  
   <div class="topbar">
     <div class="greet">Olá, <b>Gonçalo</b> 👋</div>
-    <button class="icon-btn" onclick="toggleDark()" title="Alternar tema">◐</button>
+    <div style="display:flex;gap:8px;">
+      <button class="icon-btn" onclick="abrirCores()" title="Personalizar cores" aria-label="Personalizar cores">⚙</button>
+      <button class="icon-btn" onclick="toggleDark()" title="Alternar tema">◐</button>
+    </div>
   </div>
  
   <div class="hero">
@@ -283,7 +330,10 @@ td:first-child{font-family:'Inter',sans-serif;font-weight:600;}
  
   <!-- SALDOS -->
   <div class="tab-panel" id="panel-saldos">
-    <div class="section-head"><div class="section-title">As tuas contas</div></div>
+    <div class="section-head">
+      <div class="section-title">As tuas contas</div>
+      <button class="wallet-toggle" id="wallet-view-btn" onclick="toggleWalletView()" title="Alternar vista" aria-label="Alternar entre vista horizontal e vertical">⇄</button>
+    </div>
     <div class="field" style="margin-bottom:10px;">
       <input type="text" id="w-search" placeholder="Pesquisar conta..." oninput="renderWallet()">
     </div>
@@ -312,9 +362,8 @@ td:first-child{font-family:'Inter',sans-serif;font-weight:600;}
   <div class="tab-panel" id="panel-movimentos" style="display:none;">
     <div class="section-head">
       <div class="section-title">Novo lançamento</div>
-      <button class="link-btn" onclick="toggleForm()">Mostrar / Ocultar</button>
     </div>
-    <div class="form-card" id="form-card" style="display:none;">
+    <div class="form-card" id="form-card">
       <div class="row2">
         <div class="field"><label>Tipo</label>
           <select id="m-tipo"><option value="ganho">Entrada</option><option value="gasto">Gasto</option></select>
@@ -336,7 +385,26 @@ td:first-child{font-family:'Inter',sans-serif;font-weight:600;}
       });
     </script>
  
-    <div class="section-head"><div class="section-title">Recorrentes</div></div>
+    <div class="section-head">
+      <div class="section-title">Recorrentes</div>
+      <button class="link-btn" onclick="toggleRecForm()">+ Nova recorrente</button>
+    </div>
+    <div class="mini-form" id="rec-form" style="display:none;">
+      <div class="row2">
+        <div class="field"><label>Tipo</label>
+          <select id="rec-tipo"><option value="gasto">Gasto</option><option value="ganho">Entrada</option></select>
+        </div>
+        <div class="field"><label>Valor €</label><input type="number" id="rec-valor" step="0.01" placeholder="0.00"></div>
+      </div>
+      <div class="field"><label>Descrição</label><input type="text" id="rec-desc" placeholder="Ex: Netflix, ginásio..."></div>
+      <div class="row2">
+        <div class="field"><label>Conta</label><select id="rec-conta"></select></div>
+        <div class="field"><label>Categoria</label>
+          <select id="rec-cat"><option>Compras</option><option>Comida</option><option>Lazer</option><option>Poupança</option><option>Outros</option></select>
+        </div>
+      </div>
+      <button class="btn-main" onclick="criarRecorrente()">Guardar recorrente</button>
+    </div>
     <div id="lista-rec" style="display:flex;flex-direction:column;gap:8px;"></div>
  
     <div class="section-head"><div class="section-title">Orçamentos por categoria</div></div>
@@ -386,6 +454,46 @@ td:first-child{font-family:'Inter',sans-serif;font-weight:600;}
  
 </div>
  
+<div class="sheet-overlay" id="cores-sheet" onclick="fecharCores(event)">
+  <div class="sheet-panel" onclick="event.stopPropagation()">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Personalizar cores</div>
+    <div class="sheet-sub">Muda o esquema de cores da app — aplica-se em tudo, em tempo real.</div>
+ 
+    <label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:8px;">Predefinições</label>
+    <div id="cores-presets" style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;"></div>
+ 
+    <label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px;">Cor principal</label>
+    <input type="color" id="cor-a" value="#6C4CF1" style="width:100%;height:40px;border:1.5px solid var(--line);border-radius:var(--radius-s);margin-bottom:12px;background:var(--surface-2);cursor:pointer;">
+ 
+    <label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px;">Cor secundária (gradiente)</label>
+    <input type="color" id="cor-b" value="#FF5FA8" style="width:100%;height:40px;border:1.5px solid var(--line);border-radius:var(--radius-s);margin-bottom:12px;background:var(--surface-2);cursor:pointer;">
+ 
+    <div class="row2" style="margin-bottom:6px;">
+      <div class="field"><label>Cor positiva (entradas)</label><input type="color" id="cor-pos" value="#0FAE7D" style="width:100%;height:36px;border:1.5px solid var(--line);border-radius:var(--radius-s);cursor:pointer;"></div>
+      <div class="field"><label>Cor negativa (gastos)</label><input type="color" id="cor-neg" value="#F0483E" style="width:100%;height:36px;border:1.5px solid var(--line);border-radius:var(--radius-s);cursor:pointer;"></div>
+    </div>
+ 
+    <button class="btn-main" style="margin-top:6px;" onclick="fecharCores()">Aplicado — fechar</button>
+    <button class="sheet-btn" style="width:100%;margin-top:8px;" onclick="reporCores()">Repor predefinições</button>
+  </div>
+</div>
+ 
+<div class="sheet-overlay" id="tx-sheet" onclick="fecharSheetTx(event)">
+  <div class="sheet-panel" onclick="event.stopPropagation()">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="sheet-title">Lançamento</div>
+    <div class="sheet-sub" id="sheet-sub"></div>
+    <div class="sheet-actions">
+      <button class="sheet-btn primary" id="sheet-edit-btn">✎ Editar</button>
+      <button class="sheet-btn danger" id="sheet-del-btn">✕ Apagar</button>
+    </div>
+    <label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:5px;">Notas</label>
+    <textarea class="sheet-notes" id="sheet-notes" placeholder="Ex: pago em dinheiro, dividido com..."></textarea>
+    <button class="btn-main" style="margin-top:10px;" id="sheet-save-notes-btn">Guardar nota</button>
+  </div>
+</div>
+ 
 <div class="toast" id="toast"><span id="toast-msg"></span><button id="toast-action" style="display:none;background:none;border:none;color:var(--brand-b);font-weight:700;font-size:12.5px;margin-left:10px;cursor:pointer;"></button></div>
  
 <script>
@@ -414,11 +522,14 @@ let catFiltroGrafico=null;
 let evoChart=null;
 let editando=null;
  
-let recorrentes = [
-  {desc:'Renda', valor:0, tipo:'gasto', aba:Object.keys(abas)[0], categoria:'Outros'},
-];
+let recorrentes = [];
  
 let orcamentos = {Comida:100, Compras:80, Lazer:60, Poupança:0, Outros:40};
+let walletView = 'horizontal';
+function toggleWalletView(){
+  walletView = walletView==='horizontal' ? 'vertical' : 'horizontal';
+  renderWallet();
+}
  
 function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
 function fmt(n){return n.toLocaleString('pt-PT',{minimumFractionDigits:2,maximumFractionDigits:2});}
@@ -521,6 +632,8 @@ function totais(){
 function renderWallet(){
   const el=document.getElementById('wallet');
   const q=(document.getElementById('w-search').value||'').trim().toLowerCase();
+  el.className = walletView==='vertical' ? 'wallet-vertical' : 'wallet-scroll';
+  document.getElementById('wallet-view-btn').textContent = walletView==='vertical' ? '▤' : '⇄';
   el.innerHTML='';
   for(const n in abas){
     if(q && !n.toLowerCase().includes(q)) continue;
@@ -539,6 +652,7 @@ function renderWallet(){
   });
   const addCard=document.createElement('div');
   addCard.className='add-acc-card';
+  if(walletView==='vertical'){ addCard.style.width='100%'; addCard.style.flexDirection='row'; addCard.style.padding='12px'; }
   addCard.innerHTML=`<span style="font-size:20px;line-height:1;">+</span><span>Nova conta</span>`;
   addCard.addEventListener('click',()=>{
     const f=document.getElementById('new-acc-form');
@@ -626,6 +740,92 @@ function editarLancamento(mes,i){
   document.getElementById('form-card').scrollIntoView({behavior:'smooth',block:'center'});
 }
  
+let sheetAtual=null;
+function abrirDetalhesTx(mes,i){
+  const m=movimentos[mes][i];
+  sheetAtual={mes,i};
+  document.getElementById('sheet-title').textContent=m.desc;
+  document.getElementById('sheet-sub').textContent=`${m.data} · ${m.aba} · ${m.categoria} · ${m.tipo==='ganho'?'+':'-'}€${fmt(m.valor)}`;
+  document.getElementById('sheet-notes').value=m.notas||'';
+  document.getElementById('tx-sheet').classList.add('open');
+}
+function fecharSheetTx(e){
+  if(e && e.target && e.target.id!=='tx-sheet') return;
+  document.getElementById('tx-sheet').classList.remove('open');
+}
+document.getElementById('sheet-edit-btn').addEventListener('click',()=>{
+  if(!sheetAtual) return;
+  const {mes,i}=sheetAtual;
+  document.getElementById('tx-sheet').classList.remove('open');
+  editarLancamento(mes,i);
+});
+document.getElementById('sheet-del-btn').addEventListener('click',()=>{
+  if(!sheetAtual) return;
+  const {mes,i}=sheetAtual;
+  document.getElementById('tx-sheet').classList.remove('open');
+  apagar(mes,i);
+});
+document.getElementById('sheet-save-notes-btn').addEventListener('click',()=>{
+  if(!sheetAtual) return;
+  const {mes,i}=sheetAtual;
+  movimentos[mes][i].notas=document.getElementById('sheet-notes').value.trim();
+  document.getElementById('tx-sheet').classList.remove('open');
+  showToast('Nota guardada');
+});
+ 
+/* ---- personalizar cores ---- */
+const coresPresets=[
+  {nome:'Roxo',a:'#6C4CF1',b:'#FF5FA8'},
+  {nome:'Azul',a:'#2563EB',b:'#22D3EE'},
+  {nome:'Verde',a:'#0D9488',b:'#84CC16'},
+  {nome:'Laranja',a:'#EA580C',b:'#FACC15'},
+  {nome:'Ardósia',a:'#334155',b:'#64748B'},
+  {nome:'Rosa',a:'#DB2777',b:'#F472B6'}
+];
+const coresDefault={a:'#6C4CF1',b:'#FF5FA8',pos:'#0FAE7D',neg:'#F0483E'};
+ 
+function aplicarCores(a,b,pos,neg){
+  const root=document.documentElement.style;
+  root.setProperty('--brand-a',a);
+  root.setProperty('--brand-b',b);
+  root.setProperty('--pos',pos);
+  root.setProperty('--neg',neg);
+  document.getElementById('cor-a').value=a;
+  document.getElementById('cor-b').value=b;
+  document.getElementById('cor-pos').value=pos;
+  document.getElementById('cor-neg').value=neg;
+  if(typeof renderEvoChart==='function') renderEvoChart();
+}
+function renderCoresPresets(){
+  const el=document.getElementById('cores-presets');
+  el.innerHTML='';
+  coresPresets.forEach(p=>{
+    const btn=document.createElement('button');
+    btn.title=p.nome;
+    btn.style.cssText=`width:38px;height:38px;border-radius:50%;border:2px solid var(--line);cursor:pointer;background:linear-gradient(135deg,${p.a},${p.b});`;
+    btn.addEventListener('click',()=>aplicarCores(p.a,p.b,document.getElementById('cor-pos').value,document.getElementById('cor-neg').value));
+    el.appendChild(btn);
+  });
+}
+function abrirCores(){ document.getElementById('cores-sheet').classList.add('open'); }
+function fecharCores(e){
+  if(e && e.target && e.target.id!=='cores-sheet') return;
+  document.getElementById('cores-sheet').classList.remove('open');
+}
+function reporCores(){ aplicarCores(coresDefault.a,coresDefault.b,coresDefault.pos,coresDefault.neg); showToast('Cores repostas'); }
+['cor-a','cor-b','cor-pos','cor-neg'].forEach(id=>{
+  document.getElementById(id).addEventListener('input',()=>{
+    aplicarCores(
+      document.getElementById('cor-a').value,
+      document.getElementById('cor-b').value,
+      document.getElementById('cor-pos').value,
+      document.getElementById('cor-neg').value
+    );
+    renderEvoChart();
+  });
+});
+renderCoresPresets();
+ 
 let ultimoApagado=null;
 function apagar(mes,i){
   const mov=movimentos[mes][i];
@@ -675,8 +875,7 @@ function render(){
           <div class="tx-meta">${x.data} · ${esc(x.aba)}</div>
         </div>
         <div class="tx-amt ${x.tipo==='ganho'?'pos':'neg'}">${x.tipo==='ganho'?'+':'-'}€${fmt(x.valor)}</div>
-        <button class="tx-edit" onclick="editarLancamento('${m}',${i})">✎</button>
-        <button class="tx-del" onclick="apagar('${m}',${i})">✕</button>`;
+        <button class="tx-info" onclick="abrirDetalhesTx('${m}',${i})" aria-label="Detalhes do lançamento">ⓘ</button>`;
       const bg=document.createElement('div');
       bg.style.cssText='position:absolute;inset:0;background:var(--neg);border-radius:var(--radius-m);display:flex;align-items:center;justify-content:flex-end;padding-right:20px;color:#fff;font-weight:700;font-size:13px;';
       bg.textContent='Apagar';
@@ -773,10 +972,36 @@ function renderBudgets(mes){
 }
  
 /* ---- lançamentos recorrentes ---- */
+function toggleRecForm(){
+  const f=document.getElementById('rec-form');
+  f.style.display = f.style.display==='none' ? 'block' : 'none';
+  const sel=document.getElementById('rec-conta');
+  sel.innerHTML='';
+  [...Object.keys(abas),...extras].forEach(n=>sel.innerHTML+=`<option>${esc(n)}</option>`);
+}
+function criarRecorrente(){
+  const tipo=document.getElementById('rec-tipo').value;
+  const valor=parseFloat(document.getElementById('rec-valor').value)||0;
+  const desc=document.getElementById('rec-desc').value.trim();
+  const conta=document.getElementById('rec-conta').value;
+  const cat=document.getElementById('rec-cat').value;
+  if(valor<=0||!desc){ showToast('Preenche valor e descrição'); return; }
+  recorrentes.push({desc,valor,tipo,aba:conta,categoria:cat});
+  document.getElementById('rec-valor').value='';
+  document.getElementById('rec-desc').value='';
+  document.getElementById('rec-form').style.display='none';
+  renderRecorrentes();
+  showToast('Recorrente guardado');
+}
+function apagarRecorrente(i){
+  recorrentes.splice(i,1);
+  renderRecorrentes();
+  showToast('Recorrente removido');
+}
 function renderRecorrentes(){
   const el=document.getElementById('lista-rec');
   el.innerHTML='';
-  if(recorrentes.length===0){ el.innerHTML='<div class="empty">Sem recorrentes definidos.</div>'; return; }
+  if(recorrentes.length===0){ el.innerHTML='<div class="empty">Ainda não tens recorrentes. Toca em "+ Nova recorrente" para criares o primeiro.</div>'; return; }
   recorrentes.forEach((r,i)=>{
     const item=document.createElement('div');
     item.className='rec-item';
@@ -785,7 +1010,8 @@ function renderRecorrentes(){
         <div class="rec-title">${esc(r.desc)}</div>
         <div class="rec-meta">${r.tipo==='ganho'?'Entrada':'Gasto'} · €${fmt(r.valor)} · ${esc(r.aba)}</div>
       </div>
-      <button class="rec-add" onclick="lancarRecorrente(${i})">Lançar este mês</button>`;
+      <button class="rec-add" onclick="lancarRecorrente(${i})">Lançar este mês</button>
+      <button class="tx-del" onclick="apagarRecorrente(${i})">✕</button>`;
     el.appendChild(item);
   });
 }
@@ -813,11 +1039,14 @@ function renderEvoChart(){
   const gastos=meses.map(m=>movimentos[m].filter(x=>x.tipo==='gasto').reduce((a,x)=>a+x.valor,0));
   if(evoChart) evoChart.destroy();
   if(meses.length===0) return;
+  const cs=getComputedStyle(document.documentElement);
+  const corPos=cs.getPropertyValue('--pos').trim()||'#0FAE7D';
+  const corNeg=cs.getPropertyValue('--neg').trim()||'#F0483E';
   evoChart=new Chart(canvas.getContext('2d'),{
     type:'bar',
     data:{labels:meses,datasets:[
-      {label:'Entradas',data:entradas,backgroundColor:'#0FAE7D',borderRadius:5,maxBarThickness:22},
-      {label:'Gastos',data:gastos,backgroundColor:'#F0483E',borderRadius:5,maxBarThickness:22}
+      {label:'Entradas',data:entradas,backgroundColor:corPos,borderRadius:5,maxBarThickness:22},
+      {label:'Gastos',data:gastos,backgroundColor:corNeg,borderRadius:5,maxBarThickness:22}
     ]},
     options:{responsive:true,plugins:{legend:{display:false}},scales:{
       x:{grid:{display:false},ticks:{font:{size:10}}},
