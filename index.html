@@ -1,3 +1,7 @@
+
+
+
+Banco goncalo modern · HTML
 <!DOCTYPE html>
 <html lang="pt-PT">
 <head>
@@ -277,11 +281,13 @@ td:first-child{font-family:'Inter',sans-serif;font-weight:600;}
 .evo-legend span{display:flex;align-items:center;gap:5px;}
  
 .toast{
-  position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(120%);
-  background:var(--text);color:var(--bg);padding:12px 20px;border-radius:999px;font-size:12.5px;font-weight:600;
-  box-shadow:0 10px 30px rgba(0,0,0,0.3);transition:transform .3s ease;z-index:10;
+  position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(160%);
+  background:var(--text);color:var(--bg);padding:16px 22px;border-radius:16px;font-size:14px;font-weight:700;
+  box-shadow:0 16px 40px rgba(0,0,0,0.45);transition:transform .3s cubic-bezier(.22,1,.36,1);z-index:90;
+  display:flex;align-items:center;gap:10px;max-width:88vw;border:2px solid var(--brand-a);
 }
 .toast.show{transform:translateX(-50%) translateY(0);}
+.toast-icon{font-size:16px;flex-shrink:0;}
  
 #splash{
   position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -341,9 +347,9 @@ td:first-child{font-family:'Inter',sans-serif;font-weight:600;}
     </div>
   </div>
  
-  <div class="hero">
+  <div class="hero" onclick="abrirSaldoTotal()" style="cursor:pointer;">
     <div class="hero-top">
-      <div class="hero-label">Saldo total</div>
+      <div class="hero-label">Saldo total <span style="opacity:0.6;font-size:10.5px;">· toca para ver mais</span></div>
       <div class="pill" id="status-chip">Estável</div>
     </div>
     <div class="hero-num"><sup>€</sup><span id="total">0,00</span></div>
@@ -444,9 +450,13 @@ td:first-child{font-family:'Inter',sans-serif;font-weight:600;}
       <select id="b-mes" onchange="renderBudgetsFromFilters()"></select>
       <select id="b-conta" onchange="renderBudgetsFromFilters()"><option value="todas">Todas as contas</option></select>
     </div>
+    <div id="plano-banner" style="display:none;background:var(--surface-2);border-radius:var(--radius-s);padding:10px 12px;margin-bottom:10px;font-size:12px;"></div>
     <div class="chart-card" id="budgets-card"></div>
  
-    <div class="section-head"><div class="section-title">Filtrar</div></div>
+    <div class="section-head"><div class="section-title">Resumo mensal</div></div>
+    <div id="resumo-mensal-lista" style="display:flex;flex-direction:column;gap:8px;margin-bottom:6px;"></div>
+ 
+    <div class="section-head"><div class="section-title">Movimentos</div></div>
     <div class="field" style="margin-bottom:8px;">
       <input type="text" id="m-search" placeholder="Pesquisar por descrição ou categoria..." oninput="render()">
     </div>
@@ -458,7 +468,10 @@ td:first-child{font-family:'Inter',sans-serif;font-weight:600;}
     <div class="tx-list" id="lista-mov"></div>
     <div style="font-size:11px;color:var(--muted);text-align:center;margin-top:6px;">Desliza um lançamento para a esquerda para apagar</div>
  
-    <div class="section-head"><div class="section-title">Gastos por categoria</div></div>
+    <div class="section-head">
+      <div class="section-title">Gastos por categoria</div>
+      <button class="wallet-toggle" onclick="abrirAmpliarCategorias()" title="Ampliar">⤢</button>
+    </div>
     <div class="chart-card">
       <div class="chart-row">
         <div class="chart-wrap"><canvas id="chart" height="120"></canvas></div>
@@ -466,13 +479,21 @@ td:first-child{font-family:'Inter',sans-serif;font-weight:600;}
       </div>
     </div>
  
-    <div class="section-head"><div class="section-title">Evolução mensal</div></div>
+    <div class="section-head">
+      <div class="section-title">Evolução mensal</div>
+      <button class="wallet-toggle" onclick="abrirAmpliarEvolucao()" title="Ampliar">⤢</button>
+    </div>
     <div class="evo-card">
-      <canvas id="evo-chart" height="140"></canvas>
-      <div class="evo-legend">
-        <span><span style="width:8px;height:8px;border-radius:2px;background:#0FAE7D;display:inline-block;"></span>Entradas</span>
-        <span><span style="width:8px;height:8px;border-radius:2px;background:#F0483E;display:inline-block;"></span>Gastos</span>
+      <div class="hist-filters" id="evo-tipo-filtros">
+        <div class="hist-chip active" data-t="ambos" onclick="filtrarEvoTipo('ambos')">Ambos</div>
+        <div class="hist-chip" data-t="ganho" onclick="filtrarEvoTipo('ganho')">Só entradas</div>
+        <div class="hist-chip" data-t="gasto" onclick="filtrarEvoTipo('gasto')">Só gastos</div>
       </div>
+      <select id="evo-mes-destaque" onchange="renderEvoChart()" style="width:100%;margin-bottom:10px;padding:8px 10px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface-2);color:var(--text);font-size:12px;">
+        <option value="">Sem mês em destaque</option>
+      </select>
+      <canvas id="evo-chart" height="140"></canvas>
+      <div id="evo-destaque-info" style="text-align:center;font-size:12px;color:var(--muted);margin-top:8px;"></div>
     </div>
   </div>
  
@@ -491,27 +512,104 @@ td:first-child{font-family:'Inter',sans-serif;font-weight:600;}
 </div>
  
 <div class="sheet-overlay" id="cores-sheet" onclick="fecharCores(event)">
-  <div class="sheet-panel" onclick="event.stopPropagation()">
+  <div class="sheet-panel" onclick="event.stopPropagation()" style="max-height:90vh;">
     <div class="sheet-handle"></div>
-    <div class="sheet-title">Personalizar cores</div>
-    <div class="sheet-sub">Muda o esquema de cores da app — aplica-se em tudo, em tempo real.</div>
+    <div class="sheet-title">Painel de administrador — Aparência</div>
+    <div class="sheet-sub">Controla o visual da app inteira, em tempo real.</div>
  
-    <label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:8px;">Predefinições</label>
-    <div id="cores-presets" style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;"></div>
- 
-    <label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px;">Cor principal</label>
-    <input type="color" id="cor-a" value="#6C4CF1" style="width:100%;height:40px;border:1.5px solid var(--line);border-radius:var(--radius-s);margin-bottom:12px;background:var(--surface-2);cursor:pointer;">
- 
-    <label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px;">Cor secundária (gradiente)</label>
-    <input type="color" id="cor-b" value="#FF5FA8" style="width:100%;height:40px;border:1.5px solid var(--line);border-radius:var(--radius-s);margin-bottom:12px;background:var(--surface-2);cursor:pointer;">
- 
-    <div class="row2" style="margin-bottom:6px;">
-      <div class="field"><label>Cor positiva (entradas)</label><input type="color" id="cor-pos" value="#0FAE7D" style="width:100%;height:36px;border:1.5px solid var(--line);border-radius:var(--radius-s);cursor:pointer;"></div>
-      <div class="field"><label>Cor negativa (gastos)</label><input type="color" id="cor-neg" value="#F0483E" style="width:100%;height:36px;border:1.5px solid var(--line);border-radius:var(--radius-s);cursor:pointer;"></div>
+    <div class="acc-subtabs">
+      <div class="acc-subtab active" data-admtab="cores" onclick="mudarAdminTab('cores')">Cores</div>
+      <div class="acc-subtab" data-admtab="estilo" onclick="mudarAdminTab('estilo')">Estilo</div>
+      <div class="acc-subtab" data-admtab="diversao" onclick="mudarAdminTab('diversao')">Diversão</div>
     </div>
  
-    <button class="btn-main" style="margin-top:6px;" onclick="fecharCores()">Aplicado — fechar</button>
-    <button class="sheet-btn" style="width:100%;margin-top:8px;" onclick="reporCores()">Repor predefinições</button>
+    <div id="admin-tab-cores">
+      <label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:8px;">Predefinições</label>
+      <div id="cores-presets" style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;"></div>
+ 
+      <label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px;">Cor principal</label>
+      <input type="color" id="cor-a" value="#6C4CF1" style="width:100%;height:40px;border:1.5px solid var(--line);border-radius:var(--radius-s);margin-bottom:12px;background:var(--surface-2);cursor:pointer;">
+ 
+      <label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px;">Cor secundária (gradiente)</label>
+      <input type="color" id="cor-b" value="#FF5FA8" style="width:100%;height:40px;border:1.5px solid var(--line);border-radius:var(--radius-s);margin-bottom:12px;background:var(--surface-2);cursor:pointer;">
+ 
+      <div class="row2" style="margin-bottom:6px;">
+        <div class="field"><label>Cor positiva (entradas)</label><input type="color" id="cor-pos" value="#0FAE7D" style="width:100%;height:36px;border:1.5px solid var(--line);border-radius:var(--radius-s);cursor:pointer;"></div>
+        <div class="field"><label>Cor negativa (gastos)</label><input type="color" id="cor-neg" value="#F0483E" style="width:100%;height:36px;border:1.5px solid var(--line);border-radius:var(--radius-s);cursor:pointer;"></div>
+      </div>
+      <div class="row2" style="margin-bottom:6px;">
+        <div class="field"><label>Cor de fundo</label><input type="color" id="cor-bg" value="#F3F1FA" style="width:100%;height:36px;border:1.5px solid var(--line);border-radius:var(--radius-s);cursor:pointer;"></div>
+        <div class="field"><label>Cor dos cartões</label><input type="color" id="cor-surface" value="#FFFFFF" style="width:100%;height:36px;border:1.5px solid var(--line);border-radius:var(--radius-s);cursor:pointer;"></div>
+      </div>
+    </div>
+ 
+    <div id="admin-tab-estilo" style="display:none;">
+      <label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px;">Arredondamento dos cantos: <span id="radius-val">26px</span></label>
+      <input type="range" id="radius-slider" min="4" max="36" value="26" style="width:100%;margin-bottom:16px;">
+ 
+      <label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px;">Tamanho do texto: <span id="fontsize-val">100%</span></label>
+      <input type="range" id="fontsize-slider" min="85" max="120" value="100" style="width:100%;margin-bottom:16px;">
+ 
+      <label style="display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:600;margin-bottom:10px;cursor:pointer;">
+        <input type="checkbox" id="toggle-animacoes" checked style="width:18px;height:18px;"> Animações e transições ativas
+      </label>
+      <label style="display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:600;cursor:pointer;">
+        <input type="checkbox" id="toggle-confetti" checked style="width:18px;height:18px;"> Confetti ao registar lançamento
+      </label>
+    </div>
+ 
+    <div id="admin-tab-diversao" style="display:none;">
+      <button class="btn-main" style="margin-bottom:10px;" onclick="corAleatoria()">🎲 Cor aleatória</button>
+      <button class="btn-main" style="background:var(--surface-2);color:var(--text);box-shadow:none;margin-bottom:10px;" onclick="modoFesta()">🎉 Modo festa (cores a mudar sozinhas)</button>
+      <button class="btn-main" style="background:var(--surface-2);color:var(--text);box-shadow:none;" onclick="exportarTema()">💾 Exportar este tema (.json)</button>
+    </div>
+ 
+    <button class="btn-main" style="margin-top:14px;" onclick="fecharCores()">Aplicado — fechar</button>
+    <button class="sheet-btn" style="width:100%;margin-top:8px;" onclick="reporCores()">Repor tudo às predefinições</button>
+  </div>
+</div>
+ 
+<div class="sheet-overlay" id="ampliar-cat-sheet" onclick="fecharAmpliarCategorias(event)">
+  <div class="sheet-panel" onclick="event.stopPropagation()" style="max-height:88vh;">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Gastos por categoria</div>
+    <div class="sheet-sub" id="ampliar-cat-sub"></div>
+    <div style="max-width:240px;margin:10px auto 16px;"><canvas id="chart-ampliado" height="240"></canvas></div>
+    <div id="legend-ampliada" style="display:flex;flex-direction:column;gap:10px;"></div>
+  </div>
+</div>
+ 
+<div class="sheet-overlay" id="ampliar-evo-sheet" onclick="fecharAmpliarEvolucao(event)">
+  <div class="sheet-panel" onclick="event.stopPropagation()" style="max-height:88vh;">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Evolução mensal</div>
+    <div class="sheet-sub">Entradas vs. gastos, mês a mês</div>
+    <canvas id="evo-chart-ampliado" height="260"></canvas>
+    <div id="evo-ampliado-info" style="text-align:center;font-size:12px;color:var(--muted);margin-top:10px;"></div>
+  </div>
+</div>
+ 
+<div class="sheet-overlay" id="saldo-sheet" onclick="fecharSaldoTotal(event)">
+  <div class="sheet-panel" onclick="event.stopPropagation()">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Saldo total</div>
+    <div class="sheet-sub">Todas as contas, em detalhe</div>
+    <div style="text-align:center;margin:18px 0;">
+      <div style="font-family:'Sora',sans-serif;font-size:44px;font-weight:800;letter-spacing:-0.02em;" id="saldo-sheet-total">€0,00</div>
+      <div id="saldo-sheet-chip" style="display:inline-block;margin-top:6px;font-size:11px;font-weight:600;padding:4px 12px;border-radius:999px;background:var(--surface-2);"></div>
+    </div>
+    <div style="display:flex;gap:10px;margin-bottom:16px;">
+      <div style="flex:1;background:var(--surface-2);border-radius:var(--radius-s);padding:12px;text-align:center;">
+        <div style="font-size:10.5px;color:var(--muted);">Sem moedas</div>
+        <div style="font-family:'Sora',sans-serif;font-weight:700;font-size:16px;margin-top:4px;" id="saldo-sheet-sm"></div>
+      </div>
+      <div style="flex:1;background:var(--surface-2);border-radius:var(--radius-s);padding:12px;text-align:center;">
+        <div style="font-size:10.5px;color:var(--muted);">Sem moedas + cartão</div>
+        <div style="font-family:'Sora',sans-serif;font-weight:700;font-size:16px;margin-top:4px;" id="saldo-sheet-sc"></div>
+      </div>
+    </div>
+    <div style="font-size:12px;font-weight:600;margin-bottom:8px;">Contribuição por conta</div>
+    <div id="saldo-sheet-contas"></div>
   </div>
 </div>
  
@@ -562,7 +660,7 @@ td:first-child{font-family:'Inter',sans-serif;font-weight:600;}
   </div>
 </div>
  
-<div class="toast" id="toast"><span id="toast-msg"></span><button id="toast-action" style="display:none;background:none;border:none;color:var(--brand-b);font-weight:700;font-size:12.5px;margin-left:10px;cursor:pointer;"></button></div>
+<div class="toast" id="toast"><span class="toast-icon" id="toast-icon">✓</span><span id="toast-msg"></span><button id="toast-action" style="display:none;background:none;border:none;color:var(--brand-b);font-weight:800;font-size:13px;margin-left:8px;cursor:pointer;text-decoration:underline;"></button></div>
  
 <script>
 /* ---- persistência local: usa exatamente as mesmas chaves do teu ficheiro
@@ -666,6 +764,7 @@ function addRipple(e){
 document.querySelectorAll('.btn-main, .icon-btn, .seg-btn, .link-btn').forEach(b=>b.addEventListener('click',addRipple));
  
 function confetti(){
+  if(typeof confettiAtivo!=='undefined' && confettiAtivo===false) return;
   const colors=accentPalette;
   for(let i=0;i<24;i++){
     const p=document.createElement('div');
@@ -703,24 +802,52 @@ document.querySelectorAll('.seg-btn').forEach(t=>t.addEventListener('click',()=>
   });
 }));
  
-function showToast(msg){
+function showToast(msg,icon){
   const t=document.getElementById('toast');
+  document.getElementById('toast-icon').textContent=icon||'✓';
   document.getElementById('toast-msg').textContent=msg;
   document.getElementById('toast-action').style.display='none';
   t.classList.add('show');
   clearTimeout(t._timer);
-  t._timer=setTimeout(()=>t.classList.remove('show'),1800);
+  t._timer=setTimeout(()=>t.classList.remove('show'),10000);
 }
 function showToastUndo(msg){
   const t=document.getElementById('toast');
   const action=document.getElementById('toast-action');
+  document.getElementById('toast-icon').textContent='🗑️';
   document.getElementById('toast-msg').textContent=msg;
   action.textContent='Desfazer';
   action.style.display='inline-block';
   action.onclick=()=>{ desfazerApagar(); t.classList.remove('show'); };
   t.classList.add('show');
   clearTimeout(t._timer);
-  t._timer=setTimeout(()=>t.classList.remove('show'),4000);
+  t._timer=setTimeout(()=>t.classList.remove('show'),10000);
+}
+ 
+function abrirSaldoTotal(){
+  let total=0,sm=0,sc=0;
+  for(const n in abas){total+=abas[n]; if(n!=="Moedas carteira"){sm+=abas[n]; if(n!=="Cartão") sc+=abas[n];}}
+  const sheet=document.getElementById('saldo-sheet');
+  const totalEl=document.getElementById('saldo-sheet-total');
+  totalEl.textContent='€0,00';
+  sheet.classList.add('open');
+  countUp(totalEl,total,700);
+  document.getElementById('saldo-sheet-sm').textContent='€'+fmt(sm);
+  document.getElementById('saldo-sheet-sc').textContent='€'+fmt(sc);
+  document.getElementById('saldo-sheet-chip').textContent = total<0?'Atenção':total<500?'Baixo':total<2000?'Estável':'Forte';
+  const contasEl=document.getElementById('saldo-sheet-contas');
+  contasEl.innerHTML='';
+  Object.keys(abas).sort((a,b)=>abas[b]-abas[a]).forEach(n=>{
+    const perc = total!==0 ? Math.round(abas[n]/total*100) : 0;
+    const row=document.createElement('div');
+    row.className='hist-row';
+    row.innerHTML=`<span>${esc(n)}</span><span style="font-weight:700;">€${fmt(abas[n])} <span style="color:var(--muted);font-weight:400;">(${perc}%)</span></span>`;
+    contasEl.appendChild(row);
+  });
+}
+function fecharSaldoTotal(e){
+  if(e && e.target && e.target.id!=='saldo-sheet') return;
+  document.getElementById('saldo-sheet').classList.remove('open');
 }
  
 function totais(){
@@ -1058,7 +1185,22 @@ function fecharCores(e){
   if(e && e.target && e.target.id!=='cores-sheet') return;
   document.getElementById('cores-sheet').classList.remove('open');
 }
-function reporCores(){ aplicarCores(coresDefault.a,coresDefault.b,coresDefault.pos,coresDefault.neg); showToast('Cores repostas'); }
+function reporCores(){
+  aplicarCores(coresDefault.a,coresDefault.b,coresDefault.pos,coresDefault.neg);
+  document.getElementById('cor-bg').value='#F3F1FA';
+  document.getElementById('cor-surface').value='#FFFFFF';
+  document.documentElement.style.removeProperty('--bg');
+  document.documentElement.style.removeProperty('--surface');
+  document.getElementById('radius-slider').value=26;
+  document.getElementById('fontsize-slider').value=100;
+  document.documentElement.style.setProperty('--radius-l','26px');
+  document.documentElement.style.setProperty('--radius-m','18px');
+  document.documentElement.style.fontSize='100%';
+  document.getElementById('radius-val').textContent='26px';
+  document.getElementById('fontsize-val').textContent='100%';
+  if(modoFestaInterval){ clearInterval(modoFestaInterval); modoFestaInterval=null; }
+  showToast('Tudo reposto às predefinições');
+}
 ['cor-a','cor-b','cor-pos','cor-neg'].forEach(id=>{
   document.getElementById(id).addEventListener('input',()=>{
     aplicarCores(
@@ -1069,8 +1211,71 @@ function reporCores(){ aplicarCores(coresDefault.a,coresDefault.b,coresDefault.p
     );
   });
 });
+document.getElementById('cor-bg').addEventListener('input',e=>{
+  document.documentElement.style.setProperty('--bg',e.target.value);
+});
+document.getElementById('cor-surface').addEventListener('input',e=>{
+  document.documentElement.style.setProperty('--surface',e.target.value);
+});
 renderCoresPresets();
 aplicarCores(cores.a,cores.b,cores.pos,cores.neg);
+ 
+/* ---- painel de administrador: separadores + estilo + diversão ---- */
+function mudarAdminTab(tab){
+  document.querySelectorAll('[data-admtab]').forEach(t=>t.classList.toggle('active',t.dataset.admtab===tab));
+  ['cores','estilo','diversao'].forEach(id=>{
+    document.getElementById('admin-tab-'+id).style.display = id===tab ? 'block' : 'none';
+  });
+}
+document.getElementById('radius-slider').addEventListener('input',e=>{
+  const v=e.target.value;
+  document.getElementById('radius-val').textContent=v+'px';
+  document.documentElement.style.setProperty('--radius-l',v+'px');
+  document.documentElement.style.setProperty('--radius-m',Math.round(v*0.7)+'px');
+});
+document.getElementById('fontsize-slider').addEventListener('input',e=>{
+  const v=e.target.value;
+  document.getElementById('fontsize-val').textContent=v+'%';
+  document.documentElement.style.fontSize=v+'%';
+});
+document.getElementById('toggle-animacoes').addEventListener('change',e=>{
+  document.documentElement.style.setProperty('--anim-speed', e.target.checked ? '1' : '0');
+  document.querySelectorAll('*').forEach(()=>{}); /* no-op, mantém simples */
+  animacoesAtivas=e.target.checked;
+});
+document.getElementById('toggle-confetti').addEventListener('change',e=>{
+  confettiAtivo=e.target.checked;
+});
+let animacoesAtivas=true;
+let confettiAtivo=true;
+let modoFestaInterval=null;
+ 
+function corAleatoria(){
+  const rand=()=>'#'+Math.floor(Math.random()*0xFFFFFF).toString(16).padStart(6,'0');
+  aplicarCores(rand(),rand(),document.getElementById('cor-pos').value,document.getElementById('cor-neg').value);
+  showToast('Novas cores aleatórias aplicadas','🎲');
+}
+function modoFesta(){
+  if(modoFestaInterval){ clearInterval(modoFestaInterval); modoFestaInterval=null; showToast('Modo festa desligado'); return; }
+  showToast('Modo festa ligado — toca outra vez para parar','🎉');
+  modoFestaInterval=setInterval(()=>{
+    const rand=()=>'#'+Math.floor(Math.random()*0xFFFFFF).toString(16).padStart(6,'0');
+    aplicarCores(rand(),rand(),document.getElementById('cor-pos').value,document.getElementById('cor-neg').value);
+  },900);
+}
+function exportarTema(){
+  const tema={a:document.getElementById('cor-a').value,b:document.getElementById('cor-b').value,
+    pos:document.getElementById('cor-pos').value,neg:document.getElementById('cor-neg').value,
+    bg:document.getElementById('cor-bg').value,surface:document.getElementById('cor-surface').value,
+    radius:document.getElementById('radius-slider').value, fontsize:document.getElementById('fontsize-slider').value};
+  const blob=new Blob([JSON.stringify(tema,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download='tema-banco-goncalo.json';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('Tema exportado','💾');
+}
  
 let ultimoApagado=null;
 function apagar(mes,i){
@@ -1095,6 +1300,7 @@ function desfazerApagar(){
 }
  
 function render(){
+  renderResumoMensal();
   const fm=document.getElementById('f-mes').value;
   const fc=document.getElementById('f-conta').value;
   const q=(document.getElementById('m-search').value||'').trim().toLowerCase();
@@ -1139,6 +1345,32 @@ function render(){
   renderEvoChart();
 }
  
+function renderResumoMensal(){
+  const el=document.getElementById('resumo-mensal-lista');
+  el.innerHTML='';
+  const meses=Object.keys(movimentos).sort().reverse();
+  if(meses.length===0){ el.innerHTML='<div class="empty">Ainda sem movimentos registados.</div>'; return; }
+  meses.forEach(m=>{
+    let entradas=0,gastos=0;
+    movimentos[m].forEach(x=>{ if(x.tipo==='ganho') entradas+=x.valor; else gastos+=x.valor; });
+    const fluxo=entradas-gastos;
+    const row=document.createElement('div');
+    row.className='tx';
+    row.style.cssText='cursor:pointer;';
+    row.innerHTML=`
+      <div class="tx-mid">
+        <div class="tx-title">${m}</div>
+        <div class="tx-meta">+€${fmt(entradas)} entradas · -€${fmt(gastos)} gastos</div>
+      </div>
+      <div class="tx-amt" style="color:${fluxo>=0?'var(--pos)':'var(--neg)'};">${fluxo>=0?'+':'-'}€${fmt(Math.abs(fluxo))}</div>`;
+    row.addEventListener('click',()=>{
+      document.getElementById('f-mes').value=m;
+      render();
+    });
+    el.appendChild(row);
+  });
+}
+ 
 function attachSwipe(row,onDelete){
   let startX=0,dx=0,dragging=false;
   row.addEventListener('touchstart',e=>{startX=e.touches[0].clientX;dragging=true;},{passive:true});
@@ -1155,7 +1387,9 @@ function attachSwipe(row,onDelete){
   });
 }
  
+let mesGraficoAtual=null;
 function atualizarGrafico(mes){
+  mesGraficoAtual=mes;
   const ctx=document.getElementById('chart').getContext('2d');
   const legend=document.getElementById('legend');
   if(chart){chart.destroy();chart=null;}
@@ -1180,6 +1414,37 @@ function atualizarGrafico(mes){
   });
 }
  
+let chartAmpliado=null;
+function abrirAmpliarCategorias(){
+  const mes=mesGraficoAtual;
+  document.getElementById('ampliar-cat-sub').textContent = mes ? `Mês: ${mes}` : 'Sem mês selecionado';
+  document.getElementById('ampliar-cat-sheet').classList.add('open');
+  const ctx=document.getElementById('chart-ampliado').getContext('2d');
+  const legend=document.getElementById('legend-ampliada');
+  legend.innerHTML='';
+  if(chartAmpliado){ chartAmpliado.destroy(); chartAmpliado=null; }
+  if(!mes || !movimentos[mes]){ legend.innerHTML='<div class="empty">Sem dados para este período.</div>'; return; }
+  const cats={};
+  movimentos[mes].forEach(x=>{ if(x.tipo==='gasto'){cats[x.categoria]=(cats[x.categoria]||0)+x.valor;} });
+  const labels=Object.keys(cats), data=Object.values(cats);
+  if(labels.length===0){ legend.innerHTML='<div class="empty">Sem gastos categorizados neste mês.</div>'; return; }
+  const cores=labels.map(l=>hashColor(l));
+  const totalCat=data.reduce((a,v)=>a+v,0);
+  chartAmpliado=new Chart(ctx,{type:'doughnut',data:{labels,datasets:[{data,backgroundColor:cores,borderWidth:0,borderRadius:8}]},
+    options:{responsive:true,cutout:'68%',plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.label}: €${fmt(c.parsed)} (${Math.round(c.parsed/totalCat*100)}%)`}}}}});
+  labels.forEach((n,i)=>{
+    const perc=Math.round(data[i]/totalCat*100);
+    const row=document.createElement('div');
+    row.className='hist-row';
+    row.innerHTML=`<span style="display:flex;align-items:center;gap:8px;"><span class="dot" style="width:10px;height:10px;border-radius:50%;background:${cores[i]};display:inline-block;"></span>${esc(n)}</span><span style="font-weight:700;">€${fmt(data[i])} · ${perc}%</span>`;
+    legend.appendChild(row);
+  });
+}
+function fecharAmpliarCategorias(e){
+  if(e && e.target && e.target.id!=='ampliar-cat-sheet') return;
+  document.getElementById('ampliar-cat-sheet').classList.remove('open');
+}
+ 
 function renderPlano(){
   const conta=document.getElementById('p-conta').value;
   const body=document.getElementById('plano-body');
@@ -1189,11 +1454,32 @@ function renderPlano(){
   });
 }
  
+const nomesMeses=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+function mesParaNomePt(mesStr){
+  if(!mesStr || !mesStr.includes('-')) return null;
+  const idx=parseInt(mesStr.split('-')[1],10)-1;
+  return nomesMeses[idx] || null;
+}
+ 
 /* ---- orçamentos por categoria ---- */
 function renderBudgets(mes,conta){
   conta = conta || 'todas';
   const card=document.getElementById('budgets-card');
+  const banner=document.getElementById('plano-banner');
   card.innerHTML='';
+ 
+  /* liga automaticamente ao Planeamento: se a conta tiver dados de planeamento
+     para o mês escolhido, mostra o valor previsto sem precisares de o repetir */
+  const nomeMes=mesParaNomePt(mes);
+  const planoConta=planeamento[conta];
+  const linhaPlano = planoConta && nomeMes ? planoConta.find(l=>l[0]===nomeMes) : null;
+  if(linhaPlano){
+    banner.style.display='block';
+    banner.innerHTML=`📋 <b>Planeamento (${esc(nomeMes)}, ${esc(conta)})</b>: previsto entradas €${fmt(linhaPlano[1])} · gastos €${fmt(linhaPlano[2])} — usado automaticamente como referência abaixo.`;
+  }else{
+    banner.style.display='none';
+  }
+ 
   const gastosPorCat={};
   if(mes && movimentos[mes]){
     movimentos[mes].forEach(x=>{
@@ -1202,6 +1488,24 @@ function renderBudgets(mes,conta){
       gastosPorCat[x.categoria]=(gastosPorCat[x.categoria]||0)+x.valor;
     });
   }
+ 
+  /* se há plano para este mês/conta, mostra uma barra de "Total planeado" no topo */
+  if(linhaPlano){
+    const totalGastoReal=Object.values(gastosPorCat).reduce((a,v)=>a+v,0);
+    const limitePlano=linhaPlano[2];
+    const percPlano = limitePlano>0 ? Math.min(100,Math.round(totalGastoReal/limitePlano*100)) : (totalGastoReal>0?100:0);
+    const corPlano = percPlano>=100 ? 'var(--neg)' : percPlano>=75 ? 'var(--amber)' : 'var(--pos)';
+    const rowPlano=document.createElement('div');
+    rowPlano.className='budget-row';
+    rowPlano.innerHTML=`
+      <div class="budget-top">
+        <span class="name">Total (Planeamento)</span>
+        <span class="vals">€${fmt(totalGastoReal)} / €${fmt(limitePlano)}</span>
+      </div>
+      <div class="budget-track"><div class="budget-fill" style="width:${percPlano}%;background:${corPlano};"></div></div>`;
+    card.appendChild(rowPlano);
+  }
+ 
   Object.keys(orcamentos).forEach(cat=>{
     const limite=orcamentos[cat];
     const gasto=gastosPorCat[cat]||0;
@@ -1290,28 +1594,78 @@ function lancarRecorrente(i){
 }
  
 /* ---- gráfico de evolução mensal ---- */
+let filtroEvoTipo='ambos';
+function filtrarEvoTipo(t){
+  filtroEvoTipo=t;
+  document.querySelectorAll('#evo-tipo-filtros .hist-chip').forEach(c=>c.classList.toggle('active',c.dataset.t===t));
+  renderEvoChart();
+}
+function construirDatasetsEvo(meses){
+  const cs=getComputedStyle(document.documentElement);
+  const corPos=cs.getPropertyValue('--pos').trim()||'#0FAE7D';
+  const corNeg=cs.getPropertyValue('--neg').trim()||'#F0483E';
+  const entradas=meses.map(m=>movimentos[m].filter(x=>x.tipo==='ganho').reduce((a,x)=>a+x.valor,0));
+  const gastos=meses.map(m=>movimentos[m].filter(x=>x.tipo==='gasto').reduce((a,x)=>a+x.valor,0));
+  const datasets=[];
+  if(filtroEvoTipo!=='gasto') datasets.push({label:'Entradas',data:entradas,backgroundColor:corPos,borderRadius:5,maxBarThickness:22});
+  if(filtroEvoTipo!=='ganho') datasets.push({label:'Gastos',data:gastos,backgroundColor:corNeg,borderRadius:5,maxBarThickness:22});
+  return {datasets,entradas,gastos};
+}
 function renderEvoChart(){
   const canvas=document.getElementById('evo-chart');
   if(!canvas) return;
   const meses=Object.keys(movimentos).sort();
-  const entradas=meses.map(m=>movimentos[m].filter(x=>x.tipo==='ganho').reduce((a,x)=>a+x.valor,0));
-  const gastos=meses.map(m=>movimentos[m].filter(x=>x.tipo==='gasto').reduce((a,x)=>a+x.valor,0));
+ 
+  /* preenche o select de mês em destaque, preservando a escolha atual */
+  const selDestaque=document.getElementById('evo-mes-destaque');
+  const escolhaAtual=selDestaque.value;
+  selDestaque.innerHTML='<option value="">Sem mês em destaque</option>';
+  meses.forEach(m=>selDestaque.innerHTML+=`<option value="${m}">${m}</option>`);
+  if([...selDestaque.options].some(o=>o.value===escolhaAtual)) selDestaque.value=escolhaAtual;
+ 
   if(evoChart) evoChart.destroy();
   if(meses.length===0) return;
-  const cs=getComputedStyle(document.documentElement);
-  const corPos=cs.getPropertyValue('--pos').trim()||'#0FAE7D';
-  const corNeg=cs.getPropertyValue('--neg').trim()||'#F0483E';
+  const {datasets,entradas,gastos}=construirDatasetsEvo(meses);
   evoChart=new Chart(canvas.getContext('2d'),{
     type:'bar',
-    data:{labels:meses,datasets:[
-      {label:'Entradas',data:entradas,backgroundColor:corPos,borderRadius:5,maxBarThickness:22},
-      {label:'Gastos',data:gastos,backgroundColor:corNeg,borderRadius:5,maxBarThickness:22}
-    ]},
+    data:{labels:meses,datasets},
     options:{responsive:true,plugins:{legend:{display:false}},scales:{
       x:{grid:{display:false},ticks:{font:{size:10}}},
       y:{grid:{color:'rgba(128,128,128,0.15)'},ticks:{font:{size:10}}}
     }}
   });
+ 
+  const mesDestaque=selDestaque.value;
+  const infoEl=document.getElementById('evo-destaque-info');
+  if(mesDestaque){
+    const idx=meses.indexOf(mesDestaque);
+    infoEl.textContent = idx>=0 ? `${mesDestaque}: +€${fmt(entradas[idx])} entradas · -€${fmt(gastos[idx])} gastos` : '';
+  }else{
+    infoEl.textContent='';
+  }
+}
+ 
+let evoChartAmpliado=null;
+function abrirAmpliarEvolucao(){
+  document.getElementById('ampliar-evo-sheet').classList.add('open');
+  const meses=Object.keys(movimentos).sort();
+  if(evoChartAmpliado){ evoChartAmpliado.destroy(); evoChartAmpliado=null; }
+  const info=document.getElementById('evo-ampliado-info');
+  if(meses.length===0){ info.textContent='Ainda sem dados suficientes.'; return; }
+  const {datasets}=construirDatasetsEvo(meses);
+  evoChartAmpliado=new Chart(document.getElementById('evo-chart-ampliado').getContext('2d'),{
+    type:'bar',
+    data:{labels:meses,datasets},
+    options:{responsive:true,plugins:{legend:{display:true,position:'bottom'}},scales:{
+      x:{grid:{display:false}},
+      y:{grid:{color:'rgba(128,128,128,0.15)'}}
+    }}
+  });
+  info.textContent=`${meses.length} mês(es) com movimentos registados.`;
+}
+function fecharAmpliarEvolucao(e){
+  if(e && e.target && e.target.id!=='ampliar-evo-sheet') return;
+  document.getElementById('ampliar-evo-sheet').classList.remove('open');
 }
  
 /* ---- exportar / importar dados ---- */
