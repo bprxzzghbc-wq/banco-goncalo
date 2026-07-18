@@ -1,3 +1,7 @@
+
+
+
+Banco goncalo modern · HTML
 <!DOCTYPE html>
 <html lang="pt-PT">
 <head>
@@ -408,6 +412,10 @@ td:first-child{font-family:'Inter',sans-serif;font-weight:600;}
     <div id="lista-rec" style="display:flex;flex-direction:column;gap:8px;"></div>
  
     <div class="section-head"><div class="section-title">Orçamentos por categoria</div></div>
+    <div class="filters">
+      <select id="b-mes" onchange="renderBudgetsFromFilters()"></select>
+      <select id="b-conta" onchange="renderBudgetsFromFilters()"><option value="todas">Todas as contas</option></select>
+    </div>
     <div class="chart-card" id="budgets-card"></div>
  
     <div class="section-head"><div class="section-title">Filtrar</div></div>
@@ -503,6 +511,20 @@ td:first-child{font-family:'Inter',sans-serif;font-weight:600;}
 let dadosGuardados = {};
 try{ dadosGuardados = JSON.parse(localStorage.getItem('bancoGoncaloDados')) || {}; }
 catch(e){ dadosGuardados = {}; }
+ 
+/* migração: a versão original guardava "abas" e "movimentos" como chaves
+   separadas no localStorage. Se ainda não migrámos para a chave nova,
+   vamos buscá-las agora em vez de assumir que não existem dados. */
+try{
+  if(!dadosGuardados.abas){
+    const abasAntigas = JSON.parse(localStorage.getItem('abas'));
+    if(abasAntigas && Object.keys(abasAntigas).length) dadosGuardados.abas = abasAntigas;
+  }
+  if(!dadosGuardados.movimentos){
+    const movAntigos = JSON.parse(localStorage.getItem('movimentos'));
+    if(movAntigos && Object.keys(movAntigos).length) dadosGuardados.movimentos = movAntigos;
+  }
+}catch(e){ /* chaves antigas inexistentes ou inválidas, ignora */ }
  
 const abasDefault = {
   "Ibiza":245,"Dela":4010,"Money 2026":2775,"Notas de 5 (capa)":100,
@@ -708,6 +730,18 @@ function fillSelects(){
   const pConta=document.getElementById('p-conta');
   pConta.innerHTML='';
   Object.keys(planeamento).forEach(n=>pConta.innerHTML+=`<option>${esc(n)}</option>`);
+ 
+  const bMesAtual=document.getElementById('b-mes').value;
+  const bMes=document.getElementById('b-mes');
+  bMes.innerHTML='<option value="atual">Mês atual</option>';
+  Object.keys(movimentos).sort().forEach(m=>bMes.innerHTML+=`<option value="${m}">${m}</option>`);
+  if([...bMes.options].some(o=>o.value===bMesAtual)) bMes.value=bMesAtual;
+ 
+  const bContaAtual=document.getElementById('b-conta').value;
+  const bConta=document.getElementById('b-conta');
+  bConta.innerHTML='<option value="todas">Todas as contas</option>';
+  [...Object.keys(abas),...extras].forEach(n=>bConta.innerHTML+=`<option>${esc(n)}</option>`);
+  if([...bConta.options].some(o=>o.value===bContaAtual)) bConta.value=bContaAtual;
 }
  
 function adicionar(){
@@ -909,7 +943,7 @@ function render(){
  
   const mesParaGrafico = fm!=='todos'?fm:(Object.keys(movimentos).sort().slice(-1)[0]);
   atualizarGrafico(mesParaGrafico);
-  renderBudgets(mesParaGrafico);
+  renderBudgetsFromFilters();
   renderEvoChart();
 }
  
@@ -964,12 +998,17 @@ function renderPlano(){
 }
  
 /* ---- orçamentos por categoria ---- */
-function renderBudgets(mes){
+function renderBudgets(mes,conta){
+  conta = conta || 'todas';
   const card=document.getElementById('budgets-card');
   card.innerHTML='';
   const gastosPorCat={};
   if(mes && movimentos[mes]){
-    movimentos[mes].forEach(x=>{ if(x.tipo==='gasto') gastosPorCat[x.categoria]=(gastosPorCat[x.categoria]||0)+x.valor; });
+    movimentos[mes].forEach(x=>{
+      if(x.tipo!=='gasto') return;
+      if(conta!=='todas' && x.aba!==conta) return;
+      gastosPorCat[x.categoria]=(gastosPorCat[x.categoria]||0)+x.valor;
+    });
   }
   Object.keys(orcamentos).forEach(cat=>{
     const limite=orcamentos[cat];
@@ -989,6 +1028,12 @@ function renderBudgets(mes){
   card.querySelectorAll('.budget-input').forEach(inp=>{
     inp.addEventListener('change',()=>{ orcamentos[inp.dataset.cat]=parseFloat(inp.value)||0; render(); salvarTudo(); });
   });
+}
+function renderBudgetsFromFilters(){
+  const mes=document.getElementById('b-mes').value;
+  const conta=document.getElementById('b-conta').value;
+  const mesReal = mes==='atual' ? (Object.keys(movimentos).sort().slice(-1)[0]) : mes;
+  renderBudgets(mesReal,conta);
 }
  
 /* ---- lançamentos recorrentes ---- */
@@ -1113,6 +1158,7 @@ fillSelects();
 render();
 renderPlano();
 renderRecorrentes();
+salvarTudo();
 </script>
 </body>
 </html>
