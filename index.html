@@ -1,15 +1,3 @@
-
-Executando neste dispositivo
-
-
-
-
-
-
-
-
-
-Banco goncalo · HTML
 <!DOCTYPE html>
 <html lang="pt-PT">
 <head>
@@ -48,7 +36,7 @@ body.dark{
   --line:#2A2436;--pos-soft:#123829;--neg-soft:#3A1917;
   --shadow:0 20px 50px -16px rgba(0,0,0,0.6);--shadow-sm:0 8px 20px -10px rgba(0,0,0,0.55);
 }
-.app{max-width:460px;margin:0 auto;padding:20px 16px 70px;}
+.app{max-width:var(--app-max-width,460px);margin:0 auto;padding:20px 16px 70px;}
 h1,h2,.num{font-family:'Sora',sans-serif;}
  
 /* top bar */
@@ -95,7 +83,7 @@ h1,h2,.num{font-family:'Sora',sans-serif;}
 }
 .seg-btn.active{background:var(--text);color:var(--bg);box-shadow:var(--shadow-sm);}
  
-.section-head{display:flex;justify-content:space-between;align-items:center;margin:20px 0 10px;}
+.section-head{display:flex;justify-content:space-between;align-items:center;margin:var(--section-gap,20px) 0 10px;}
 .section-title{font-size:15px;font-weight:700;}
 .link-btn{font-size:12px;font-weight:600;color:var(--brand-a);background:none;border:none;cursor:pointer;}
  
@@ -164,7 +152,7 @@ h1,h2,.num{font-family:'Sora',sans-serif;}
   border-radius:var(--radius-m);padding:11px 13px;box-shadow:var(--shadow-sm);border:1px solid var(--line);
 }
 .tx-avatar{
-  width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;
+  width:var(--tx-avatar-size,38px);height:var(--tx-avatar-size,38px);border-radius:12px;display:flex;align-items:center;justify-content:center;
   font-size:16px;flex-shrink:0;
 }
 .tx-mid{flex:1;min-width:0;}
@@ -230,14 +218,32 @@ td:first-child{font-family:'Inter',sans-serif;font-weight:600;}
 }
 .mini-form{background:var(--surface);border-radius:var(--radius-m);padding:14px;box-shadow:var(--shadow-sm);border:1px solid var(--line);margin-bottom:10px;}
  
-/* budgets */
-.budget-row{margin-bottom:12px;}
-.budget-top{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:5px;}
-.budget-top .name{font-weight:600;display:flex;align-items:center;gap:6px;}
-.budget-auto-tag{font-size:9.5px;font-weight:700;color:var(--brand-a);background:rgba(108,76,241,0.12);padding:2px 6px;border-radius:999px;}
-.budget-top .vals{color:var(--muted);font-family:'Sora',sans-serif;font-weight:600;}
-.budget-track{height:7px;border-radius:999px;background:var(--surface-2);overflow:hidden;}
-.budget-fill{height:100%;border-radius:999px;transition:width .4s ease;}
+/* filtro de mês por bolas (chips) */
+.mes-chip-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;}
+.mes-chip{padding:7px 13px;border-radius:999px;font-size:11.5px;font-weight:600;background:var(--surface-2);color:var(--muted);cursor:pointer;}
+.mes-chip.active{background:var(--brand-a);color:#fff;}
+ 
+/* modo compacto */
+body.compacto .section-head{margin:12px 0 6px;}
+body.compacto .tx{padding:7px 10px;gap:8px;}
+body.compacto .acc-card{padding:9px;}
+body.compacto .form-card{padding:10px;}
+ 
+/* modo privacidade */
+body.privacidade .acc-val, body.privacidade .hero-num, body.privacidade .tx-amt, body.privacidade .sheet-title#saldo-sheet-total{filter:blur(6px);transition:filter .2s ease;}
+body.privacidade .acc-val:active, body.privacidade .hero-num:active{filter:none;}
+ 
+/* efeito de tremor */
+@keyframes appShake{0%,100%{transform:translateX(0);}20%{transform:translateX(-6px);}40%{transform:translateX(6px);}60%{transform:translateX(-4px);}80%{transform:translateX(4px);}}
+.app-shake{animation:appShake .4s ease;}
+ 
+/* flash no ecrã */
+@keyframes screenFlash{0%,100%{filter:none;}50%{filter:invert(1);}}
+.app-flash{animation:screenFlash .25s ease;}
+ 
+/* intensidade das sombras */
+body.sombra-nenhuma .acc-card, body.sombra-nenhuma .tx, body.sombra-nenhuma .chart-card, body.sombra-nenhuma .icon-btn, body.sombra-nenhuma .form-card{box-shadow:none !important;}
+body.sombra-forte .acc-card, body.sombra-forte .tx, body.sombra-forte .chart-card, body.sombra-forte .icon-btn, body.sombra-forte .form-card{box-shadow:0 14px 30px -10px rgba(20,10,50,0.35) !important;}
  
 /* recurring */
 .rec-item{
@@ -458,14 +464,6 @@ td:first-child{font-family:'Inter',sans-serif;font-weight:600;}
 </div>
 <div id="lista-rec" style="display:flex;flex-direction:column;gap:8px;"></div>
  
-<div class="section-head"><div class="section-title">Orçamentos por categoria</div></div>
-<div class="filters">
-<select id="b-mes" onchange="renderBudgetsFromFilters()"></select>
-<select id="b-conta" onchange="renderBudgetsFromFilters()"><option value="todas">Todas as contas</option></select>
-</div>
-<div id="plano-banner" style="display:none;background:var(--surface-2);border-radius:var(--radius-s);padding:10px 12px;margin-bottom:10px;font-size:12px;"></div>
-<div class="chart-card" id="budgets-card"></div>
- 
 <div class="section-head"><div class="section-title">Resumo mensal</div></div>
 <div id="resumo-mensal-lista" style="display:flex;flex-direction:column;gap:8px;margin-bottom:6px;"></div>
  
@@ -474,9 +472,9 @@ td:first-child{font-family:'Inter',sans-serif;font-weight:600;}
 <input type="text" id="m-search" placeholder="Pesquisar por descrição ou categoria..." oninput="render()">
 </div>
 <div class="filters">
-<select id="f-mes" onchange="render()"></select>
-<select id="f-conta" onchange="render()"><option value="todas">Todas as contas</option></select>
+<select id="f-cat" onchange="render()"><option value="todas">Todas as categorias</option></select>
 </div>
+<div class="mes-chip-row" id="f-mes-chips"></div>
  
 <div class="tx-list" id="lista-mov"></div>
 <div style="font-size:11px;color:var(--muted);text-align:center;margin-top:6px;">Desliza um lançamento para a esquerda para apagar</div>
@@ -555,6 +553,11 @@ td:first-child{font-family:'Inter',sans-serif;font-weight:600;}
 <div class="field"><label>Cor de fundo</label><input type="color" id="cor-bg" value="#F3F1FA" style="width:100%;height:36px;border:1.5px solid var(--line);border-radius:var(--radius-s);cursor:pointer;"></div>
 <div class="field"><label>Cor dos cartões</label><input type="color" id="cor-surface" value="#FFFFFF" style="width:100%;height:36px;border:1.5px solid var(--line);border-radius:var(--radius-s);cursor:pointer;"></div>
 </div>
+<div class="row2" style="margin-bottom:6px;">
+<div class="field"><label>Cor do texto</label><input type="color" id="cor-texto" value="#15121F" style="width:100%;height:36px;border:1.5px solid var(--line);border-radius:var(--radius-s);cursor:pointer;"></div>
+<div class="field"><label>Cor do texto secundário</label><input type="color" id="cor-muted" value="#726C85" style="width:100%;height:36px;border:1.5px solid var(--line);border-radius:var(--radius-s);cursor:pointer;"></div>
+</div>
+<div class="field"><label>Cor das linhas / bordas</label><input type="color" id="cor-linha" value="#EAE6F5" style="width:100%;height:36px;border:1.5px solid var(--line);border-radius:var(--radius-s);cursor:pointer;"></div>
 </div>
  
 <div id="admin-tab-estilo" style="display:none;">
@@ -567,16 +570,91 @@ td:first-child{font-family:'Inter',sans-serif;font-weight:600;}
 <label style="display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:600;margin-bottom:10px;cursor:pointer;">
 <input type="checkbox" id="toggle-animacoes" checked style="width:18px;height:18px;"> Animações e transições ativas
 </label>
-<label style="display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:600;cursor:pointer;">
+<label style="display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:600;cursor:pointer;margin-bottom:10px;">
 <input type="checkbox" id="toggle-confetti" checked style="width:18px;height:18px;"> Confetti ao registar lançamento
 </label>
+ 
+<div style="height:1px;background:var(--line);margin:14px 0;"></div>
+ 
+<label style="display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:600;margin-bottom:10px;cursor:pointer;">
+<input type="checkbox" id="toggle-compacto" style="width:18px;height:18px;"> Modo compacto
+</label>
+<label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px;">Espaçamento entre secções: <span id="gap-val">20px</span></label>
+<input type="range" id="gap-slider" min="4" max="32" value="20" style="width:100%;margin-bottom:16px;">
+<label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px;">Ordenar contas por</label>
+<select id="ordenar-contas-select" style="width:100%;padding:9px 10px;border-radius:var(--radius-s);border:1.5px solid var(--line);background:var(--surface-2);color:var(--text);margin-bottom:16px;">
+<option value="padrao">Ordem padrão</option>
+<option value="valorDesc">Maior saldo primeiro</option>
+<option value="valorAsc">Menor saldo primeiro</option>
+<option value="nome">Nome (A-Z)</option>
+</select>
+<label style="display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:600;margin-bottom:10px;cursor:pointer;">
+<input type="checkbox" id="toggle-esconder-centimos" style="width:18px;height:18px;"> Esconder cêntimos (arredondar)
+</label>
+<label style="display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:600;margin-bottom:10px;cursor:pointer;">
+<input type="checkbox" id="toggle-privacidade" style="width:18px;height:18px;"> Modo privacidade (esconder valores)
+</label>
+<label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px;">Tamanho dos ícones das transações: <span id="icon-size-val">38px</span></label>
+<input type="range" id="icon-size-slider" min="28" max="52" value="38" style="width:100%;margin-bottom:16px;">
+<label style="display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:600;margin-bottom:10px;cursor:pointer;">
+<input type="checkbox" id="toggle-emojis" checked style="width:18px;height:18px;"> Mostrar emojis nas categorias
+</label>
+<label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px;">Formato de data</label>
+<select id="formato-data-select" style="width:100%;padding:9px 10px;border-radius:var(--radius-s);border:1.5px solid var(--line);background:var(--surface-2);color:var(--text);margin-bottom:16px;">
+<option value="completo">AAAA-MM-DD</option>
+<option value="abreviado">DD/MM</option>
+</select>
+<label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px;">Símbolo da moeda</label>
+<input type="text" id="simbolo-moeda-input" value="€" maxlength="3" style="width:100%;padding:9px 10px;border-radius:var(--radius-s);border:1.5px solid var(--line);background:var(--surface-2);color:var(--text);margin-bottom:16px;">
+<label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px;">Casas decimais: <span id="casas-decimais-val">2</span></label>
+<input type="range" id="casas-decimais-slider" min="0" max="2" value="2" style="width:100%;margin-bottom:16px;">
+<label style="display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:600;margin-bottom:10px;cursor:pointer;">
+<input type="checkbox" id="toggle-tema-auto" style="width:18px;height:18px;"> Tema automático por hora
+</label>
+<label style="display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:600;margin-bottom:10px;cursor:pointer;">
+<input type="checkbox" id="toggle-vibracao" checked style="width:18px;height:18px;"> Vibração ao tocar
+</label>
+<label style="display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:600;margin-bottom:10px;cursor:pointer;">
+<input type="checkbox" id="toggle-som" style="width:18px;height:18px;"> Som ao registar lançamento
+</label>
+<label style="display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:600;margin-bottom:10px;cursor:pointer;">
+<input type="checkbox" id="toggle-confirmar-apagar" style="width:18px;height:18px;"> Confirmar sempre antes de apagar
+</label>
+<label style="display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:600;margin-bottom:10px;cursor:pointer;">
+<input type="checkbox" id="toggle-titulo-saldo" style="width:18px;height:18px;"> Mostrar saldo no separador do browser
+</label>
+<label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px;">Largura máxima da app: <span id="largura-val">460px</span></label>
+<input type="range" id="largura-slider" min="360" max="600" value="460" style="width:100%;margin-bottom:16px;">
+<label style="display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:600;margin-bottom:10px;cursor:pointer;">
+<input type="checkbox" id="toggle-atalho-n" style="width:18px;height:18px;"> Atalho de teclado "N" para novo lançamento
+</label>
+<label style="display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:600;margin-bottom:10px;cursor:pointer;">
+<input type="checkbox" id="toggle-sinal-sempre" style="width:18px;height:18px;"> Mostrar sempre sinal (+/-) nos saldos
+</label>
+<label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px;">Intensidade das sombras</label>
+<select id="sombra-select" style="width:100%;padding:9px 10px;border-radius:var(--radius-s);border:1.5px solid var(--line);background:var(--surface-2);color:var(--text);">
+<option value="normal">Normal</option>
+<option value="nenhuma">Nenhuma</option>
+<option value="forte">Forte</option>
+</select>
 </div>
  
 <div id="admin-tab-diversao" style="display:none;">
 <button class="btn-main" style="margin-bottom:10px;" onclick="corAleatoria()">🎲 Cor aleatória</button>
 <button class="btn-main" style="background:var(--surface-2);color:var(--text);box-shadow:none;margin-bottom:10px;" onclick="modoFesta()">🎉 Modo festa (cores a mudar sozinhas)</button>
 <button class="btn-main" style="background:var(--surface-2);color:var(--text);box-shadow:none;margin-bottom:10px;" onclick="gradienteArcoIris()">🌈 Gradiente arco-íris</button>
-<button class="btn-main" style="background:var(--surface-2);color:var(--text);box-shadow:none;" onclick="exportarTema()">💾 Exportar este tema (.json)</button>
+<button class="btn-main" style="background:var(--surface-2);color:var(--text);box-shadow:none;margin-bottom:10px;" onclick="exportarTema()">💾 Exportar este tema (.json)</button>
+<button class="btn-main" style="background:var(--surface-2);color:var(--text);box-shadow:none;margin-bottom:10px;" onclick="corTextoAleatoria()">🎨 Cor de texto aleatória</button>
+<button class="btn-main" style="background:var(--surface-2);color:var(--text);box-shadow:none;margin-bottom:10px;" onclick="baralharEmojis()">🔀 Baralhar emojis das categorias</button>
+<button class="btn-main" style="background:var(--surface-2);color:var(--text);box-shadow:none;margin-bottom:10px;" onclick="confeteExtra()">🎊 Chuva de confetis contínua</button>
+<button class="btn-main" style="background:var(--surface-2);color:var(--text);box-shadow:none;margin-bottom:10px;" onclick="trocarSaudacao()">👋 Trocar emoji de saudação</button>
+<button class="btn-main" style="background:var(--surface-2);color:var(--text);box-shadow:none;margin-bottom:10px;" onclick="efeitoTremor()">📳 Tremor na app</button>
+<button class="btn-main" style="background:var(--surface-2);color:var(--text);box-shadow:none;margin-bottom:10px;" onclick="modoEspelho()">🪞 Modo espelho (RTL)</button>
+<button class="btn-main" style="background:var(--surface-2);color:var(--text);box-shadow:none;margin-bottom:10px;" onclick="flashEcra()">💡 Flash no ecrã</button>
+<button class="btn-main" style="background:var(--surface-2);color:var(--text);box-shadow:none;margin-bottom:10px;" onclick="somCaixaRegisto()">🔔 Som de caixa registadora</button>
+<button class="btn-main" style="background:var(--surface-2);color:var(--text);box-shadow:none;margin-bottom:10px;" onclick="btnBloquearPin()">🔒 Bloquear app com PIN</button>
+<button class="btn-main" style="background:var(--surface-2);color:var(--text);box-shadow:none;margin-bottom:10px;" onclick="reporSoCores()">↩️ Repor só as cores</button>
+<button class="btn-main" style="background:var(--surface-2);color:var(--text);box-shadow:none;" onclick="exportarAppCompleta()">🗂️ Exportar app completa (.html)</button>
 </div>
  
 <button class="btn-main" style="margin-top:14px;" onclick="fecharCores()">Aplicado — fechar</button>
@@ -737,7 +815,6 @@ const coresDefault={a:'#6C4CF1',b:'#FF5FA8',pos:'#0FAE7D',neg:'#F0483E'};
 let abas = lerJSON('abas', null) || abasDefault;
 let movimentos = lerJSON('movimentos', null) || movimentosDefault;
 let recorrentes = lerJSON('recorrentes', []);
-let orcamentos = lerJSON('orcamentos', {Comida:100, Compras:80, Lazer:60, Poupança:0, Outros:40});
 let walletView = lerJSON('walletView', 'horizontal');
 let contaNotas = lerJSON('contaNotas', {});
 let cores = lerJSON('cores', null) || {...coresDefault};
@@ -759,6 +836,27 @@ let sheetAtual=null;
 let filtroEvoTipo='ambos';
 let filtroEvoTipoAmp='ambos';
 let mesGraficoAtual=null;
+let filtroMovMes='todos';
+let compactoAtivo=false;
+let ordenarContas='padrao';
+let esconderCentimos=false;
+let modoPrivacidade=false;
+let mostrarEmojis=true;
+let formatoData='completo';
+let simboloMoeda='€';
+let casasDecimais=2;
+let temaAutoAtivo=false;
+let temaAutoInterval=null;
+let vibracaoAtiva=true;
+let somAtivo=false;
+let confirmarApagar=false;
+let tituloComSaldo=false;
+let atalhoNAtivo=false;
+let sinalSempre=false;
+let appBloqueada=false;
+let pinApp=null;
+let saudacaoIndex=0;
+const saudacaoEmojis=['👋','😀','🤑','💸','🐷','😎'];
  
 function toggleWalletView(){
   walletView = walletView==='horizontal' ? 'vertical' : 'horizontal';
@@ -770,14 +868,14 @@ function salvarTudo(){
   gravarJSON('abas', abas);
   gravarJSON('movimentos', movimentos);
   gravarJSON('recorrentes', recorrentes);
-  gravarJSON('orcamentos', orcamentos);
   gravarJSON('cores', cores);
   gravarJSON('walletView', walletView);
   gravarJSON('contaNotas', contaNotas);
 }
  
 function esc(s){const d=document.createElement('div');d.textContent=(s===null||s===undefined)?'':s;return d.innerHTML;}
-function fmt(n){return (Number(n)||0).toLocaleString('pt-PT',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function fmt(n){const casas=esconderCentimos?0:casasDecimais;return (Number(n)||0).toLocaleString('pt-PT',{minimumFractionDigits:casas,maximumFractionDigits:casas});}
+function fmtSigned(n){ const v=Number(n)||0; if(!sinalSempre) return fmt(v); return (v>=0?'+':'-')+fmt(Math.abs(v)); }
 function hashColor(str){let h=0;str=str||'';for(let i=0;i<str.length;i++)h=str.charCodeAt(i)+((h<<5)-h);return accentPalette[Math.abs(h)%accentPalette.length];}
  
 function countUp(el,to,duration=900){
@@ -897,10 +995,11 @@ function totais(){
   let total=0,sm=0,sc=0;
   for(const n in abas){total+=abas[n]; if(n!=="Moedas carteira"){sm+=abas[n]; if(n!=="Cartão") sc+=abas[n];}}
   countUp(document.getElementById('total'),total);
-  document.getElementById('sem-moedas').textContent='€'+fmt(sm);
-  document.getElementById('sem-cartao').textContent='€'+fmt(sc);
+  document.getElementById('sem-moedas').textContent=moeda()+fmt(sm);
+  document.getElementById('sem-cartao').textContent=moeda()+fmt(sc);
   const chip=document.getElementById('status-chip');
   chip.textContent = total<0?'Atenção':total<500?'Baixo':total<2000?'Estável':'Forte';
+  if(tituloComSaldo){ document.title = `${moeda()}${fmt(total)} · Nest`; } else { document.title='Nest — Gonçalo'; }
 }
  
 function renderWallet(){
@@ -909,7 +1008,11 @@ function renderWallet(){
   el.className = walletView==='vertical' ? 'wallet-vertical' : 'wallet-scroll';
   document.getElementById('wallet-view-btn').textContent = walletView==='vertical' ? '▤' : '⇄';
   el.innerHTML='';
-  for(const n in abas){
+  let nomes=Object.keys(abas);
+  if(ordenarContas==='valorDesc') nomes=nomes.sort((a,b)=>abas[b]-abas[a]);
+  else if(ordenarContas==='valorAsc') nomes=nomes.sort((a,b)=>abas[a]-abas[b]);
+  else if(ordenarContas==='nome') nomes=nomes.sort((a,b)=>a.localeCompare(b));
+  for(const n of nomes){
     if(q && !n.toLowerCase().includes(q)) continue;
     const color=hashColor(n);
     const card=document.createElement('div');
@@ -917,13 +1020,13 @@ function renderWallet(){
     card.innerHTML=`<button class="acc-info-btn" data-n="${esc(n)}" aria-label="Detalhes da conta">ⓘ</button>
       <div class="acc-dot" style="background:${color}"></div>
       <div class="acc-name">${esc(n)}</div>
-      <div class="acc-val">€${fmt(abas[n])}</div>
+      <div class="acc-val">${moeda()}${fmtSigned(abas[n])}</div>
       <input class="acc-edit" type="number" step="0.01" value="${abas[n]}" data-n="${esc(n)}">`;
     el.appendChild(card);
   }
   el.querySelectorAll('.acc-edit').forEach(inp=>{
     inp.addEventListener('input',()=>{abas[inp.dataset.n]=parseFloat(inp.value)||0; totais(); salvarTudo();
-      const valEl=inp.closest('.acc-card').querySelector('.acc-val'); valEl.textContent='€'+fmt(abas[inp.dataset.n]);});
+      const valEl=inp.closest('.acc-card').querySelector('.acc-val'); valEl.textContent=moeda()+fmtSigned(abas[inp.dataset.n]);});
   });
   el.querySelectorAll('.acc-info-btn').forEach(btn=>{
     btn.addEventListener('click',()=>abrirSheetConta(btn.dataset.n));
@@ -959,29 +1062,37 @@ function fillSelects(){
   contaSel.innerHTML='';
   [...Object.keys(abas),...extras].forEach(n=>contaSel.innerHTML+=`<option>${esc(n)}</option>`);
  
-  const fConta=document.getElementById('f-conta');
-  fConta.innerHTML='<option value="todas">Todas as contas</option>';
-  [...Object.keys(abas),...extras].forEach(n=>fConta.innerHTML+=`<option>${esc(n)}</option>`);
- 
-  const fMes=document.getElementById('f-mes');
-  fMes.innerHTML='<option value="todos">Todos os meses</option>';
-  Object.keys(movimentos).sort().forEach(m=>fMes.innerHTML+=`<option value="${m}">${m}</option>`);
+  const fCat=document.getElementById('f-cat');
+  const fCatAtual=fCat.value;
+  fCat.innerHTML='<option value="todas">Todas as categorias</option>';
+  Object.keys(catEmoji).forEach(c=>fCat.innerHTML+=`<option>${esc(c)}</option>`);
+  if([...fCat.options].some(o=>o.value===fCatAtual)) fCat.value=fCatAtual;
  
   const pConta=document.getElementById('p-conta');
   pConta.innerHTML='';
   Object.keys(planeamento).forEach(n=>pConta.innerHTML+=`<option>${esc(n)}</option>`);
  
-  const bMesAtual=document.getElementById('b-mes').value;
-  const bMes=document.getElementById('b-mes');
-  bMes.innerHTML='<option value="atual">Mês atual</option>';
-  Object.keys(movimentos).sort().forEach(m=>bMes.innerHTML+=`<option value="${m}">${m}</option>`);
-  if([...bMes.options].some(o=>o.value===bMesAtual)) bMes.value=bMesAtual;
+  renderMesChips();
+}
  
-  const bContaAtual=document.getElementById('b-conta').value;
-  const bConta=document.getElementById('b-conta');
-  bConta.innerHTML='<option value="todas">Todas as contas</option>';
-  [...Object.keys(abas),...extras].forEach(n=>bConta.innerHTML+=`<option>${esc(n)}</option>`);
-  if([...bConta.options].some(o=>o.value===bContaAtual)) bConta.value=bContaAtual;
+function renderMesChips(){
+  const el=document.getElementById('f-mes-chips');
+  if(!el) return;
+  const meses=Object.keys(movimentos).sort();
+  if(filtroMovMes!=='todos' && !meses.includes(filtroMovMes)) filtroMovMes='todos';
+  el.innerHTML='';
+  const todosChip=document.createElement('div');
+  todosChip.className='mes-chip'+(filtroMovMes==='todos'?' active':'');
+  todosChip.textContent='Todos';
+  todosChip.addEventListener('click',()=>{ filtroMovMes='todos'; render(); });
+  el.appendChild(todosChip);
+  meses.forEach(m=>{
+    const chip=document.createElement('div');
+    chip.className='mes-chip'+(filtroMovMes===m?' active':'');
+    chip.textContent=m;
+    chip.addEventListener('click',()=>{ filtroMovMes=m; render(); });
+    el.appendChild(chip);
+  });
 }
  
 function adicionar(){
@@ -1019,7 +1130,8 @@ function adicionar(){
   document.getElementById('m-desc').value='';
   if(!foiEdicao) document.getElementById('m-data').value=new Date().toISOString().slice(0,10);
   renderWallet(); fillSelects(); render(); salvarTudo();
-  if(navigator.vibrate) try{navigator.vibrate(20);}catch(e){}
+  vibrar(20);
+  if(!foiEdicao) tocarSom(880,120);
 }
  
 function editarLancamento(mes,i){
@@ -1087,7 +1199,7 @@ document.getElementById('add-nota-btn').addEventListener('click',()=>{
   salvarTudo();
   renderNotasConta();
   showToast('Nota adicionada');
-  if(navigator.vibrate) try{navigator.vibrate(12);}catch(e){}
+  vibrar(12);
 });
  
 function filtrarHistoricoConta(f){
@@ -1267,6 +1379,216 @@ document.getElementById('toggle-confetti').addEventListener('change',e=>{
   confettiAtivo=e.target.checked;
 });
  
+/* ---- novas cores extra (texto / muted / linhas) ---- */
+document.getElementById('cor-texto').addEventListener('input',e=>{
+  document.documentElement.style.setProperty('--text',e.target.value);
+});
+document.getElementById('cor-muted').addEventListener('input',e=>{
+  document.documentElement.style.setProperty('--muted',e.target.value);
+});
+document.getElementById('cor-linha').addEventListener('input',e=>{
+  document.documentElement.style.setProperty('--line',e.target.value);
+});
+ 
+/* ---- 19 novas opções da aba Estilo ---- */
+document.getElementById('toggle-compacto').addEventListener('change',e=>{
+  compactoAtivo=e.target.checked;
+  document.body.classList.toggle('compacto',compactoAtivo);
+});
+document.getElementById('gap-slider').addEventListener('input',e=>{
+  const v=e.target.value;
+  document.getElementById('gap-val').textContent=v+'px';
+  document.documentElement.style.setProperty('--section-gap',v+'px');
+});
+document.getElementById('ordenar-contas-select').addEventListener('change',e=>{
+  ordenarContas=e.target.value;
+  renderWallet();
+});
+document.getElementById('toggle-esconder-centimos').addEventListener('change',e=>{
+  esconderCentimos=e.target.checked;
+  renderWallet(); render(); renderPlano();
+});
+document.getElementById('toggle-privacidade').addEventListener('change',e=>{
+  modoPrivacidade=e.target.checked;
+  document.body.classList.toggle('privacidade',modoPrivacidade);
+});
+document.getElementById('icon-size-slider').addEventListener('input',e=>{
+  const v=e.target.value;
+  document.getElementById('icon-size-val').textContent=v+'px';
+  document.documentElement.style.setProperty('--tx-avatar-size',v+'px');
+});
+document.getElementById('toggle-emojis').addEventListener('change',e=>{
+  mostrarEmojis=e.target.checked;
+  render();
+});
+document.getElementById('formato-data-select').addEventListener('change',e=>{
+  formatoData=e.target.value;
+  render();
+});
+document.getElementById('simbolo-moeda-input').addEventListener('input',e=>{
+  simboloMoeda=e.target.value||'€';
+  const sup=document.querySelector('.hero-num sup');
+  if(sup) sup.textContent=simboloMoeda;
+  totais(); renderWallet(); render();
+});
+document.getElementById('casas-decimais-slider').addEventListener('input',e=>{
+  casasDecimais=parseInt(e.target.value,10);
+  document.getElementById('casas-decimais-val').textContent=casasDecimais;
+  totais(); renderWallet(); render(); renderPlano();
+});
+function aplicarTemaAuto(){
+  if(!temaAutoAtivo) return;
+  const h=new Date().getHours();
+  document.body.classList.toggle('dark', h>=20 || h<7);
+}
+document.getElementById('toggle-tema-auto').addEventListener('change',e=>{
+  temaAutoAtivo=e.target.checked;
+  if(temaAutoAtivo){
+    aplicarTemaAuto();
+    if(temaAutoInterval) clearInterval(temaAutoInterval);
+    temaAutoInterval=setInterval(aplicarTemaAuto,5*60*1000);
+  }else if(temaAutoInterval){
+    clearInterval(temaAutoInterval); temaAutoInterval=null;
+  }
+});
+document.getElementById('toggle-vibracao').addEventListener('change',e=>{
+  vibracaoAtiva=e.target.checked;
+});
+document.getElementById('toggle-som').addEventListener('change',e=>{
+  somAtivo=e.target.checked;
+  if(somAtivo) tocarSom(880,120);
+});
+document.getElementById('toggle-confirmar-apagar').addEventListener('change',e=>{
+  confirmarApagar=e.target.checked;
+});
+document.getElementById('toggle-titulo-saldo').addEventListener('change',e=>{
+  tituloComSaldo=e.target.checked;
+  totais();
+});
+document.getElementById('largura-slider').addEventListener('input',e=>{
+  const v=e.target.value;
+  document.getElementById('largura-val').textContent=v+'px';
+  document.documentElement.style.setProperty('--app-max-width',v+'px');
+});
+document.getElementById('toggle-atalho-n').addEventListener('change',e=>{
+  atalhoNAtivo=e.target.checked;
+});
+document.addEventListener('keydown',e=>{
+  if(!atalhoNAtivo) return;
+  const tag=(document.activeElement && document.activeElement.tagName)||'';
+  if(['INPUT','TEXTAREA','SELECT'].includes(tag)) return;
+  if(e.key.toLowerCase()==='n'){
+    const tabBtn=document.querySelector('.seg-btn[data-tab="movimentos"]');
+    if(tabBtn) tabBtn.click();
+    setTimeout(()=>{ const d=document.getElementById('m-desc'); if(d) d.focus(); },50);
+  }
+});
+document.getElementById('toggle-sinal-sempre').addEventListener('change',e=>{
+  sinalSempre=e.target.checked;
+  renderWallet();
+});
+document.getElementById('sombra-select').addEventListener('change',e=>{
+  document.body.classList.remove('sombra-nenhuma','sombra-forte');
+  if(e.target.value==='nenhuma') document.body.classList.add('sombra-nenhuma');
+  else if(e.target.value==='forte') document.body.classList.add('sombra-forte');
+});
+ 
+/* ---- 11 novos botões da aba Diversão ---- */
+function corTextoAleatoria(){
+  const rand=()=>'#'+Math.floor(Math.random()*0xFFFFFF).toString(16).padStart(6,'0');
+  const t=rand();
+  document.documentElement.style.setProperty('--text',t);
+  document.getElementById('cor-texto').value=t;
+  showToast('Cor do texto alterada','🎨');
+}
+function baralharEmojis(){
+  const chaves=Object.keys(catEmoji);
+  const valores=chaves.map(k=>catEmoji[k]);
+  for(let i=valores.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [valores[i],valores[j]]=[valores[j],valores[i]];
+  }
+  chaves.forEach((k,i)=>{ catEmoji[k]=valores[i]; });
+  render();
+  showToast('Emojis das categorias baralhados','🔀');
+}
+function confeteExtra(){
+  let vezes=0;
+  const iv=setInterval(()=>{ confetti(); vezes++; if(vezes>=5) clearInterval(iv); },250);
+  showToast('Chuva de confetis!','🎊');
+}
+function trocarSaudacao(){
+  saudacaoIndex=(saudacaoIndex+1)%saudacaoEmojis.length;
+  const emoji=saudacaoEmojis[saudacaoIndex];
+  document.querySelectorAll('.topbar .greet, #splash .greet').forEach(elx=>{});
+  const topGreet=document.querySelector('.topbar .greet');
+  if(topGreet) topGreet.innerHTML=`Olá, <b>Gonçalo</b> ${emoji}`;
+  const splashOrb=document.querySelector('#splash .orb');
+  if(splashOrb) splashOrb.textContent=emoji;
+  showToast('Emoji de saudação trocado',emoji);
+}
+function efeitoTremor(){
+  const app=document.querySelector('.app');
+  app.classList.remove('app-shake'); void app.offsetWidth;
+  app.classList.add('app-shake');
+  setTimeout(()=>app.classList.remove('app-shake'),450);
+}
+function modoEspelho(){
+  const atual=document.documentElement.getAttribute('dir');
+  document.documentElement.setAttribute('dir', atual==='rtl'?'ltr':'rtl');
+  showToast('Modo espelho alternado','🪞');
+}
+function flashEcra(){
+  document.body.classList.remove('app-flash'); void document.body.offsetWidth;
+  document.body.classList.add('app-flash');
+  setTimeout(()=>document.body.classList.remove('app-flash'),260);
+}
+function somCaixaRegisto(){
+  tocarSomForcado(1200,80);
+  setTimeout(()=>tocarSomForcado(1800,100),90);
+}
+function tocarSomForcado(freq,dur){
+  try{
+    const ctx=new (window.AudioContext||window.webkitAudioContext)();
+    const o=ctx.createOscillator(); const g=ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.frequency.value=freq; g.gain.value=0.06; o.start();
+    setTimeout(()=>{ o.stop(); ctx.close(); },dur);
+  }catch(e){}
+}
+function btnBloquearPin(){
+  if(appBloqueada){
+    const tentativa=prompt('Insere o PIN para desbloquear:');
+    if(tentativa===pinApp){ appBloqueada=false; pinApp=null; showToast('App desbloqueada','🔓'); }
+    else showToast('PIN incorreto','⚠️');
+    return;
+  }
+  const pin=prompt('Define um PIN para bloquear a app (símbolo):');
+  if(!pin) return;
+  pinApp=pin; appBloqueada=true;
+  showToast('App "bloqueada" — toca outra vez para inserir o PIN','🔒');
+}
+function reporSoCores(){
+  aplicarCores(coresDefault.a,coresDefault.b,coresDefault.pos,coresDefault.neg);
+  document.documentElement.style.removeProperty('--text');
+  document.documentElement.style.removeProperty('--muted');
+  document.documentElement.style.removeProperty('--line');
+  document.getElementById('cor-texto').value='#15121F';
+  document.getElementById('cor-muted').value='#726C85';
+  document.getElementById('cor-linha').value='#EAE6F5';
+  showToast('Cores repostas');
+}
+function exportarAppCompleta(){
+  const html='<!DOCTYPE html>\n'+document.documentElement.outerHTML;
+  const blob=new Blob([html],{type:'text/html'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download='nest-app-completa.html';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('App exportada como HTML','🗂️');
+}
+ 
 function corAleatoria(){
   const rand=()=>'#'+Math.floor(Math.random()*0xFFFFFF).toString(16).padStart(6,'0');
   aplicarCores(rand(),rand(),document.getElementById('cor-pos').value,document.getElementById('cor-neg').value);
@@ -1306,6 +1628,7 @@ function exportarTema(){
 }
  
 function apagar(mes,i){
+  if(confirmarApagar && !confirm('Apagar este lançamento?')) return;
   const mov=movimentos[mes][i];
   if(!extras.includes(mov.aba)) abas[mov.aba] -= (mov.tipo==='gasto'?-mov.valor:mov.valor);
   ultimoApagado={mes,mov,i};
@@ -1313,7 +1636,7 @@ function apagar(mes,i){
   if(movimentos[mes].length===0) delete movimentos[mes];
   renderWallet(); fillSelects(); render(); salvarTudo();
   showToastUndo('Lançamento removido');
-  if(navigator.vibrate) try{navigator.vibrate(15);}catch(e){}
+  vibrar(15);
 }
 function desfazerApagar(){
   if(!ultimoApagado) return;
@@ -1326,10 +1649,31 @@ function desfazerApagar(){
   showToast('Lançamento restaurado');
 }
  
+function moeda(){ return simboloMoeda||'€'; }
+function formatarDataExibicao(d){
+  if(!d) return d;
+  if(formatoData!=='abreviado') return d;
+  const partes=d.split('-');
+  if(partes.length!==3) return d;
+  return `${partes[2]}/${partes[1]}`;
+}
+function vibrar(ms){ if(vibracaoAtiva && navigator.vibrate){ try{navigator.vibrate(ms);}catch(e){} } }
+function tocarSom(freq,dur){
+  if(!somAtivo) return;
+  try{
+    const ctx=new (window.AudioContext||window.webkitAudioContext)();
+    const o=ctx.createOscillator(); const g=ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.frequency.value=freq||880; g.gain.value=0.05; o.start();
+    setTimeout(()=>{ o.stop(); ctx.close(); },dur||120);
+  }catch(e){}
+}
+ 
 function render(){
   renderResumoMensal();
-  const fm=document.getElementById('f-mes').value;
-  const fc=document.getElementById('f-conta').value;
+  renderMesChips();
+  const fm=filtroMovMes;
+  const fcat=document.getElementById('f-cat').value;
   const q=(document.getElementById('m-search').value||'').trim().toLowerCase();
   const el=document.getElementById('lista-mov');
   el.innerHTML='';
@@ -1338,7 +1682,7 @@ function render(){
   meses.forEach(m=>{
     if(!movimentos[m]) return;
     movimentos[m].forEach((x,i)=>{
-      if(fc!=='todas' && x.aba!==fc) return;
+      if(fcat!=='todas' && (x.categoria||'Outros')!==fcat) return;
       if(q && !(x.desc.toLowerCase().includes(q) || (x.categoria||'').toLowerCase().includes(q))) return;
       any=true;
       const color=hashColor(x.categoria||'Outros');
@@ -1348,12 +1692,12 @@ function render(){
       row.className='tx';
       row.style.cssText='margin:0;transition:transform .18s ease;touch-action:pan-y;position:relative;z-index:1;background:var(--surface);';
       row.innerHTML=`
-        <div class="tx-avatar" style="background:${color}22;">${catEmoji[x.categoria]||'✨'}</div>
+        <div class="tx-avatar" style="background:${color}22;">${mostrarEmojis?(catEmoji[x.categoria]||'✨'):''}</div>
         <div class="tx-mid">
           <div class="tx-title">${esc(x.desc)}</div>
-          <div class="tx-meta">${x.data} · ${esc(x.aba)}</div>
+          <div class="tx-meta">${formatarDataExibicao(x.data)} · ${esc(x.aba)}</div>
         </div>
-        <div class="tx-amt ${x.tipo==='ganho'?'pos':'neg'}">${x.tipo==='ganho'?'+':'-'}€${fmt(x.valor)}</div>
+        <div class="tx-amt ${x.tipo==='ganho'?'pos':'neg'}">${x.tipo==='ganho'?'+':'-'}${moeda()}${fmt(x.valor)}</div>
         <button class="tx-info" onclick="abrirDetalhesTx('${m}',${i})" aria-label="Detalhes do lançamento">ⓘ</button>`;
       const bg=document.createElement('div');
       bg.style.cssText='position:absolute;inset:0;background:var(--neg);border-radius:var(--radius-m);display:flex;align-items:center;justify-content:flex-end;padding-right:20px;color:#fff;font-weight:700;font-size:13px;';
@@ -1368,7 +1712,6 @@ function render(){
  
   const mesParaGrafico = fm!=='todos'?fm:(Object.keys(movimentos).sort().slice(-1)[0]);
   atualizarGrafico(mesParaGrafico);
-  renderBudgetsFromFilters();
   renderEvoChart();
 }
  
@@ -1380,18 +1723,19 @@ function renderResumoMensal(){
   meses.forEach(m=>{
     let entradas=0,gastos=0;
     movimentos[m].forEach(x=>{ if(x.tipo==='ganho') entradas+=x.valor; else gastos+=x.valor; });
-    const fluxo=entradas-gastos;
+    const fluxo=entradas+gastos;
+    const cor=hashColor(m);
     const row=document.createElement('div');
     row.className='tx';
-    row.style.cssText='cursor:pointer;';
+    row.style.cssText='cursor:pointer;flex-wrap:wrap;row-gap:6px;';
     row.innerHTML=`
-      <div class="tx-mid">
-        <div class="tx-title">${m}</div>
-        <div class="tx-meta">+€${fmt(entradas)} entradas · -€${fmt(gastos)} gastos</div>
-      </div>
-      <div class="tx-amt" style="color:${fluxo>=0?'var(--pos)':'var(--neg)'};">${fluxo>=0?'+':'-'}€${fmt(Math.abs(fluxo))}</div>`;
+      <span class="dot" style="background:${cor};"></span>
+      <span style="font-size:12.5px;font-weight:600;">${m}</span>
+      <span style="font-size:12.5px;font-weight:600;">Entradas ${moeda()}${fmt(entradas)}</span>
+      <span style="font-size:12.5px;font-weight:600;">Gastos ${moeda()}${fmt(gastos)}</span>
+      <span style="font-size:12.5px;font-weight:600;">Fluxo ${moeda()}${fmt(fluxo)}</span>`;
     row.addEventListener('click',()=>{
-      document.getElementById('f-mes').value=m;
+      filtroMovMes=m;
       render();
     });
     el.appendChild(row);
@@ -1498,74 +1842,6 @@ function renderPlano(){
   (planeamento[conta]||[]).forEach(([mes,e,g,s])=>{
     body.innerHTML+=`<tr><td>${mes}</td><td>€${fmt(e)}</td><td>€${fmt(g)}</td><td>€${fmt(s)}</td></tr>`;
   });
-}
- 
-function mesParaNomePt(mesStr){
-  if(!mesStr || !mesStr.includes('-')) return null;
-  const idx=parseInt(mesStr.split('-')[1],10)-1;
-  return nomesMeses[idx] || null;
-}
- 
-/* ---- orçamentos por categoria — ligados ao Planeamento ----
-   Se existir uma linha de Planeamento para o mês/conta escolhidos, o
-   limite da categoria "Compras" passa a vir automaticamente de lá
-   (usa-se o valor de "gastos" previsto nessa linha), em vez de teres
-   de repetir o número à mão. As restantes categorias continuam
-   editáveis livremente. */
-function renderBudgets(mes,conta){
-  conta = conta || 'todas';
-  const card=document.getElementById('budgets-card');
-  const banner=document.getElementById('plano-banner');
-  card.innerHTML='';
- 
-  const nomeMes=mesParaNomePt(mes);
-  const planoConta=planeamento[conta];
-  const linhaPlano = planoConta && nomeMes ? planoConta.find(l=>l[0]===nomeMes) : null;
-  if(linhaPlano){
-    banner.style.display='block';
-    banner.innerHTML=`📋 <b>Planeamento (${esc(nomeMes)}, ${esc(conta)})</b>: previsto entradas €${fmt(linhaPlano[1])} · gastos €${fmt(linhaPlano[2])} — o limite de "Compras" abaixo foi preenchido automaticamente a partir daqui.`;
-  }else{
-    banner.style.display='none';
-  }
- 
-  const gastosPorCat={};
-  if(mes && movimentos[mes]){
-    movimentos[mes].forEach(x=>{
-      if(x.tipo!=='gasto') return;
-      if(conta!=='todas' && x.aba!==conta) return;
-      const c=x.categoria||'Outros';
-      gastosPorCat[c]=(gastosPorCat[c]||0)+x.valor;
-    });
-  }
- 
-  Object.keys(orcamentos).forEach(cat=>{
-    const autoDoPlano = cat==='Compras' && linhaPlano;
-    const limite = autoDoPlano ? linhaPlano[2] : orcamentos[cat];
-    const gasto=gastosPorCat[cat]||0;
-    const perc = limite>0 ? Math.min(100,Math.round(gasto/limite*100)) : (gasto>0?100:0);
-    const cor = perc>=100 ? 'var(--neg)' : perc>=75 ? 'var(--amber)' : 'var(--pos)';
-    const row=document.createElement('div');
-    row.className='budget-row';
-    const inputHtml = autoDoPlano
-      ? `<span style="width:52px;display:inline-block;text-align:right;font-family:'Sora',sans-serif;font-weight:600;">${fmt(limite)}</span> €`
-      : `<input type="number" class="budget-input" data-cat="${esc(cat)}" value="${limite}" style="width:52px;border:none;background:transparent;text-align:right;font-family:'Sora',sans-serif;font-weight:600;color:var(--muted);"> €`;
-    row.innerHTML=`
-      <div class="budget-top">
-        <span class="name">${esc(cat)} ${autoDoPlano?'<span class="budget-auto-tag">do planeamento</span>':''}</span>
-        <span class="vals">€${fmt(gasto)} ${inputHtml}</span>
-      </div>
-      <div class="budget-track"><div class="budget-fill" style="width:${perc}%;background:${cor};"></div></div>`;
-    card.appendChild(row);
-  });
-  card.querySelectorAll('.budget-input').forEach(inp=>{
-    inp.addEventListener('change',()=>{ orcamentos[inp.dataset.cat]=parseFloat(inp.value)||0; render(); salvarTudo(); });
-  });
-}
-function renderBudgetsFromFilters(){
-  const mes=document.getElementById('b-mes').value;
-  const conta=document.getElementById('b-conta').value;
-  const mesReal = mes==='atual' ? (Object.keys(movimentos).sort().slice(-1)[0]) : mes;
-  renderBudgets(mesReal,conta);
 }
  
 /* ---- lançamentos recorrentes ---- */
@@ -1720,7 +1996,7 @@ function fecharAmpliarEvolucao(e){
  
 /* ---- exportar / importar dados ---- */
 function exportarDados(){
-  const payload={abas,movimentos,recorrentes,orcamentos,cores,exportadoEm:new Date().toISOString()};
+  const payload={abas,movimentos,recorrentes,cores,exportadoEm:new Date().toISOString()};
   const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
@@ -1738,7 +2014,6 @@ function importarDados(file){
       if(data.abas) abas=data.abas;
       if(data.movimentos) movimentos=data.movimentos;
       if(data.recorrentes) recorrentes=data.recorrentes;
-      if(data.orcamentos) orcamentos=data.orcamentos;
       if(data.cores) aplicarCores(data.cores.a,data.cores.b,data.cores.pos,data.cores.neg);
       renderWallet(); fillSelects(); render(); renderRecorrentes(); salvarTudo();
       showToast('Dados importados com sucesso');
