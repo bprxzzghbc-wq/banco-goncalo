@@ -1,7 +1,15 @@
 
+Executando neste dispositivo
 
 
-Banco goncalo modern · HTML
+
+
+
+
+
+
+
+Banco goncalo · HTML
 <!DOCTYPE html>
 <html lang="pt-PT">
 <head>
@@ -197,6 +205,8 @@ h1,h2,.num{font-family:'Sora',sans-serif;}
  
 /* chart card */
 .chart-card{background:var(--surface);border-radius:var(--radius-m);padding:18px;box-shadow:var(--shadow-sm);border:1px solid var(--line);}
+.chart-total{font-size:11.5px;color:var(--muted);margin-bottom:12px;}
+.chart-total b{color:var(--text);font-family:'Sora',sans-serif;}
 .chart-row{display:flex;align-items:center;gap:18px;}
 .chart-wrap{width:120px;flex-shrink:0;}
 .legend{display:flex;flex-direction:column;gap:9px;flex:1;min-width:0;}
@@ -223,7 +233,8 @@ td:first-child{font-family:'Inter',sans-serif;font-weight:600;}
 /* budgets */
 .budget-row{margin-bottom:12px;}
 .budget-top{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:5px;}
-.budget-top .name{font-weight:600;}
+.budget-top .name{font-weight:600;display:flex;align-items:center;gap:6px;}
+.budget-auto-tag{font-size:9.5px;font-weight:700;color:var(--brand-a);background:rgba(108,76,241,0.12);padding:2px 6px;border-radius:999px;}
 .budget-top .vals{color:var(--muted);font-family:'Sora',sans-serif;font-weight:600;}
 .budget-track{height:7px;border-radius:999px;background:var(--surface-2);overflow:hidden;}
 .budget-fill{height:100%;border-radius:999px;transition:width .4s ease;}
@@ -279,15 +290,17 @@ td:first-child{font-family:'Inter',sans-serif;font-weight:600;}
 .evo-card{background:var(--surface);border-radius:var(--radius-m);padding:16px;box-shadow:var(--shadow-sm);border:1px solid var(--line);}
 .evo-legend{display:flex;gap:16px;justify-content:center;margin-top:10px;font-size:11.5px;color:var(--muted);}
 .evo-legend span{display:flex;align-items:center;gap:5px;}
+.chart-fallback{text-align:center;padding:24px 10px;color:var(--muted);font-size:12px;}
  
 .toast{
-  position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(160%);
-  background:var(--text);color:var(--bg);padding:16px 22px;border-radius:16px;font-size:14px;font-weight:700;
-  box-shadow:0 16px 40px rgba(0,0,0,0.45);transition:transform .3s cubic-bezier(.22,1,.36,1);z-index:90;
+  position:fixed;left:50%;bottom:max(28px, calc(env(safe-area-inset-bottom) + 18px));
+  transform:translateX(-50%) translateY(180%);
+  background:var(--text);color:var(--bg);padding:17px 20px;border-radius:16px;font-size:14.5px;font-weight:700;
+  box-shadow:0 18px 44px rgba(0,0,0,0.5);transition:transform .35s cubic-bezier(.22,1.4,.36,1);z-index:200;
   display:flex;align-items:center;gap:10px;max-width:88vw;border:2px solid var(--brand-a);
 }
 .toast.show{transform:translateX(-50%) translateY(0);}
-.toast-icon{font-size:16px;flex-shrink:0;}
+.toast-icon{font-size:18px;flex-shrink:0;}
  
 #splash{
   position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -333,341 +346,350 @@ td:first-child{font-family:'Inter',sans-serif;font-weight:600;}
 </head>
 <body>
 <div id="splash">
-  <div class="orb">👋</div>
-  <div class="greet">Olá, Gonçalo</div>
-  <div class="greet line2">A preparar as tuas contas...</div>
+<div class="orb">👋</div>
+<div class="greet">Olá, Gonçalo</div>
+<div class="greet line2">A preparar as tuas contas...</div>
 </div>
 <div class="app">
  
-  <div class="topbar">
-    <div class="greet">Olá, <b>Gonçalo</b> 👋</div>
-    <div style="display:flex;gap:8px;">
-      <button class="icon-btn" onclick="abrirCores()" title="Personalizar cores" aria-label="Personalizar cores">⚙</button>
-      <button class="icon-btn" onclick="toggleDark()" title="Alternar tema">◐</button>
-    </div>
-  </div>
+<div class="topbar">
+<div class="greet">Olá, <b>Gonçalo</b> 👋</div>
+<div style="display:flex;gap:8px;">
+<button class="icon-btn" onclick="abrirCores()" title="Personalizar cores" aria-label="Personalizar cores">⚙</button>
+<button class="icon-btn" onclick="toggleDark()" title="Alternar tema">◐</button>
+</div>
+</div>
  
-  <div class="hero" onclick="abrirSaldoTotal()" style="cursor:pointer;">
-    <div class="hero-top">
-      <div class="hero-label">Saldo total <span style="opacity:0.6;font-size:10.5px;">· toca para ver mais</span></div>
-      <div class="pill" id="status-chip">Estável</div>
-    </div>
-    <div class="hero-num"><sup>€</sup><span id="total">0,00</span></div>
-    <div class="hero-sub">
-      <div>Sem moedas<b id="sem-moedas">€0,00</b></div>
-      <div>Sem moedas + cartão<b id="sem-cartao">€0,00</b></div>
-    </div>
-  </div>
+<div class="hero" onclick="abrirSaldoTotal()" style="cursor:pointer;">
+<div class="hero-top">
+<div class="hero-label">Saldo total <span style="opacity:0.6;font-size:10.5px;">· toca para ver mais</span></div>
+<div class="pill" id="status-chip">Estável</div>
+</div>
+<div class="hero-num"><sup>€</sup><span id="total">0,00</span></div>
+<div class="hero-sub">
+<div>Sem moedas<b id="sem-moedas">€0,00</b></div>
+<div>Sem moedas + cartão<b id="sem-cartao">€0,00</b></div>
+</div>
+</div>
  
-  <div class="segment">
-    <div class="seg-btn active" data-tab="saldos">Saldos</div>
-    <div class="seg-btn" data-tab="movimentos">Movimentos</div>
-    <div class="seg-btn" data-tab="plano">Planeamento</div>
-  </div>
+<div class="segment">
+<div class="seg-btn active" data-tab="saldos">Saldos</div>
+<div class="seg-btn" data-tab="movimentos">Movimentos</div>
+<div class="seg-btn" data-tab="plano">Planeamento</div>
+</div>
  
-  <!-- SALDOS -->
-  <div class="tab-panel" id="panel-saldos">
-    <div class="section-head">
-      <div class="section-title">As tuas contas</div>
-      <button class="wallet-toggle" id="wallet-view-btn" onclick="toggleWalletView()" title="Alternar vista" aria-label="Alternar entre vista horizontal e vertical">⇄</button>
-    </div>
-    <div class="field" style="margin-bottom:10px;">
-      <input type="text" id="w-search" placeholder="Pesquisar conta..." oninput="renderWallet()">
-    </div>
-    <div class="wallet-scroll" id="wallet"></div>
+<!-- SALDOS -->
+<div class="tab-panel" id="panel-saldos">
+<div class="section-head">
+<div class="section-title">As tuas contas</div>
+<button class="wallet-toggle" id="wallet-view-btn" onclick="toggleWalletView()" title="Alternar vista" aria-label="Alternar entre vista horizontal e vertical">⇄</button>
+</div>
+<div class="field" style="margin-bottom:10px;">
+<input type="text" id="w-search" placeholder="Pesquisar conta..." oninput="renderWallet()">
+</div>
+<div class="wallet-scroll" id="wallet"></div>
  
-    <div class="mini-form" id="new-acc-form" style="display:none;">
-      <div class="row2">
-        <div class="field"><label>Nome da conta</label><input type="text" id="na-nome" placeholder="Ex: Fundo de emergência"></div>
-        <div class="field"><label>Saldo inicial €</label><input type="number" id="na-valor" step="0.01" placeholder="0.00"></div>
-      </div>
-      <button class="btn-main" onclick="criarConta()">Criar conta</button>
-    </div>
+<div class="mini-form" id="new-acc-form" style="display:none;">
+<div class="row2">
+<div class="field"><label>Nome da conta</label><input type="text" id="na-nome" placeholder="Ex: Fundo de emergência"></div>
+<div class="field"><label>Saldo inicial €</label><input type="number" id="na-valor" step="0.01" placeholder="0.00"></div>
+</div>
+<button class="btn-main" onclick="criarConta()">Criar conta</button>
+</div>
  
-    <div class="section-head">
-      <div class="section-title">Exportar / importar</div>
-    </div>
-    <div class="row2">
-      <button class="btn-main" style="background:var(--surface-2);color:var(--text);box-shadow:none;" onclick="exportarDados()">Exportar dados (.json)</button>
-      <button class="btn-main" style="background:var(--surface-2);color:var(--text);box-shadow:none;" onclick="document.getElementById('import-file').click()">Importar dados</button>
-    </div>
-    <input type="file" id="import-file" accept="application/json" style="display:none;" onchange="importarDados(this.files[0])">
-    <div style="font-size:11px;color:var(--muted);text-align:center;margin-top:6px;">Guarda o ficheiro para não perderes os teus dados entre sessões.</div>
-  </div>
+<div class="section-head">
+<div class="section-title">Exportar / importar</div>
+</div>
+<div class="row2">
+<button class="btn-main" style="background:var(--surface-2);color:var(--text);box-shadow:none;" onclick="exportarDados()">Exportar dados (.json)</button>
+<button class="btn-main" style="background:var(--surface-2);color:var(--text);box-shadow:none;" onclick="document.getElementById('import-file').click()">Importar dados</button>
+</div>
+<input type="file" id="import-file" accept="application/json" style="display:none;" onchange="importarDados(this.files[0])">
+<div style="font-size:11px;color:var(--muted);text-align:center;margin-top:6px;">Guarda o ficheiro para não perderes os teus dados entre sessões.</div>
+</div>
  
-  <!-- MOVIMENTOS -->
-  <div class="tab-panel" id="panel-movimentos" style="display:none;">
-    <div class="section-head">
-      <div class="section-title">Novo lançamento</div>
-    </div>
-    <div class="form-card" id="form-card">
-      <div class="row2">
-        <div class="field"><label>Tipo</label>
-          <select id="m-tipo"><option value="ganho">Entrada</option><option value="gasto">Gasto</option></select>
-        </div>
-        <div class="field"><label>Valor €</label><input type="number" id="m-valor" step="0.01" placeholder="0.00"></div>
-      </div>
-      <div class="field"><label>Descrição</label><input type="text" id="m-desc" placeholder="Ex: McDonald's"></div>
-      <div class="row2">
-        <div class="field"><label>Conta</label><select id="m-conta"></select></div>
-        <div class="field"><label>Categoria</label>
-          <select id="m-cat"><option>Compras</option><option>Comida</option><option>Lazer</option><option>Poupança</option><option>Outros</option></select>
-        </div>
-      </div>
-      <div class="field"><label>Data</label><input type="date" id="m-data"></div>
-      <button class="btn-main" id="form-submit-btn" onclick="adicionar()">Registar lançamento</button>
-    </div>
-    <script>
+<!-- MOVIMENTOS -->
+<div class="tab-panel" id="panel-movimentos" style="display:none;">
+<div class="section-head">
+<div class="section-title">Novo lançamento</div>
+</div>
+<div class="form-card" id="form-card">
+<div class="row2">
+<div class="field"><label>Tipo</label>
+<select id="m-tipo"><option value="ganho">Entrada</option><option value="gasto">Gasto</option></select>
+</div>
+<div class="field"><label>Valor €</label><input type="number" id="m-valor" step="0.01" placeholder="0.00"></div>
+</div>
+<div class="field"><label>Descrição</label><input type="text" id="m-desc" placeholder="Ex: McDonald's"></div>
+<div class="row2">
+<div class="field"><label>Conta</label><select id="m-conta"></select></div>
+<div class="field"><label>Categoria</label>
+<select id="m-cat"><option>Compras</option><option>Comida</option><option>Lazer</option><option>Poupança</option><option>Outros</option></select>
+</div>
+</div>
+<div class="field"><label>Data</label><input type="date" id="m-data"></div>
+<button class="btn-main" id="form-submit-btn" onclick="adicionar()">Registar lançamento</button>
+</div>
+<script>
       ['m-valor','m-desc'].forEach(id=>{
         document.getElementById(id).addEventListener('keydown',e=>{ if(e.key==='Enter') adicionar(); });
       });
-    </script>
+</script>
  
-    <div class="section-head">
-      <div class="section-title">Recorrentes</div>
-      <button class="link-btn" onclick="toggleRecForm()">+ Nova recorrente</button>
-    </div>
-    <div class="mini-form" id="rec-form" style="display:none;">
-      <div class="row2">
-        <div class="field"><label>Tipo</label>
-          <select id="rec-tipo"><option value="gasto">Gasto</option><option value="ganho">Entrada</option></select>
-        </div>
-        <div class="field"><label>Valor €</label><input type="number" id="rec-valor" step="0.01" placeholder="0.00"></div>
-      </div>
-      <div class="field"><label>Descrição</label><input type="text" id="rec-desc" placeholder="Ex: Netflix, ginásio..."></div>
-      <div class="row2">
-        <div class="field"><label>Conta</label><select id="rec-conta"></select></div>
-        <div class="field"><label>Categoria</label>
-          <select id="rec-cat"><option>Compras</option><option>Comida</option><option>Lazer</option><option>Poupança</option><option>Outros</option></select>
-        </div>
-      </div>
-      <button class="btn-main" onclick="criarRecorrente()">Guardar recorrente</button>
-    </div>
-    <div id="lista-rec" style="display:flex;flex-direction:column;gap:8px;"></div>
+<div class="section-head">
+<div class="section-title">Recorrentes</div>
+<button class="link-btn" onclick="toggleRecForm()">+ Nova recorrente</button>
+</div>
+<div class="mini-form" id="rec-form" style="display:none;">
+<div class="row2">
+<div class="field"><label>Tipo</label>
+<select id="rec-tipo"><option value="gasto">Gasto</option><option value="ganho">Entrada</option></select>
+</div>
+<div class="field"><label>Valor €</label><input type="number" id="rec-valor" step="0.01" placeholder="0.00"></div>
+</div>
+<div class="field"><label>Descrição</label><input type="text" id="rec-desc" placeholder="Ex: Netflix, ginásio..."></div>
+<div class="row2">
+<div class="field"><label>Conta</label><select id="rec-conta"></select></div>
+<div class="field"><label>Categoria</label>
+<select id="rec-cat"><option>Compras</option><option>Comida</option><option>Lazer</option><option>Poupança</option><option>Outros</option></select>
+</div>
+</div>
+<button class="btn-main" onclick="criarRecorrente()">Guardar recorrente</button>
+</div>
+<div id="lista-rec" style="display:flex;flex-direction:column;gap:8px;"></div>
  
-    <div class="section-head"><div class="section-title">Orçamentos por categoria</div></div>
-    <div class="filters">
-      <select id="b-mes" onchange="renderBudgetsFromFilters()"></select>
-      <select id="b-conta" onchange="renderBudgetsFromFilters()"><option value="todas">Todas as contas</option></select>
-    </div>
-    <div id="plano-banner" style="display:none;background:var(--surface-2);border-radius:var(--radius-s);padding:10px 12px;margin-bottom:10px;font-size:12px;"></div>
-    <div class="chart-card" id="budgets-card"></div>
+<div class="section-head"><div class="section-title">Orçamentos por categoria</div></div>
+<div class="filters">
+<select id="b-mes" onchange="renderBudgetsFromFilters()"></select>
+<select id="b-conta" onchange="renderBudgetsFromFilters()"><option value="todas">Todas as contas</option></select>
+</div>
+<div id="plano-banner" style="display:none;background:var(--surface-2);border-radius:var(--radius-s);padding:10px 12px;margin-bottom:10px;font-size:12px;"></div>
+<div class="chart-card" id="budgets-card"></div>
  
-    <div class="section-head"><div class="section-title">Resumo mensal</div></div>
-    <div id="resumo-mensal-lista" style="display:flex;flex-direction:column;gap:8px;margin-bottom:6px;"></div>
+<div class="section-head"><div class="section-title">Resumo mensal</div></div>
+<div id="resumo-mensal-lista" style="display:flex;flex-direction:column;gap:8px;margin-bottom:6px;"></div>
  
-    <div class="section-head"><div class="section-title">Movimentos</div></div>
-    <div class="field" style="margin-bottom:8px;">
-      <input type="text" id="m-search" placeholder="Pesquisar por descrição ou categoria..." oninput="render()">
-    </div>
-    <div class="filters">
-      <select id="f-mes" onchange="render()"></select>
-      <select id="f-conta" onchange="render()"><option value="todas">Todas as contas</option></select>
-    </div>
+<div class="section-head"><div class="section-title">Movimentos</div></div>
+<div class="field" style="margin-bottom:8px;">
+<input type="text" id="m-search" placeholder="Pesquisar por descrição ou categoria..." oninput="render()">
+</div>
+<div class="filters">
+<select id="f-mes" onchange="render()"></select>
+<select id="f-conta" onchange="render()"><option value="todas">Todas as contas</option></select>
+</div>
  
-    <div class="tx-list" id="lista-mov"></div>
-    <div style="font-size:11px;color:var(--muted);text-align:center;margin-top:6px;">Desliza um lançamento para a esquerda para apagar</div>
+<div class="tx-list" id="lista-mov"></div>
+<div style="font-size:11px;color:var(--muted);text-align:center;margin-top:6px;">Desliza um lançamento para a esquerda para apagar</div>
  
-    <div class="section-head">
-      <div class="section-title">Gastos por categoria</div>
-      <button class="wallet-toggle" onclick="abrirAmpliarCategorias()" title="Ampliar">⤢</button>
-    </div>
-    <div class="chart-card">
-      <div class="chart-row">
-        <div class="chart-wrap"><canvas id="chart" height="120"></canvas></div>
-        <div class="legend" id="legend"></div>
-      </div>
-    </div>
+<div class="section-head">
+<div class="section-title">Gastos por categoria</div>
+<button class="wallet-toggle" onclick="abrirAmpliarCategorias()" title="Ampliar">⤢</button>
+</div>
+<div class="chart-card">
+<div class="chart-total" id="chart-total"></div>
+<div class="chart-row">
+<div class="chart-wrap"><canvas id="chart" height="120"></canvas></div>
+<div class="legend" id="legend"></div>
+</div>
+</div>
  
-    <div class="section-head">
-      <div class="section-title">Evolução mensal</div>
-      <button class="wallet-toggle" onclick="abrirAmpliarEvolucao()" title="Ampliar">⤢</button>
-    </div>
-    <div class="evo-card">
-      <div class="hist-filters" id="evo-tipo-filtros">
-        <div class="hist-chip active" data-t="ambos" onclick="filtrarEvoTipo('ambos')">Ambos</div>
-        <div class="hist-chip" data-t="ganho" onclick="filtrarEvoTipo('ganho')">Só entradas</div>
-        <div class="hist-chip" data-t="gasto" onclick="filtrarEvoTipo('gasto')">Só gastos</div>
-      </div>
-      <select id="evo-mes-destaque" onchange="renderEvoChart()" style="width:100%;margin-bottom:10px;padding:8px 10px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface-2);color:var(--text);font-size:12px;">
-        <option value="">Sem mês em destaque</option>
-      </select>
-      <canvas id="evo-chart" height="140"></canvas>
-      <div id="evo-destaque-info" style="text-align:center;font-size:12px;color:var(--muted);margin-top:8px;"></div>
-    </div>
-  </div>
+<div class="section-head">
+<div class="section-title">Evolução mensal</div>
+<button class="wallet-toggle" onclick="abrirAmpliarEvolucao()" title="Ampliar">⤢</button>
+</div>
+<div class="evo-card">
+<div class="hist-filters" id="evo-tipo-filtros">
+<div class="hist-chip active" data-t="ambos" onclick="filtrarEvoTipo('ambos')">Ambos</div>
+<div class="hist-chip" data-t="ganho" onclick="filtrarEvoTipo('ganho')">Só entradas</div>
+<div class="hist-chip" data-t="gasto" onclick="filtrarEvoTipo('gasto')">Só gastos</div>
+</div>
+<select id="evo-mes-destaque" onchange="renderEvoChart()" style="width:100%;margin-bottom:10px;padding:8px 10px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface-2);color:var(--text);font-size:12px;">
+<option value="">Sem mês em destaque</option>
+</select>
+<canvas id="evo-chart" height="140"></canvas>
+<div id="evo-destaque-info" style="text-align:center;font-size:12px;color:var(--muted);margin-top:8px;"></div>
+</div>
+</div>
  
-  <!-- PLANO -->
-  <div class="tab-panel" id="panel-plano" style="display:none;">
-    <div class="section-head">
-      <div class="section-title">Planeamento anual</div>
-      <select id="p-conta" onchange="renderPlano()" style="border:1.5px solid var(--line);border-radius:10px;padding:6px 8px;font-size:12px;background:var(--surface);color:var(--text);"></select>
-    </div>
-    <div class="plan-card">
-      <table><thead><tr><th>Mês</th><th>Entradas</th><th>Gastos</th><th>Saldo</th></tr></thead>
-      <tbody id="plano-body"></tbody></table>
-    </div>
-  </div>
+<!-- PLANO -->
+<div class="tab-panel" id="panel-plano" style="display:none;">
+<div class="section-head">
+<div class="section-title">Planeamento anual</div>
+<select id="p-conta" onchange="renderPlano()" style="border:1.5px solid var(--line);border-radius:10px;padding:6px 8px;font-size:12px;background:var(--surface);color:var(--text);"></select>
+</div>
+<div class="plan-card">
+<table><thead><tr><th>Mês</th><th>Entradas</th><th>Gastos</th><th>Saldo</th></tr></thead>
+<tbody id="plano-body"></tbody></table>
+</div>
+</div>
  
 </div>
  
 <div class="sheet-overlay" id="cores-sheet" onclick="fecharCores(event)">
-  <div class="sheet-panel" onclick="event.stopPropagation()" style="max-height:90vh;">
-    <div class="sheet-handle"></div>
-    <div class="sheet-title">Painel de administrador — Aparência</div>
-    <div class="sheet-sub">Controla o visual da app inteira, em tempo real.</div>
+<div class="sheet-panel" onclick="event.stopPropagation()" style="max-height:90vh;">
+<div class="sheet-handle"></div>
+<div class="sheet-title">Painel de administrador — Aparência</div>
+<div class="sheet-sub">Controla o visual da app inteira, em tempo real.</div>
  
-    <div class="acc-subtabs">
-      <div class="acc-subtab active" data-admtab="cores" onclick="mudarAdminTab('cores')">Cores</div>
-      <div class="acc-subtab" data-admtab="estilo" onclick="mudarAdminTab('estilo')">Estilo</div>
-      <div class="acc-subtab" data-admtab="diversao" onclick="mudarAdminTab('diversao')">Diversão</div>
-    </div>
+<div class="acc-subtabs">
+<div class="acc-subtab active" data-admtab="cores" onclick="mudarAdminTab('cores')">Cores</div>
+<div class="acc-subtab" data-admtab="estilo" onclick="mudarAdminTab('estilo')">Estilo</div>
+<div class="acc-subtab" data-admtab="diversao" onclick="mudarAdminTab('diversao')">Diversão</div>
+</div>
  
-    <div id="admin-tab-cores">
-      <label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:8px;">Predefinições</label>
-      <div id="cores-presets" style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;"></div>
+<div id="admin-tab-cores">
+<label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:8px;">Predefinições</label>
+<div id="cores-presets" style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;"></div>
  
-      <label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px;">Cor principal</label>
-      <input type="color" id="cor-a" value="#6C4CF1" style="width:100%;height:40px;border:1.5px solid var(--line);border-radius:var(--radius-s);margin-bottom:12px;background:var(--surface-2);cursor:pointer;">
+<label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px;">Cor principal</label>
+<input type="color" id="cor-a" value="#6C4CF1" style="width:100%;height:40px;border:1.5px solid var(--line);border-radius:var(--radius-s);margin-bottom:12px;background:var(--surface-2);cursor:pointer;">
  
-      <label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px;">Cor secundária (gradiente)</label>
-      <input type="color" id="cor-b" value="#FF5FA8" style="width:100%;height:40px;border:1.5px solid var(--line);border-radius:var(--radius-s);margin-bottom:12px;background:var(--surface-2);cursor:pointer;">
+<label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px;">Cor secundária (gradiente)</label>
+<input type="color" id="cor-b" value="#FF5FA8" style="width:100%;height:40px;border:1.5px solid var(--line);border-radius:var(--radius-s);margin-bottom:12px;background:var(--surface-2);cursor:pointer;">
  
-      <div class="row2" style="margin-bottom:6px;">
-        <div class="field"><label>Cor positiva (entradas)</label><input type="color" id="cor-pos" value="#0FAE7D" style="width:100%;height:36px;border:1.5px solid var(--line);border-radius:var(--radius-s);cursor:pointer;"></div>
-        <div class="field"><label>Cor negativa (gastos)</label><input type="color" id="cor-neg" value="#F0483E" style="width:100%;height:36px;border:1.5px solid var(--line);border-radius:var(--radius-s);cursor:pointer;"></div>
-      </div>
-      <div class="row2" style="margin-bottom:6px;">
-        <div class="field"><label>Cor de fundo</label><input type="color" id="cor-bg" value="#F3F1FA" style="width:100%;height:36px;border:1.5px solid var(--line);border-radius:var(--radius-s);cursor:pointer;"></div>
-        <div class="field"><label>Cor dos cartões</label><input type="color" id="cor-surface" value="#FFFFFF" style="width:100%;height:36px;border:1.5px solid var(--line);border-radius:var(--radius-s);cursor:pointer;"></div>
-      </div>
-    </div>
+<div class="row2" style="margin-bottom:6px;">
+<div class="field"><label>Cor positiva (entradas)</label><input type="color" id="cor-pos" value="#0FAE7D" style="width:100%;height:36px;border:1.5px solid var(--line);border-radius:var(--radius-s);cursor:pointer;"></div>
+<div class="field"><label>Cor negativa (gastos)</label><input type="color" id="cor-neg" value="#F0483E" style="width:100%;height:36px;border:1.5px solid var(--line);border-radius:var(--radius-s);cursor:pointer;"></div>
+</div>
+<div class="row2" style="margin-bottom:6px;">
+<div class="field"><label>Cor de fundo</label><input type="color" id="cor-bg" value="#F3F1FA" style="width:100%;height:36px;border:1.5px solid var(--line);border-radius:var(--radius-s);cursor:pointer;"></div>
+<div class="field"><label>Cor dos cartões</label><input type="color" id="cor-surface" value="#FFFFFF" style="width:100%;height:36px;border:1.5px solid var(--line);border-radius:var(--radius-s);cursor:pointer;"></div>
+</div>
+</div>
  
-    <div id="admin-tab-estilo" style="display:none;">
-      <label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px;">Arredondamento dos cantos: <span id="radius-val">26px</span></label>
-      <input type="range" id="radius-slider" min="4" max="36" value="26" style="width:100%;margin-bottom:16px;">
+<div id="admin-tab-estilo" style="display:none;">
+<label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px;">Arredondamento dos cantos: <span id="radius-val">26px</span></label>
+<input type="range" id="radius-slider" min="4" max="36" value="26" style="width:100%;margin-bottom:16px;">
  
-      <label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px;">Tamanho do texto: <span id="fontsize-val">100%</span></label>
-      <input type="range" id="fontsize-slider" min="85" max="120" value="100" style="width:100%;margin-bottom:16px;">
+<label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px;">Tamanho do texto: <span id="fontsize-val">100%</span></label>
+<input type="range" id="fontsize-slider" min="85" max="120" value="100" style="width:100%;margin-bottom:16px;">
  
-      <label style="display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:600;margin-bottom:10px;cursor:pointer;">
-        <input type="checkbox" id="toggle-animacoes" checked style="width:18px;height:18px;"> Animações e transições ativas
-      </label>
-      <label style="display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:600;cursor:pointer;">
-        <input type="checkbox" id="toggle-confetti" checked style="width:18px;height:18px;"> Confetti ao registar lançamento
-      </label>
-    </div>
+<label style="display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:600;margin-bottom:10px;cursor:pointer;">
+<input type="checkbox" id="toggle-animacoes" checked style="width:18px;height:18px;"> Animações e transições ativas
+</label>
+<label style="display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:600;cursor:pointer;">
+<input type="checkbox" id="toggle-confetti" checked style="width:18px;height:18px;"> Confetti ao registar lançamento
+</label>
+</div>
  
-    <div id="admin-tab-diversao" style="display:none;">
-      <button class="btn-main" style="margin-bottom:10px;" onclick="corAleatoria()">🎲 Cor aleatória</button>
-      <button class="btn-main" style="background:var(--surface-2);color:var(--text);box-shadow:none;margin-bottom:10px;" onclick="modoFesta()">🎉 Modo festa (cores a mudar sozinhas)</button>
-      <button class="btn-main" style="background:var(--surface-2);color:var(--text);box-shadow:none;" onclick="exportarTema()">💾 Exportar este tema (.json)</button>
-    </div>
+<div id="admin-tab-diversao" style="display:none;">
+<button class="btn-main" style="margin-bottom:10px;" onclick="corAleatoria()">🎲 Cor aleatória</button>
+<button class="btn-main" style="background:var(--surface-2);color:var(--text);box-shadow:none;margin-bottom:10px;" onclick="modoFesta()">🎉 Modo festa (cores a mudar sozinhas)</button>
+<button class="btn-main" style="background:var(--surface-2);color:var(--text);box-shadow:none;margin-bottom:10px;" onclick="gradienteArcoIris()">🌈 Gradiente arco-íris</button>
+<button class="btn-main" style="background:var(--surface-2);color:var(--text);box-shadow:none;" onclick="exportarTema()">💾 Exportar este tema (.json)</button>
+</div>
  
-    <button class="btn-main" style="margin-top:14px;" onclick="fecharCores()">Aplicado — fechar</button>
-    <button class="sheet-btn" style="width:100%;margin-top:8px;" onclick="reporCores()">Repor tudo às predefinições</button>
-  </div>
+<button class="btn-main" style="margin-top:14px;" onclick="fecharCores()">Aplicado — fechar</button>
+<button class="sheet-btn" style="width:100%;margin-top:8px;" onclick="reporCores()">Repor tudo às predefinições</button>
+</div>
 </div>
  
 <div class="sheet-overlay" id="ampliar-cat-sheet" onclick="fecharAmpliarCategorias(event)">
-  <div class="sheet-panel" onclick="event.stopPropagation()" style="max-height:88vh;">
-    <div class="sheet-handle"></div>
-    <div class="sheet-title">Gastos por categoria</div>
-    <div class="sheet-sub" id="ampliar-cat-sub"></div>
-    <div style="max-width:240px;margin:10px auto 16px;"><canvas id="chart-ampliado" height="240"></canvas></div>
-    <div id="legend-ampliada" style="display:flex;flex-direction:column;gap:10px;"></div>
-  </div>
+<div class="sheet-panel" onclick="event.stopPropagation()" style="max-height:88vh;">
+<div class="sheet-handle"></div>
+<div class="sheet-title">Gastos por categoria</div>
+<div class="sheet-sub" id="ampliar-cat-sub"></div>
+<div style="max-width:240px;margin:10px auto 16px;"><canvas id="chart-ampliado" height="240"></canvas></div>
+<div id="legend-ampliada" style="display:flex;flex-direction:column;gap:10px;"></div>
+</div>
 </div>
  
 <div class="sheet-overlay" id="ampliar-evo-sheet" onclick="fecharAmpliarEvolucao(event)">
-  <div class="sheet-panel" onclick="event.stopPropagation()" style="max-height:88vh;">
-    <div class="sheet-handle"></div>
-    <div class="sheet-title">Evolução mensal</div>
-    <div class="sheet-sub">Entradas vs. gastos, mês a mês</div>
-    <canvas id="evo-chart-ampliado" height="260"></canvas>
-    <div id="evo-ampliado-info" style="text-align:center;font-size:12px;color:var(--muted);margin-top:10px;"></div>
-  </div>
+<div class="sheet-panel" onclick="event.stopPropagation()" style="max-height:88vh;">
+<div class="sheet-handle"></div>
+<div class="sheet-title">Evolução mensal</div>
+<div class="sheet-sub">Entradas vs. gastos, mês a mês</div>
+<div class="hist-filters" id="evo-amp-tipo-filtros" style="margin-bottom:12px;">
+<div class="hist-chip" data-t="ambos" onclick="filtrarEvoTipoAmpliado('ambos')">Ambos</div>
+<div class="hist-chip" data-t="ganho" onclick="filtrarEvoTipoAmpliado('ganho')">Só entradas</div>
+<div class="hist-chip" data-t="gasto" onclick="filtrarEvoTipoAmpliado('gasto')">Só gastos</div>
+</div>
+<canvas id="evo-chart-ampliado" height="260"></canvas>
+<div id="evo-ampliado-info" style="text-align:center;font-size:12px;color:var(--muted);margin-top:10px;"></div>
+</div>
 </div>
  
 <div class="sheet-overlay" id="saldo-sheet" onclick="fecharSaldoTotal(event)">
-  <div class="sheet-panel" onclick="event.stopPropagation()">
-    <div class="sheet-handle"></div>
-    <div class="sheet-title">Saldo total</div>
-    <div class="sheet-sub">Todas as contas, em detalhe</div>
-    <div style="text-align:center;margin:18px 0;">
-      <div style="font-family:'Sora',sans-serif;font-size:44px;font-weight:800;letter-spacing:-0.02em;" id="saldo-sheet-total">€0,00</div>
-      <div id="saldo-sheet-chip" style="display:inline-block;margin-top:6px;font-size:11px;font-weight:600;padding:4px 12px;border-radius:999px;background:var(--surface-2);"></div>
-    </div>
-    <div style="display:flex;gap:10px;margin-bottom:16px;">
-      <div style="flex:1;background:var(--surface-2);border-radius:var(--radius-s);padding:12px;text-align:center;">
-        <div style="font-size:10.5px;color:var(--muted);">Sem moedas</div>
-        <div style="font-family:'Sora',sans-serif;font-weight:700;font-size:16px;margin-top:4px;" id="saldo-sheet-sm"></div>
-      </div>
-      <div style="flex:1;background:var(--surface-2);border-radius:var(--radius-s);padding:12px;text-align:center;">
-        <div style="font-size:10.5px;color:var(--muted);">Sem moedas + cartão</div>
-        <div style="font-family:'Sora',sans-serif;font-weight:700;font-size:16px;margin-top:4px;" id="saldo-sheet-sc"></div>
-      </div>
-    </div>
-    <div style="font-size:12px;font-weight:600;margin-bottom:8px;">Contribuição por conta</div>
-    <div id="saldo-sheet-contas"></div>
-  </div>
+<div class="sheet-panel" onclick="event.stopPropagation()">
+<div class="sheet-handle"></div>
+<div class="sheet-title">Saldo total</div>
+<div class="sheet-sub">Todas as contas, em detalhe</div>
+<div style="text-align:center;margin:18px 0;">
+<div style="font-family:'Sora',sans-serif;font-size:44px;font-weight:800;letter-spacing:-0.02em;" id="saldo-sheet-total">€0,00</div>
+<div id="saldo-sheet-chip" style="display:inline-block;margin-top:6px;font-size:11px;font-weight:600;padding:4px 12px;border-radius:999px;background:var(--surface-2);"></div>
+</div>
+<div style="display:flex;gap:10px;margin-bottom:16px;">
+<div style="flex:1;background:var(--surface-2);border-radius:var(--radius-s);padding:12px;text-align:center;">
+<div style="font-size:10.5px;color:var(--muted);">Sem moedas</div>
+<div style="font-family:'Sora',sans-serif;font-weight:700;font-size:16px;margin-top:4px;" id="saldo-sheet-sm"></div>
+</div>
+<div style="flex:1;background:var(--surface-2);border-radius:var(--radius-s);padding:12px;text-align:center;">
+<div style="font-size:10.5px;color:var(--muted);">Sem moedas + cartão</div>
+<div style="font-family:'Sora',sans-serif;font-weight:700;font-size:16px;margin-top:4px;" id="saldo-sheet-sc"></div>
+</div>
+</div>
+<div style="font-size:12px;font-weight:600;margin-bottom:8px;">Contribuição por conta</div>
+<div id="saldo-sheet-contas"></div>
+</div>
 </div>
  
 <div class="sheet-overlay" id="acc-sheet" onclick="fecharSheetConta(event)">
-  <div class="sheet-panel" onclick="event.stopPropagation()">
-    <div class="sheet-handle"></div>
-    <div class="sheet-title" id="acc-sheet-title">Conta</div>
-    <div class="sheet-sub" id="acc-sheet-sub"></div>
-    <div class="sheet-actions">
-      <button class="sheet-btn primary" id="acc-editar-btn">✎ Editar</button>
-      <button class="sheet-btn danger" id="acc-apagar-btn">✕ Apagar</button>
-    </div>
+<div class="sheet-panel" onclick="event.stopPropagation()">
+<div class="sheet-handle"></div>
+<div class="sheet-title" id="acc-sheet-title">Conta</div>
+<div class="sheet-sub" id="acc-sheet-sub"></div>
+<div class="sheet-actions">
+<button class="sheet-btn primary" id="acc-editar-btn">✎ Editar</button>
+<button class="sheet-btn danger" id="acc-apagar-btn">✕ Apagar</button>
+</div>
  
-    <div class="acc-subtabs">
-      <div class="acc-subtab active" data-sub="notas" onclick="mudarSubAba('notas')">Notas</div>
-      <div class="acc-subtab" data-sub="historico" onclick="mudarSubAba('historico')">Histórico</div>
-    </div>
+<div class="acc-subtabs">
+<div class="acc-subtab active" data-sub="notas" onclick="mudarSubAba('notas')">Notas</div>
+<div class="acc-subtab" data-sub="historico" onclick="mudarSubAba('historico')">Histórico</div>
+</div>
  
-    <div id="acc-sub-notas">
-      <textarea class="sheet-notes" id="nova-nota-texto" placeholder="Escreve uma nota sobre esta conta..." style="min-height:56px;"></textarea>
-      <button class="btn-main" style="margin-top:8px;margin-bottom:14px;" id="add-nota-btn">+ Adicionar nota</button>
-      <div id="lista-notas-conta"></div>
-    </div>
+<div id="acc-sub-notas">
+<textarea class="sheet-notes" id="nova-nota-texto" placeholder="Escreve uma nota sobre esta conta..." style="min-height:56px;"></textarea>
+<button class="btn-main" style="margin-top:8px;margin-bottom:14px;" id="add-nota-btn">+ Adicionar nota</button>
+<div id="lista-notas-conta"></div>
+</div>
  
-    <div id="acc-sub-historico" style="display:none;">
-      <div class="hist-filters">
-        <div class="hist-chip active" data-f="ambos" onclick="filtrarHistoricoConta('ambos')">Ambos</div>
-        <div class="hist-chip" data-f="ganho" onclick="filtrarHistoricoConta('ganho')">Entradas</div>
-        <div class="hist-chip" data-f="gasto" onclick="filtrarHistoricoConta('gasto')">Gastos</div>
-      </div>
-      <div id="lista-historico-conta"></div>
-    </div>
-  </div>
+<div id="acc-sub-historico" style="display:none;">
+<div class="hist-filters">
+<div class="hist-chip active" data-f="ambos" onclick="filtrarHistoricoConta('ambos')">Ambos</div>
+<div class="hist-chip" data-f="ganho" onclick="filtrarHistoricoConta('ganho')">Entradas</div>
+<div class="hist-chip" data-f="gasto" onclick="filtrarHistoricoConta('gasto')">Gastos</div>
+</div>
+<div id="lista-historico-conta"></div>
+</div>
+</div>
 </div>
  
 <div class="sheet-overlay" id="tx-sheet" onclick="fecharSheetTx(event)">
-  <div class="sheet-panel" onclick="event.stopPropagation()">
-    <div class="sheet-handle"></div>
-    <div class="sheet-title" id="sheet-title">Lançamento</div>
-    <div class="sheet-sub" id="sheet-sub"></div>
-    <div class="sheet-actions">
-      <button class="sheet-btn primary" id="sheet-edit-btn">✎ Editar</button>
-      <button class="sheet-btn danger" id="sheet-del-btn">✕ Apagar</button>
-    </div>
-    <label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:5px;">Notas</label>
-    <textarea class="sheet-notes" id="sheet-notes" placeholder="Ex: pago em dinheiro, dividido com..."></textarea>
-    <button class="btn-main" style="margin-top:10px;" id="sheet-save-notes-btn">Guardar nota</button>
-  </div>
+<div class="sheet-panel" onclick="event.stopPropagation()">
+<div class="sheet-handle"></div>
+<div class="sheet-title" id="sheet-title">Lançamento</div>
+<div class="sheet-sub" id="sheet-sub"></div>
+<div class="sheet-actions">
+<button class="sheet-btn primary" id="sheet-edit-btn">✎ Editar</button>
+<button class="sheet-btn danger" id="sheet-del-btn">✕ Apagar</button>
+</div>
+<label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:5px;">Notas</label>
+<textarea class="sheet-notes" id="sheet-notes" placeholder="Ex: pago em dinheiro, dividido com..."></textarea>
+<button class="btn-main" style="margin-top:10px;" id="sheet-save-notes-btn">Guardar nota</button>
+</div>
 </div>
  
 <div class="toast" id="toast"><span class="toast-icon" id="toast-icon">✓</span><span id="toast-msg"></span><button id="toast-action" style="display:none;background:none;border:none;color:var(--brand-b);font-weight:800;font-size:13px;margin-left:8px;cursor:pointer;text-decoration:underline;"></button></div>
  
 <script>
-/* ---- persistência local: usa exatamente as mesmas chaves do teu ficheiro
-   original ("abas" e "movimentos"), para nunca perder o que já lá está.
-   NOTA IMPORTANTE: aqui dentro da pré-visualização do Claude, o browser
-   bloqueia sempre o localStorage por segurança — isto só grava/lê a sério
-   quando abres este ficheiro fora do Claude, guardado no teu telemóvel. */
+/* ==================================================================
+   ESTADO GLOBAL — tudo declarado aqui em cima, logo no início do
+   ficheiro, de propósito: era esta a causa do "erro de script" que
+   por vezes aparecia (variáveis como confettiAtivo/animacoesAtivas
+   eram lidas antes de existirem, o que o motor de JS às vezes recusa
+   com "Cannot access before initialization"). Agora está tudo seguro.
+   ================================================================== */
  
 function lerJSON(chave, fallback){
   try{
@@ -679,7 +701,7 @@ function lerJSON(chave, fallback){
 }
 function gravarJSON(chave, valor){
   try{ localStorage.setItem(chave, JSON.stringify(valor)); }
-  catch(e){ /* localStorage indisponível (ex: pré-visualização do Claude) — ignora em silêncio */ }
+  catch(e){ /* localStorage indisponível — ignora em silêncio */ }
 }
  
 const abasDefault = {
@@ -694,9 +716,6 @@ const movimentosDefault = {
     {tipo:"gasto",valor:20,aba:"Money 2026",desc:"McDonald's",data:"2026-04-09",categoria:"Comida"}
   ]
 };
-/* exatamente como no ficheiro original: chave "abas" e chave "movimentos" */
-let abas = lerJSON('abas', null) || abasDefault;
-let movimentos = lerJSON('movimentos', null) || movimentosDefault;
 const extras = ["Avô","Pais"];
 const planeamento = {
   "Money 2026":[["Janeiro",60,120,2835],["Fevereiro",50,0,2885],["Março",50,0,2935],["Abril",60,70,2925],["Maio",50,0,2975],["Junho",350,60,3265],["Julho",60,30,3295],["Agosto",60,50,3305],["Setembro",60,110,3255],["Outubro",60,0,3315],["Novembro",50,0,3365],["Dezembro",500,120,3745]],
@@ -704,17 +723,42 @@ const planeamento = {
 };
 const accentPalette = ['#6C4CF1','#FF5FA8','#0FAE7D','#F5A623','#3C9CF0','#B85CF0'];
 const catEmoji = {Compras:'🛍️',Comida:'🍔',Lazer:'🎮',Poupança:'💰',Outros:'✨'};
-let chart=null;
-let catFiltroGrafico=null;
-let evoChart=null;
-let editando=null;
+const nomesMeses=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const coresPresets=[
+  {nome:'Roxo',a:'#6C4CF1',b:'#FF5FA8'},
+  {nome:'Azul',a:'#2563EB',b:'#22D3EE'},
+  {nome:'Verde',a:'#0D9488',b:'#84CC16'},
+  {nome:'Laranja',a:'#EA580C',b:'#FACC15'},
+  {nome:'Ardósia',a:'#334155',b:'#64748B'},
+  {nome:'Rosa',a:'#DB2777',b:'#F472B6'}
+];
+const coresDefault={a:'#6C4CF1',b:'#FF5FA8',pos:'#0FAE7D',neg:'#F0483E'};
  
-/* estas são funcionalidades novas — chaves novas e próprias, começam vazias,
-   nunca colidem com "abas"/"movimentos" nem com o que já lá está */
+let abas = lerJSON('abas', null) || abasDefault;
+let movimentos = lerJSON('movimentos', null) || movimentosDefault;
 let recorrentes = lerJSON('recorrentes', []);
 let orcamentos = lerJSON('orcamentos', {Comida:100, Compras:80, Lazer:60, Poupança:0, Outros:40});
 let walletView = lerJSON('walletView', 'horizontal');
 let contaNotas = lerJSON('contaNotas', {});
+let cores = lerJSON('cores', null) || {...coresDefault};
+ 
+let chart=null;
+let chartAmpliado=null;
+let evoChart=null;
+let evoChartAmpliado=null;
+let catFiltroGrafico=null;
+let editando=null;
+let animacoesAtivas=true;
+let confettiAtivo=true;
+let modoFestaInterval=null;
+let ultimoApagado=null;
+let contaAtualSheet=null;
+let subAbaAtual='notas';
+let filtroHistConta='ambos';
+let sheetAtual=null;
+let filtroEvoTipo='ambos';
+let filtroEvoTipoAmp='ambos';
+let mesGraficoAtual=null;
  
 function toggleWalletView(){
   walletView = walletView==='horizontal' ? 'vertical' : 'horizontal';
@@ -722,7 +766,6 @@ function toggleWalletView(){
   gravarJSON('walletView', walletView);
 }
  
-/* grava cada parte na sua própria chave — igual ao padrão do ficheiro original */
 function salvarTudo(){
   gravarJSON('abas', abas);
   gravarJSON('movimentos', movimentos);
@@ -733,9 +776,9 @@ function salvarTudo(){
   gravarJSON('contaNotas', contaNotas);
 }
  
-function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
-function fmt(n){return n.toLocaleString('pt-PT',{minimumFractionDigits:2,maximumFractionDigits:2});}
-function hashColor(str){let h=0;for(let i=0;i<str.length;i++)h=str.charCodeAt(i)+((h<<5)-h);return accentPalette[Math.abs(h)%accentPalette.length];}
+function esc(s){const d=document.createElement('div');d.textContent=(s===null||s===undefined)?'':s;return d.innerHTML;}
+function fmt(n){return (Number(n)||0).toLocaleString('pt-PT',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function hashColor(str){let h=0;str=str||'';for(let i=0;i<str.length;i++)h=str.charCodeAt(i)+((h<<5)-h);return accentPalette[Math.abs(h)%accentPalette.length];}
  
 function countUp(el,to,duration=900){
   const from=0;
@@ -764,7 +807,7 @@ function addRipple(e){
 document.querySelectorAll('.btn-main, .icon-btn, .seg-btn, .link-btn').forEach(b=>b.addEventListener('click',addRipple));
  
 function confetti(){
-  if(typeof confettiAtivo!=='undefined' && confettiAtivo===false) return;
+  if(confettiAtivo===false) return;
   const colors=accentPalette;
   for(let i=0;i<24;i++){
     const p=document.createElement('div');
@@ -900,8 +943,8 @@ function renderWallet(){
 function criarConta(){
   const nome=document.getElementById('na-nome').value.trim();
   const valor=parseFloat(document.getElementById('na-valor').value)||0;
-  if(!nome){ showToast('Dá um nome à conta'); return; }
-  if(abas.hasOwnProperty(nome)){ showToast('Já existe uma conta com esse nome'); return; }
+  if(!nome){ showToast('Dá um nome à conta','⚠️'); return; }
+  if(abas.hasOwnProperty(nome)){ showToast('Já existe uma conta com esse nome','⚠️'); return; }
   abas[nome]=valor;
   document.getElementById('na-nome').value='';
   document.getElementById('na-valor').value='';
@@ -949,7 +992,7 @@ function adicionar(){
   const cat=document.getElementById('m-cat').value;
   const dataEscolhida=document.getElementById('m-data').value || new Date().toISOString().slice(0,10);
   const novoMesAno=dataEscolhida.slice(0,7);
-  if(valor<=0||!desc){showToast('Preenche valor e descrição');return;}
+  if(valor<=0||!desc){showToast('Preenche valor e descrição','⚠️');return;}
   const foiEdicao = !!editando;
  
   if(editando){
@@ -957,7 +1000,6 @@ function adicionar(){
     const antigo=movimentos[mes][i];
     if(!extras.includes(antigo.aba)) abas[antigo.aba] -= (antigo.tipo==='gasto'?-antigo.valor:antigo.valor);
     const atualizado={...antigo,tipo,valor,aba:conta,desc,categoria:cat,data:dataEscolhida};
-    /* remove do mês antigo (pode ser diferente do novo, se a data mudou de mês) */
     movimentos[mes].splice(i,1);
     if(movimentos[mes].length===0) delete movimentos[mes];
     if(!movimentos[novoMesAno]) movimentos[novoMesAno]=[];
@@ -995,10 +1037,6 @@ function editarLancamento(mes,i){
 }
  
 /* ---- painel de detalhes da conta (ⓘ): editar, apagar, notas, histórico ---- */
-let contaAtualSheet=null;
-let subAbaAtual='notas';
-let filtroHistConta='ambos';
- 
 function abrirSheetConta(nome){
   contaAtualSheet=nome;
   document.getElementById('acc-sheet-title').textContent=nome;
@@ -1019,7 +1057,6 @@ function mudarSubAba(sub){
   else renderHistoricoConta();
 }
  
-/* --- notas por conta: lista com data de criação, bem interativas --- */
 function renderNotasConta(){
   const el=document.getElementById('lista-notas-conta');
   el.innerHTML='';
@@ -1053,10 +1090,9 @@ document.getElementById('add-nota-btn').addEventListener('click',()=>{
   if(navigator.vibrate) try{navigator.vibrate(12);}catch(e){}
 });
  
-/* --- histórico de movimentos apenas desta conta, filtrável --- */
 function filtrarHistoricoConta(f){
   filtroHistConta=f;
-  document.querySelectorAll('.hist-chip').forEach(c=>c.classList.toggle('active',c.dataset.f===f));
+  document.querySelectorAll('#acc-sub-historico .hist-chip').forEach(c=>c.classList.toggle('active',c.dataset.f===f));
   renderHistoricoConta();
 }
 function renderHistoricoConta(){
@@ -1081,13 +1117,12 @@ function renderHistoricoConta(){
   });
 }
  
-/* --- editar (renomear) e apagar conta --- */
 document.getElementById('acc-editar-btn').addEventListener('click',()=>{
   const nomeAtual=contaAtualSheet;
   const novoNome=prompt('Novo nome da conta:',nomeAtual);
   if(!novoNome || !novoNome.trim() || novoNome.trim()===nomeAtual) return;
   const nome=novoNome.trim();
-  if(abas.hasOwnProperty(nome)){ showToast('Já existe uma conta com esse nome'); return; }
+  if(abas.hasOwnProperty(nome)){ showToast('Já existe uma conta com esse nome','⚠️'); return; }
   abas[nome]=abas[nomeAtual];
   delete abas[nomeAtual];
   Object.keys(movimentos).forEach(mes=>{
@@ -1109,12 +1144,11 @@ document.getElementById('acc-apagar-btn').addEventListener('click',()=>{
   showToast('Conta apagada');
 });
  
-let sheetAtual=null;
 function abrirDetalhesTx(mes,i){
   const m=movimentos[mes][i];
   sheetAtual={mes,i};
   document.getElementById('sheet-title').textContent=m.desc;
-  document.getElementById('sheet-sub').textContent=`${m.data} · ${m.aba} · ${m.categoria} · ${m.tipo==='ganho'?'+':'-'}€${fmt(m.valor)}`;
+  document.getElementById('sheet-sub').textContent=`${m.data} · ${m.aba} · ${m.categoria||'Outros'} · ${m.tipo==='ganho'?'+':'-'}€${fmt(m.valor)}`;
   document.getElementById('sheet-notes').value=m.notas||'';
   document.getElementById('tx-sheet').classList.add('open');
 }
@@ -1143,18 +1177,7 @@ document.getElementById('sheet-save-notes-btn').addEventListener('click',()=>{
   showToast('Nota guardada');
 });
  
-/* ---- personalizar cores ---- */
-const coresPresets=[
-  {nome:'Roxo',a:'#6C4CF1',b:'#FF5FA8'},
-  {nome:'Azul',a:'#2563EB',b:'#22D3EE'},
-  {nome:'Verde',a:'#0D9488',b:'#84CC16'},
-  {nome:'Laranja',a:'#EA580C',b:'#FACC15'},
-  {nome:'Ardósia',a:'#334155',b:'#64748B'},
-  {nome:'Rosa',a:'#DB2777',b:'#F472B6'}
-];
-const coresDefault={a:'#6C4CF1',b:'#FF5FA8',pos:'#0FAE7D',neg:'#F0483E'};
-let cores = lerJSON('cores', null) || {...coresDefault};
- 
+/* ---- personalizar cores / painel de administrador ---- */
 function aplicarCores(a,b,pos,neg){
   const root=document.documentElement.style;
   root.setProperty('--brand-a',a);
@@ -1220,7 +1243,6 @@ document.getElementById('cor-surface').addEventListener('input',e=>{
 renderCoresPresets();
 aplicarCores(cores.a,cores.b,cores.pos,cores.neg);
  
-/* ---- painel de administrador: separadores + estilo + diversão ---- */
 function mudarAdminTab(tab){
   document.querySelectorAll('[data-admtab]').forEach(t=>t.classList.toggle('active',t.dataset.admtab===tab));
   ['cores','estilo','diversao'].forEach(id=>{
@@ -1239,16 +1261,11 @@ document.getElementById('fontsize-slider').addEventListener('input',e=>{
   document.documentElement.style.fontSize=v+'%';
 });
 document.getElementById('toggle-animacoes').addEventListener('change',e=>{
-  document.documentElement.style.setProperty('--anim-speed', e.target.checked ? '1' : '0');
-  document.querySelectorAll('*').forEach(()=>{}); /* no-op, mantém simples */
   animacoesAtivas=e.target.checked;
 });
 document.getElementById('toggle-confetti').addEventListener('change',e=>{
   confettiAtivo=e.target.checked;
 });
-let animacoesAtivas=true;
-let confettiAtivo=true;
-let modoFestaInterval=null;
  
 function corAleatoria(){
   const rand=()=>'#'+Math.floor(Math.random()*0xFFFFFF).toString(16).padStart(6,'0');
@@ -1262,6 +1279,17 @@ function modoFesta(){
     const rand=()=>'#'+Math.floor(Math.random()*0xFFFFFF).toString(16).padStart(6,'0');
     aplicarCores(rand(),rand(),document.getElementById('cor-pos').value,document.getElementById('cor-neg').value);
   },900);
+}
+function gradienteArcoIris(){
+  const arco=['#FF3B30','#FF9500','#FFCC00','#34C759','#0FAE7D','#007AFF','#5856D6','#AF52DE'];
+  let i=0;
+  aplicarCores(arco[0],arco[1],document.getElementById('cor-pos').value,document.getElementById('cor-neg').value);
+  const passar=setInterval(()=>{
+    i++;
+    if(i>=arco.length-1){ clearInterval(passar); return; }
+    aplicarCores(arco[i],arco[i+1],document.getElementById('cor-pos').value,document.getElementById('cor-neg').value);
+  },400);
+  showToast('A percorrer o arco-íris...','🌈');
 }
 function exportarTema(){
   const tema={a:document.getElementById('cor-a').value,b:document.getElementById('cor-b').value,
@@ -1277,7 +1305,6 @@ function exportarTema(){
   showToast('Tema exportado','💾');
 }
  
-let ultimoApagado=null;
 function apagar(mes,i){
   const mov=movimentos[mes][i];
   if(!extras.includes(mov.aba)) abas[mov.aba] -= (mov.tipo==='gasto'?-mov.valor:mov.valor);
@@ -1387,58 +1414,77 @@ function attachSwipe(row,onDelete){
   });
 }
  
-let mesGraficoAtual=null;
+function temGraficos(){
+  return typeof Chart !== 'undefined';
+}
+ 
 function atualizarGrafico(mes){
   mesGraficoAtual=mes;
-  const ctx=document.getElementById('chart').getContext('2d');
   const legend=document.getElementById('legend');
-  if(chart){chart.destroy();chart=null;}
-  if(!mes || !movimentos[mes]){ legend.innerHTML='<span class="empty">Sem dados para este período.</span>'; return; }
-  const cats={};
-  movimentos[mes].forEach(x=>{ if(x.tipo==='gasto'){cats[x.categoria]=(cats[x.categoria]||0)+x.valor;} });
-  const labels=Object.keys(cats), data=Object.values(cats);
-  if(labels.length===0){ legend.innerHTML='<span class="empty">Sem gastos categorizados neste mês.</span>'; return; }
-  const cores=labels.map(l=>hashColor(l));
-  chart=new Chart(ctx,{type:'doughnut',data:{labels,datasets:[{data,backgroundColor:cores.map((c,i)=>catFiltroGrafico&&labels[i]!==catFiltroGrafico?c+'40':c),borderWidth:0,borderRadius:6}]},
-    options:{responsive:true,cutout:'72%',plugins:{legend:{display:false}}}});
-  legend.innerHTML='';
+  const totalEl=document.getElementById('chart-total');
+  if(chart){ try{chart.destroy();}catch(e){} chart=null; }
+  if(!mes || !movimentos[mes]){ legend.innerHTML='<span class="empty">Sem dados para este período.</span>'; totalEl.textContent=''; return; }
+  const catsMap={};
+  movimentos[mes].forEach(x=>{ if(x.tipo==='gasto'){catsMap[x.categoria||'Outros']=(catsMap[x.categoria||'Outros']||0)+x.valor;} });
+  const ordenado=Object.entries(catsMap).sort((a,b)=>b[1]-a[1]);
+  const labels=ordenado.map(o=>o[0]), data=ordenado.map(o=>o[1]);
+  if(labels.length===0){ legend.innerHTML='<span class="empty">Sem gastos categorizados neste mês.</span>'; totalEl.textContent=''; return; }
   const totalCat=data.reduce((a,v)=>a+v,0);
+  totalEl.innerHTML=`Total de gastos em ${mes}: <b>€${fmt(totalCat)}</b>`;
+  const coresCat=labels.map(l=>hashColor(l));
+  if(temGraficos()){
+    try{
+      const ctx=document.getElementById('chart').getContext('2d');
+      chart=new Chart(ctx,{type:'doughnut',data:{labels,datasets:[{data,backgroundColor:coresCat.map((c,i)=>catFiltroGrafico&&labels[i]!==catFiltroGrafico?c+'40':c),borderWidth:0,borderRadius:6}]},
+        options:{responsive:true,cutout:'72%',plugins:{legend:{display:false}}}});
+    }catch(e){ /* falha a criar o gráfico — a legenda continua a mostrar os valores */ }
+  }
+  legend.innerHTML='';
   labels.forEach((n,i)=>{
     const perc=Math.round(data[i]/totalCat*100);
     const row=document.createElement('div');
     row.className='legend-chip';
     row.style.opacity = catFiltroGrafico && catFiltroGrafico!==n ? '0.45' : '1';
-    row.innerHTML=`<span class="dot" style="background:${cores[i]}"></span><span class="name" style="font-weight:${catFiltroGrafico===n?'700':'500'};">${esc(n)}</span><span class="val">€${fmt(data[i])} · ${perc}%</span>`;
+    row.innerHTML=`<span class="dot" style="background:${coresCat[i]}"></span><span class="name" style="font-weight:${catFiltroGrafico===n?'700':'500'};">${esc(n)}</span><span class="val">€${fmt(data[i])} · ${perc}%</span>`;
     row.addEventListener('click',()=>{ catFiltroGrafico = catFiltroGrafico===n ? null : n; atualizarGrafico(mes); });
     legend.appendChild(row);
   });
 }
  
-let chartAmpliado=null;
 function abrirAmpliarCategorias(){
   const mes=mesGraficoAtual;
   document.getElementById('ampliar-cat-sub').textContent = mes ? `Mês: ${mes}` : 'Sem mês selecionado';
   document.getElementById('ampliar-cat-sheet').classList.add('open');
-  const ctx=document.getElementById('chart-ampliado').getContext('2d');
   const legend=document.getElementById('legend-ampliada');
   legend.innerHTML='';
-  if(chartAmpliado){ chartAmpliado.destroy(); chartAmpliado=null; }
+  if(chartAmpliado){ try{chartAmpliado.destroy();}catch(e){} chartAmpliado=null; }
   if(!mes || !movimentos[mes]){ legend.innerHTML='<div class="empty">Sem dados para este período.</div>'; return; }
-  const cats={};
-  movimentos[mes].forEach(x=>{ if(x.tipo==='gasto'){cats[x.categoria]=(cats[x.categoria]||0)+x.valor;} });
-  const labels=Object.keys(cats), data=Object.values(cats);
+  const catsMap={};
+  movimentos[mes].forEach(x=>{ if(x.tipo==='gasto'){catsMap[x.categoria||'Outros']=(catsMap[x.categoria||'Outros']||0)+x.valor;} });
+  const ordenado=Object.entries(catsMap).sort((a,b)=>b[1]-a[1]);
+  const labels=ordenado.map(o=>o[0]), data=ordenado.map(o=>o[1]);
   if(labels.length===0){ legend.innerHTML='<div class="empty">Sem gastos categorizados neste mês.</div>'; return; }
-  const cores=labels.map(l=>hashColor(l));
+  const coresCat=labels.map(l=>hashColor(l));
   const totalCat=data.reduce((a,v)=>a+v,0);
-  chartAmpliado=new Chart(ctx,{type:'doughnut',data:{labels,datasets:[{data,backgroundColor:cores,borderWidth:0,borderRadius:8}]},
-    options:{responsive:true,cutout:'68%',plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.label}: €${fmt(c.parsed)} (${Math.round(c.parsed/totalCat*100)}%)`}}}}});
+  if(temGraficos()){
+    try{
+      const ctx=document.getElementById('chart-ampliado').getContext('2d');
+      chartAmpliado=new Chart(ctx,{type:'doughnut',data:{labels,datasets:[{data,backgroundColor:coresCat,borderWidth:0,borderRadius:8}]},
+        options:{responsive:true,cutout:'68%',plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.label}: €${fmt(c.parsed)} (${Math.round(c.parsed/totalCat*100)}%)`}}}}});
+    }catch(e){}
+  }
   labels.forEach((n,i)=>{
     const perc=Math.round(data[i]/totalCat*100);
     const row=document.createElement('div');
     row.className='hist-row';
-    row.innerHTML=`<span style="display:flex;align-items:center;gap:8px;"><span class="dot" style="width:10px;height:10px;border-radius:50%;background:${cores[i]};display:inline-block;"></span>${esc(n)}</span><span style="font-weight:700;">€${fmt(data[i])} · ${perc}%</span>`;
+    row.innerHTML=`<span style="display:flex;align-items:center;gap:8px;"><span class="dot" style="width:10px;height:10px;border-radius:50%;background:${coresCat[i]};display:inline-block;"></span>${esc(n)}</span><span style="font-weight:700;">€${fmt(data[i])} · ${perc}%</span>`;
     legend.appendChild(row);
   });
+  const totalRow=document.createElement('div');
+  totalRow.className='hist-row';
+  totalRow.style.cssText='background:var(--surface-2);font-weight:700;border-top:1.5px solid var(--line);margin-top:4px;';
+  totalRow.innerHTML=`<span>Total</span><span>€${fmt(totalCat)}</span>`;
+  legend.appendChild(totalRow);
 }
 function fecharAmpliarCategorias(e){
   if(e && e.target && e.target.id!=='ampliar-cat-sheet') return;
@@ -1454,28 +1500,30 @@ function renderPlano(){
   });
 }
  
-const nomesMeses=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 function mesParaNomePt(mesStr){
   if(!mesStr || !mesStr.includes('-')) return null;
   const idx=parseInt(mesStr.split('-')[1],10)-1;
   return nomesMeses[idx] || null;
 }
  
-/* ---- orçamentos por categoria ---- */
+/* ---- orçamentos por categoria — ligados ao Planeamento ----
+   Se existir uma linha de Planeamento para o mês/conta escolhidos, o
+   limite da categoria "Compras" passa a vir automaticamente de lá
+   (usa-se o valor de "gastos" previsto nessa linha), em vez de teres
+   de repetir o número à mão. As restantes categorias continuam
+   editáveis livremente. */
 function renderBudgets(mes,conta){
   conta = conta || 'todas';
   const card=document.getElementById('budgets-card');
   const banner=document.getElementById('plano-banner');
   card.innerHTML='';
  
-  /* liga automaticamente ao Planeamento: se a conta tiver dados de planeamento
-     para o mês escolhido, mostra o valor previsto sem precisares de o repetir */
   const nomeMes=mesParaNomePt(mes);
   const planoConta=planeamento[conta];
   const linhaPlano = planoConta && nomeMes ? planoConta.find(l=>l[0]===nomeMes) : null;
   if(linhaPlano){
     banner.style.display='block';
-    banner.innerHTML=`📋 <b>Planeamento (${esc(nomeMes)}, ${esc(conta)})</b>: previsto entradas €${fmt(linhaPlano[1])} · gastos €${fmt(linhaPlano[2])} — usado automaticamente como referência abaixo.`;
+    banner.innerHTML=`📋 <b>Planeamento (${esc(nomeMes)}, ${esc(conta)})</b>: previsto entradas €${fmt(linhaPlano[1])} · gastos €${fmt(linhaPlano[2])} — o limite de "Compras" abaixo foi preenchido automaticamente a partir daqui.`;
   }else{
     banner.style.display='none';
   }
@@ -1485,38 +1533,26 @@ function renderBudgets(mes,conta){
     movimentos[mes].forEach(x=>{
       if(x.tipo!=='gasto') return;
       if(conta!=='todas' && x.aba!==conta) return;
-      gastosPorCat[x.categoria]=(gastosPorCat[x.categoria]||0)+x.valor;
+      const c=x.categoria||'Outros';
+      gastosPorCat[c]=(gastosPorCat[c]||0)+x.valor;
     });
   }
  
-  /* se há plano para este mês/conta, mostra uma barra de "Total planeado" no topo */
-  if(linhaPlano){
-    const totalGastoReal=Object.values(gastosPorCat).reduce((a,v)=>a+v,0);
-    const limitePlano=linhaPlano[2];
-    const percPlano = limitePlano>0 ? Math.min(100,Math.round(totalGastoReal/limitePlano*100)) : (totalGastoReal>0?100:0);
-    const corPlano = percPlano>=100 ? 'var(--neg)' : percPlano>=75 ? 'var(--amber)' : 'var(--pos)';
-    const rowPlano=document.createElement('div');
-    rowPlano.className='budget-row';
-    rowPlano.innerHTML=`
-      <div class="budget-top">
-        <span class="name">Total (Planeamento)</span>
-        <span class="vals">€${fmt(totalGastoReal)} / €${fmt(limitePlano)}</span>
-      </div>
-      <div class="budget-track"><div class="budget-fill" style="width:${percPlano}%;background:${corPlano};"></div></div>`;
-    card.appendChild(rowPlano);
-  }
- 
   Object.keys(orcamentos).forEach(cat=>{
-    const limite=orcamentos[cat];
+    const autoDoPlano = cat==='Compras' && linhaPlano;
+    const limite = autoDoPlano ? linhaPlano[2] : orcamentos[cat];
     const gasto=gastosPorCat[cat]||0;
     const perc = limite>0 ? Math.min(100,Math.round(gasto/limite*100)) : (gasto>0?100:0);
     const cor = perc>=100 ? 'var(--neg)' : perc>=75 ? 'var(--amber)' : 'var(--pos)';
     const row=document.createElement('div');
     row.className='budget-row';
+    const inputHtml = autoDoPlano
+      ? `<span style="width:52px;display:inline-block;text-align:right;font-family:'Sora',sans-serif;font-weight:600;">${fmt(limite)}</span> €`
+      : `<input type="number" class="budget-input" data-cat="${esc(cat)}" value="${limite}" style="width:52px;border:none;background:transparent;text-align:right;font-family:'Sora',sans-serif;font-weight:600;color:var(--muted);"> €`;
     row.innerHTML=`
       <div class="budget-top">
-        <span class="name">${esc(cat)}</span>
-        <span class="vals">€${fmt(gasto)} <input type="number" class="budget-input" data-cat="${esc(cat)}" value="${limite}" style="width:52px;border:none;background:transparent;text-align:right;font-family:'Sora',sans-serif;font-weight:600;color:var(--muted);"> €</span>
+        <span class="name">${esc(cat)} ${autoDoPlano?'<span class="budget-auto-tag">do planeamento</span>':''}</span>
+        <span class="vals">€${fmt(gasto)} ${inputHtml}</span>
       </div>
       <div class="budget-track"><div class="budget-fill" style="width:${perc}%;background:${cor};"></div></div>`;
     card.appendChild(row);
@@ -1546,7 +1582,7 @@ function criarRecorrente(){
   const desc=document.getElementById('rec-desc').value.trim();
   const conta=document.getElementById('rec-conta').value;
   const cat=document.getElementById('rec-cat').value;
-  if(valor<=0||!desc){ showToast('Preenche valor e descrição'); return; }
+  if(valor<=0||!desc){ showToast('Preenche valor e descrição','⚠️'); return; }
   recorrentes.push({desc,valor,tipo,aba:conta,categoria:cat});
   document.getElementById('rec-valor').value='';
   document.getElementById('rec-desc').value='';
@@ -1580,12 +1616,12 @@ function renderRecorrentes(){
 }
 function lancarRecorrente(i){
   const r=recorrentes[i];
-  if(!r.valor || r.valor<=0){ showToast('Define um valor para este recorrente'); return; }
+  if(!r.valor || r.valor<=0){ showToast('Define um valor para este recorrente','⚠️'); return; }
   const data=new Date();
   const mesAno=data.getFullYear()+'-'+String(data.getMonth()+1).padStart(2,'0');
   if(!movimentos[mesAno]) movimentos[mesAno]=[];
   const jaLancado = movimentos[mesAno].some(x=>x.desc===r.desc && x._recorrente);
-  if(jaLancado){ showToast('Já lançaste isto este mês'); return; }
+  if(jaLancado){ showToast('Já lançaste isto este mês','⚠️'); return; }
   movimentos[mesAno].push({tipo:r.tipo,valor:r.valor,aba:r.aba,desc:r.desc,data:mesAno+'-'+String(data.getDate()).padStart(2,'0'),categoria:r.categoria,_recorrente:true});
   if(!extras.includes(r.aba)) abas[r.aba]+= r.tipo==='gasto'?-r.valor:r.valor;
   renderWallet(); fillSelects(); render(); salvarTudo();
@@ -1594,21 +1630,25 @@ function lancarRecorrente(i){
 }
  
 /* ---- gráfico de evolução mensal ---- */
-let filtroEvoTipo='ambos';
 function filtrarEvoTipo(t){
   filtroEvoTipo=t;
   document.querySelectorAll('#evo-tipo-filtros .hist-chip').forEach(c=>c.classList.toggle('active',c.dataset.t===t));
   renderEvoChart();
 }
-function construirDatasetsEvo(meses){
+function filtrarEvoTipoAmpliado(t){
+  filtroEvoTipoAmp=t;
+  document.querySelectorAll('#evo-amp-tipo-filtros .hist-chip').forEach(c=>c.classList.toggle('active',c.dataset.t===t));
+  abrirAmpliarEvolucao(true);
+}
+function construirDatasetsEvo(meses,tipoFiltro){
   const cs=getComputedStyle(document.documentElement);
   const corPos=cs.getPropertyValue('--pos').trim()||'#0FAE7D';
   const corNeg=cs.getPropertyValue('--neg').trim()||'#F0483E';
   const entradas=meses.map(m=>movimentos[m].filter(x=>x.tipo==='ganho').reduce((a,x)=>a+x.valor,0));
   const gastos=meses.map(m=>movimentos[m].filter(x=>x.tipo==='gasto').reduce((a,x)=>a+x.valor,0));
   const datasets=[];
-  if(filtroEvoTipo!=='gasto') datasets.push({label:'Entradas',data:entradas,backgroundColor:corPos,borderRadius:5,maxBarThickness:22});
-  if(filtroEvoTipo!=='ganho') datasets.push({label:'Gastos',data:gastos,backgroundColor:corNeg,borderRadius:5,maxBarThickness:22});
+  if(tipoFiltro!=='gasto') datasets.push({label:'Entradas',data:entradas,backgroundColor:corPos,borderRadius:5,maxBarThickness:22});
+  if(tipoFiltro!=='ganho') datasets.push({label:'Gastos',data:gastos,backgroundColor:corNeg,borderRadius:5,maxBarThickness:22});
   return {datasets,entradas,gastos};
 }
 function renderEvoChart(){
@@ -1616,27 +1656,30 @@ function renderEvoChart(){
   if(!canvas) return;
   const meses=Object.keys(movimentos).sort();
  
-  /* preenche o select de mês em destaque, preservando a escolha atual */
   const selDestaque=document.getElementById('evo-mes-destaque');
   const escolhaAtual=selDestaque.value;
   selDestaque.innerHTML='<option value="">Sem mês em destaque</option>';
   meses.forEach(m=>selDestaque.innerHTML+=`<option value="${m}">${m}</option>`);
   if([...selDestaque.options].some(o=>o.value===escolhaAtual)) selDestaque.value=escolhaAtual;
  
-  if(evoChart) evoChart.destroy();
-  if(meses.length===0) return;
-  const {datasets,entradas,gastos}=construirDatasetsEvo(meses);
-  evoChart=new Chart(canvas.getContext('2d'),{
-    type:'bar',
-    data:{labels:meses,datasets},
-    options:{responsive:true,plugins:{legend:{display:false}},scales:{
-      x:{grid:{display:false},ticks:{font:{size:10}}},
-      y:{grid:{color:'rgba(128,128,128,0.15)'},ticks:{font:{size:10}}}
-    }}
-  });
+  if(evoChart){ try{evoChart.destroy();}catch(e){} evoChart=null; }
+  const infoEl=document.getElementById('evo-destaque-info');
+  if(meses.length===0){ infoEl.textContent=''; return; }
+  const {datasets,entradas,gastos}=construirDatasetsEvo(meses,filtroEvoTipo);
+  if(temGraficos()){
+    try{
+      evoChart=new Chart(canvas.getContext('2d'),{
+        type:'bar',
+        data:{labels:meses,datasets},
+        options:{responsive:true,plugins:{legend:{display:false}},scales:{
+          x:{grid:{display:false},ticks:{font:{size:10}}},
+          y:{grid:{color:'rgba(128,128,128,0.15)'},ticks:{font:{size:10}}}
+        }}
+      });
+    }catch(e){}
+  }
  
   const mesDestaque=selDestaque.value;
-  const infoEl=document.getElementById('evo-destaque-info');
   if(mesDestaque){
     const idx=meses.indexOf(mesDestaque);
     infoEl.textContent = idx>=0 ? `${mesDestaque}: +€${fmt(entradas[idx])} entradas · -€${fmt(gastos[idx])} gastos` : '';
@@ -1645,22 +1688,29 @@ function renderEvoChart(){
   }
 }
  
-let evoChartAmpliado=null;
-function abrirAmpliarEvolucao(){
+function abrirAmpliarEvolucao(manterFiltro){
   document.getElementById('ampliar-evo-sheet').classList.add('open');
+  if(!manterFiltro){
+    filtroEvoTipoAmp='ambos';
+  }
+  document.querySelectorAll('#evo-amp-tipo-filtros .hist-chip').forEach(c=>c.classList.toggle('active',c.dataset.t===filtroEvoTipoAmp));
   const meses=Object.keys(movimentos).sort();
-  if(evoChartAmpliado){ evoChartAmpliado.destroy(); evoChartAmpliado=null; }
+  if(evoChartAmpliado){ try{evoChartAmpliado.destroy();}catch(e){} evoChartAmpliado=null; }
   const info=document.getElementById('evo-ampliado-info');
   if(meses.length===0){ info.textContent='Ainda sem dados suficientes.'; return; }
-  const {datasets}=construirDatasetsEvo(meses);
-  evoChartAmpliado=new Chart(document.getElementById('evo-chart-ampliado').getContext('2d'),{
-    type:'bar',
-    data:{labels:meses,datasets},
-    options:{responsive:true,plugins:{legend:{display:true,position:'bottom'}},scales:{
-      x:{grid:{display:false}},
-      y:{grid:{color:'rgba(128,128,128,0.15)'}}
-    }}
-  });
+  const {datasets}=construirDatasetsEvo(meses,filtroEvoTipoAmp);
+  if(temGraficos()){
+    try{
+      evoChartAmpliado=new Chart(document.getElementById('evo-chart-ampliado').getContext('2d'),{
+        type:'bar',
+        data:{labels:meses,datasets},
+        options:{responsive:true,plugins:{legend:{display:true,position:'bottom'}},scales:{
+          x:{grid:{display:false}},
+          y:{grid:{color:'rgba(128,128,128,0.15)'}}
+        }}
+      });
+    }catch(e){}
+  }
   info.textContent=`${meses.length} mês(es) com movimentos registados.`;
 }
 function fecharAmpliarEvolucao(e){
@@ -1693,20 +1743,22 @@ function importarDados(file){
       renderWallet(); fillSelects(); render(); renderRecorrentes(); salvarTudo();
       showToast('Dados importados com sucesso');
     }catch(err){
-      showToast('Ficheiro inválido');
+      showToast('Ficheiro inválido','⚠️');
     }
   };
   reader.readAsText(file);
 }
  
-renderWallet();
-fillSelects();
-render();
-renderPlano();
-renderRecorrentes();
+/* ---- arranque ---- */
+try{ renderWallet(); }catch(e){ console.error('renderWallet falhou',e); }
+try{ fillSelects(); }catch(e){ console.error('fillSelects falhou',e); }
+try{ render(); }catch(e){ console.error('render falhou',e); }
+try{ renderPlano(); }catch(e){ console.error('renderPlano falhou',e); }
+try{ renderRecorrentes(); }catch(e){ console.error('renderRecorrentes falhou',e); }
 document.getElementById('m-data').value=new Date().toISOString().slice(0,10);
 salvarTudo();
 </script>
 </body>
 </html>
  
+
