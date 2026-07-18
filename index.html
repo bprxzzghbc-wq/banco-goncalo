@@ -667,7 +667,7 @@ function render(){
       wrap.style.cssText='position:relative;overflow:hidden;border-radius:var(--radius-m);';
       const row=document.createElement('div');
       row.className='tx';
-      row.style.cssText='margin:0;transition:transform .18s ease;touch-action:pan-y;';
+      row.style.cssText='margin:0;transition:transform .18s ease;touch-action:pan-y;position:relative;z-index:1;background:var(--surface);';
       row.innerHTML=`
         <div class="tx-avatar" style="background:${color}22;">${catEmoji[x.categoria]||'✨'}</div>
         <div class="tx-mid">
