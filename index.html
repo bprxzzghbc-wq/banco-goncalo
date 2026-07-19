@@ -2939,6 +2939,7 @@ criarJanelaFlutuante(document.getElementById('pin-ampliar-panel'));
 criarJanelaFlutuante(document.getElementById('wishlist-panel'));
 criarJanelaFlutuante(document.getElementById('novidades-panel'));
 criarJanelaFlutuante(document.getElementById('wishlist-detalhe-panel'));
+criarJanelaFlutuante(document.getElementById('saldo-medio-panel'));
 window.reporJanelaAdmin=function(){
   if(janelaFlutuanteAdmin) janelaFlutuanteAdmin.reset();
   showToast('Janela reposta ao tamanho e posição original');
@@ -2998,6 +2999,8 @@ function mudarAdminTab(tab){
   ['cores','estilo','diversao','mais','ferramentas','editar','assistente'].forEach(id=>{
     document.getElementById('admin-tab-'+id).style.display = id===tab ? 'block' : 'none';
   });
+  const caixaScroll=document.getElementById('admin-tab-'+tab).closest('.fw-content');
+  if(caixaScroll) caixaScroll.scrollTop=0;
   if(tab==='editar') renderEditorPagina();
   if(tab==='ferramentas') atualizarStatusFerramentas();
   if(tab==='assistente'){
