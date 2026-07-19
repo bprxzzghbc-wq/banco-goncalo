@@ -91,6 +91,16 @@ h1,h2,.num{font-family:'Sora',sans-serif;}
 .section-head{display:flex;justify-content:space-between;align-items:center;margin:var(--section-gap,20px) 0 10px;}
 .section-title{font-size:var(--section-title-size,15px);font-weight:700;}
 .link-btn{font-size:12px;font-weight:600;color:var(--brand-a);background:none;border:none;cursor:pointer;}
+#panel-saldos, #panel-movimentos, #panel-plano{display:flex;flex-direction:column;}
+.editor-canvas-bloco{background:var(--surface);border:1.5px solid var(--line);border-radius:10px;padding:8px 10px;font-size:12px;font-weight:600;cursor:grab;display:flex;align-items:center;gap:8px;user-select:none;}
+.editor-canvas-bloco:active{cursor:grabbing;}
+.editor-canvas-bloco.a-arrastar-bloco{opacity:0.5;}
+.editor-canvas-bloco .drag-handle{color:var(--muted);}
+.ia-msg{border-radius:12px;padding:8px 10px;font-size:12.5px;line-height:1.4;max-width:90%;}
+.ia-msg.user{background:var(--brand-a);color:#fff;align-self:flex-end;}
+.ia-msg.bot{background:var(--bg);align-self:flex-start;}
+@keyframes iaPulso{0%{box-shadow:0 0 0 0 rgba(108,76,241,0.6);}70%{box-shadow:0 0 0 16px rgba(108,76,241,0);}100%{box-shadow:0 0 0 0 rgba(108,76,241,0);}}
+.ia-destaque{animation:iaPulso 0.9s ease-out 2;border-radius:14px;position:relative;z-index:2;}
  
 /* account cards - horizontal scroll */
 .wallet-scroll{display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;margin:0 -16px;padding-left:16px;padding-right:16px;}
@@ -312,6 +322,29 @@ body.dark.alto-contraste{--text:#FFFFFF;--bg:#000000;--surface:#000000;--muted:#
 .fw-content{flex:1;min-height:0;overflow-y:auto;padding:14px 18px 20px;}
 .fw-panel.a-arrastar, .fw-panel.a-redimensionar{box-shadow:0 28px 70px rgba(0,0,0,0.55);}
 .fw-panel.a-arrastar .fw-header{cursor:grabbing;}
+/* efeito "génio" (estilo macOS ao abrir uma janela) — aplica-se automaticamente a TODAS as janelas flutuantes */
+@keyframes fwGenieAbrir{
+  0%{ transform:translate(-50%,0) scale(0.28) translateY(46%); opacity:0; border-radius:46px; filter:blur(2px); }
+  55%{ transform:translate(-50%,0) scale(1.035) translateY(-2%); opacity:1; border-radius:18px; filter:blur(0); }
+  78%{ transform:translate(-50%,0) scale(0.99) translateY(0.5%); }
+  100%{ transform:translate(-50%,0) scale(1) translateY(0); opacity:1; border-radius:20px; }
+}
+.sheet-overlay.open .fw-panel{ animation:fwGenieAbrir .46s cubic-bezier(.22,1,.36,1); transform-origin:50% 85%; }
+.sheet-overlay.open .fw-panel.fw-minimizado{ animation:none; }
+/* estilo "Stage Manager" — clicar fora da janela minimiza-a em vez de a fechar */
+.sheet-overlay.fw-overlay.fw-minimizado{ background:transparent !important; pointer-events:none; align-items:flex-end; justify-content:flex-end; transition:none; }
+.fw-panel.fw-minimizado{
+  position:fixed !important; left:auto !important; top:auto !important; right:16px !important;
+  bottom:var(--fw-min-bottom,16px) !important; transform:none !important;
+  width:210px !important; height:auto !important; min-width:0; min-height:0; max-width:80vw;
+  border-radius:16px; box-shadow:0 12px 32px rgba(0,0,0,0.4); cursor:pointer;
+  pointer-events:auto; animation:none !important; transition:bottom .25s ease;
+}
+.fw-panel.fw-minimizado .fw-content, .fw-panel.fw-minimizado .fw-edge{ display:none !important; }
+.fw-panel.fw-minimizado .fw-header{ cursor:pointer; border-bottom:none; padding:12px 14px; }
+.fw-panel.fw-minimizado .fw-header-main{ overflow:hidden; }
+.fw-panel.fw-minimizado .fw-header-main .sheet-sub{ display:none; }
+.fw-panel.fw-minimizado:hover{ box-shadow:0 16px 40px rgba(0,0,0,0.5); }
 .fw-edge{position:absolute;z-index:5;}
 .fw-edge-n{top:-4px;left:14px;right:14px;height:8px;cursor:n-resize;}
 .fw-edge-s{bottom:-4px;left:14px;right:14px;height:8px;cursor:s-resize;}
@@ -665,7 +698,7 @@ body.dark.alto-contraste{--text:#FFFFFF;--bg:#000000;--surface:#000000;--muted:#
 
 </div>
 
-<div class="sheet-overlay fw-overlay" id="ampliar-plano-sheet" onclick="fecharAmpliarPlano(event)">
+<div class="sheet-overlay fw-overlay" id="ampliar-plano-sheet" onclick="minimizarOuFechar(event,'ampliar-plano-sheet')">
 <div class="fw-panel" id="ampliar-plano-panel" onclick="event.stopPropagation()">
 <div class="fw-edge fw-edge-n"></div><div class="fw-edge fw-edge-s"></div><div class="fw-edge fw-edge-e"></div><div class="fw-edge fw-edge-w"></div>
 <div class="fw-edge fw-edge-ne"></div><div class="fw-edge fw-edge-nw"></div><div class="fw-edge fw-edge-se"></div><div class="fw-edge fw-edge-sw"></div>
@@ -679,17 +712,39 @@ body.dark.alto-contraste{--text:#FFFFFF;--bg:#000000;--surface:#000000;--muted:#
 </div>
 </div>
 <div class="fw-content">
+<select id="plano-conta-ampliada-select" onchange="mudarContaAmpliada(this.value)" style="width:100%;padding:8px 10px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface-2);color:var(--text);font-size:12.5px;margin-bottom:12px;">
+<option value="Money 2026">Money 2026</option>
+<option value="Dela">Dela</option>
+</select>
 <div id="plano-cumprimento-box" style="display:none;text-align:center;background:var(--bg);border-radius:16px;padding:16px;margin-bottom:16px;">
 <div id="plano-cumprimento-perc" style="font-size:44px;font-weight:800;font-family:'Sora',sans-serif;line-height:1;"></div>
 <div id="plano-cumprimento-label" style="font-size:12px;color:var(--muted);margin-top:6px;"></div>
 </div>
+<div id="plano-stats-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;"></div>
+<div id="plano-projecao-box" style="background:var(--bg);border-radius:14px;padding:12px;margin-bottom:14px;font-size:12.5px;"></div>
+<div class="row2" style="margin-bottom:10px;">
+<select id="plano-tipo-grafico-select" onchange="mudarTipoGraficoPlano(this.value)" style="flex:1;padding:6px 8px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface-2);color:var(--text);font-size:12px;">
+<option value="line">Linha</option>
+<option value="bar">Barras</option>
+</select>
+<button class="sheet-btn" style="flex:1;" onclick="exportarPlaneamentoCSV()">📤 Exportar CSV</button>
+</div>
 <div style="position:relative;height:200px;"><canvas id="plano-chart-ampliado"></canvas></div>
+<label style="display:block;font-size:11px;font-weight:700;color:var(--brand-a);margin:14px 0 6px;">Tolerância de alerta (% acima do planeado)</label>
+<select id="plano-tolerancia-select" onchange="mudarPlanoTolerancia(this.value)" style="width:100%;padding:6px 8px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface-2);color:var(--text);font-size:12px;margin-bottom:12px;">
+<option value="0">Sem tolerância (0%)</option>
+<option value="10">10%</option>
+<option value="20">20%</option>
+<option value="30">30%</option>
+</select>
+<button class="link-btn" style="margin-bottom:10px;" onclick="toggleComparacaoContas()" id="btn-comparar-contas">🔁 Comparar com a outra conta</button>
+<div id="plano-comparacao-box" style="display:none;background:var(--bg);border-radius:14px;padding:12px;margin-bottom:14px;font-size:12.5px;"></div>
 <div id="plano-tabela-ampliada" style="margin-top:14px;"></div>
 </div>
 </div>
 </div>
 
-<div class="sheet-overlay fw-overlay" id="cores-sheet" onclick="fecharCores(event)">
+<div class="sheet-overlay fw-overlay" id="cores-sheet" onclick="minimizarOuFechar(event,'cores-sheet')">
 <div class="fw-panel" id="cores-sheet-panel" onclick="event.stopPropagation()">
 <div class="fw-edge fw-edge-n"></div><div class="fw-edge fw-edge-s"></div><div class="fw-edge fw-edge-e"></div><div class="fw-edge fw-edge-w"></div>
 <div class="fw-edge fw-edge-ne"></div><div class="fw-edge fw-edge-nw"></div><div class="fw-edge fw-edge-se"></div><div class="fw-edge fw-edge-sw"></div>
@@ -709,6 +764,7 @@ body.dark.alto-contraste{--text:#FFFFFF;--bg:#000000;--surface:#000000;--muted:#
 <div class="acc-subtab" data-admtab="estilo" onclick="mudarAdminTab('estilo')">Estilo</div>
 <div class="acc-subtab" data-admtab="diversao" onclick="mudarAdminTab('diversao')">Diversão</div>
 <div class="acc-subtab" data-admtab="mais" onclick="mudarAdminTab('mais')">Mais</div>
+<div class="acc-subtab" data-admtab="ferramentas" onclick="mudarAdminTab('ferramentas')">Ferramentas</div>
 <div class="acc-subtab" data-admtab="editar" onclick="mudarAdminTab('editar')">Editar</div>
 </div>
  
@@ -988,6 +1044,108 @@ body.dark.alto-contraste{--text:#FFFFFF;--bg:#000000;--surface:#000000;--muted:#
 <button class="btn-main" style="background:var(--surface-2);color:var(--text);box-shadow:none;" onclick="exportarLogAlteracoes()">🧾 Exportar registo de alterações</button>
 </div>
 
+<div id="admin-tab-ferramentas" style="display:none;">
+<div style="font-size:11px;color:var(--muted);margin-bottom:12px;">Funcionalidades úteis para gerir os teus dados e finanças — 40 novas ferramentas.</div>
+
+<label style="display:block;font-size:11px;font-weight:700;color:var(--brand-a);margin-bottom:8px;">Dados e Backup</label>
+<label style="display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:600;margin-bottom:8px;cursor:pointer;">
+<input type="checkbox" id="ferr-toggle-backup-auto" onchange="mudarBackupAuto(this.checked)" style="width:18px;height:18px;"> Backup automático periódico
+</label>
+<select id="ferr-backup-auto-horas" onchange="mudarBackupAutoHoras(this.value)" style="width:100%;padding:8px 10px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface-2);color:var(--text);font-size:12.5px;margin-bottom:12px;">
+<option value="1">A cada hora</option>
+<option value="6">A cada 6 horas</option>
+<option value="24">A cada dia</option>
+</select>
+<div class="field"><label>Restaurar backup a partir de ficheiro</label><input type="file" accept=".json" id="ferr-restaurar-input" onchange="restaurarBackupFicheiro(this.files[0])"></div>
+<button class="btn-main" style="background:var(--surface-2);color:var(--text);box-shadow:none;margin-bottom:10px;" onclick="verTamanhoDados()">💾 Ver tamanho dos dados guardados</button>
+<button class="btn-main" style="background:var(--surface-2);color:var(--text);box-shadow:none;margin-bottom:10px;" onclick="exportarMovimentosCSV()">📊 Exportar movimentos em CSV</button>
+<button class="btn-main" style="background:var(--surface-2);color:var(--text);box-shadow:none;margin-bottom:10px;" onclick="verificarIntegridadeDados()">🩺 Verificar integridade dos dados</button>
+<button class="btn-main" style="background:var(--surface-2);color:var(--text);box-shadow:none;margin-bottom:10px;" onclick="exportarSoConfiguracoes()">⚙️ Exportar só as configurações</button>
+<button class="btn-main" style="background:var(--surface-2);color:var(--text);box-shadow:none;margin-bottom:10px;" onclick="guardarPerfilSecundario()">🗂️ Guardar como perfil secundário</button>
+<button class="btn-main" style="background:var(--surface-2);color:var(--text);box-shadow:none;" onclick="carregarPerfilSecundario()">🔄 Carregar perfil secundário</button>
+
+<div style="height:1px;background:var(--line);margin:16px 0;"></div>
+<label style="display:block;font-size:11px;font-weight:700;color:var(--brand-a);margin-bottom:8px;">Financeiro</label>
+<div class="field"><label>Meta de poupança anual (€)</label><input type="number" id="ferr-meta-poupanca" onchange="mudarMetaPoupanca(this.value)" placeholder="0.00"></div>
+<div id="ferr-meta-poupanca-progresso" style="font-size:12px;color:var(--muted);margin-bottom:12px;"></div>
+<div class="field"><label>Alerta de gasto elevado num único movimento (€)</label><input type="number" id="ferr-alerta-gasto" onchange="mudarAlertaGastoElevado(this.value)" placeholder="0.00"></div>
+<div class="field"><label>Orçamento mensal global (todas as contas) (€)</label><input type="number" id="ferr-orcamento-global" onchange="mudarOrcamentoGlobal(this.value)" placeholder="0.00"></div>
+<button class="btn-main" style="background:var(--surface-2);color:var(--text);box-shadow:none;margin-bottom:10px;" onclick="mostrarResumoFinanceiroRapido()">⚡ Resumo financeiro rápido</button>
+<button class="btn-main" style="background:var(--surface-2);color:var(--text);box-shadow:none;margin-bottom:10px;" onclick="compararComMesAnterior()">📈 Comparar gastos com o mês anterior</button>
+<button class="btn-main" style="background:var(--surface-2);color:var(--text);box-shadow:none;margin-bottom:10px;" onclick="calcularJurosCompostos()">🧮 Calculadora de juros compostos</button>
+<button class="btn-main" style="background:var(--surface-2);color:var(--text);box-shadow:none;margin-bottom:10px;" onclick="converterMoedaSimples()">💱 Conversor de moeda simples</button>
+<div class="field"><label>Dia do mês em que recebes o salário</label><input type="number" id="ferr-dia-salario" min="1" max="31" onchange="mudarDiaSalario(this.value)" placeholder="Ex: 28"></div>
+<button class="btn-main" style="background:var(--surface-2);color:var(--text);box-shadow:none;" onclick="verTopCategorias()">🏅 Ver top 3 categorias que mais gastam</button>
+
+<div style="height:1px;background:var(--line);margin:16px 0;"></div>
+<label style="display:block;font-size:11px;font-weight:700;color:var(--brand-a);margin-bottom:8px;">Produtividade</label>
+<div class="field"><label>Adicionar tarefa/lembrete rápido</label><input type="text" id="ferr-tarefa-input" placeholder="Ex: Pagar a renda" onkeydown="if(event.key==='Enter')adicionarTarefaRapida()"></div>
+<button class="btn-main" style="background:var(--surface-2);color:var(--text);box-shadow:none;margin-bottom:10px;" onclick="adicionarTarefaRapida()">✅ Adicionar tarefa</button>
+<div id="ferr-lista-tarefas" style="margin-bottom:12px;"></div>
+<label style="display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:600;margin-bottom:8px;cursor:pointer;">
+<input type="checkbox" id="ferr-toggle-atalhos" onchange="mudarAtalhosTeclado(this.checked)" style="width:18px;height:18px;"> Ativar atalhos de teclado (Ctrl+K pesquisa)
+</label>
+<button class="btn-main" style="background:var(--surface-2);color:var(--text);box-shadow:none;margin-bottom:10px;" onclick="duplicarUltimoMovimento()">⧉ Duplicar o último movimento</button>
+<label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px;">Aba favorita ao abrir a app</label>
+<select id="ferr-aba-favorita" onchange="mudarAbaFavorita(this.value)" style="width:100%;padding:8px 10px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface-2);color:var(--text);font-size:12.5px;margin-bottom:12px;">
+<option value="">Sem preferência</option>
+<option value="saldos">Saldos</option>
+<option value="movimentos">Movimentos</option>
+<option value="planeamento">Planeamento</option>
+</select>
+<button class="btn-main" style="background:var(--surface-2);color:var(--text);box-shadow:none;" onclick="pesquisaGlobal()">🔎 Pesquisa global (movimentos, notas, wishlist)</button>
+
+<div style="height:1px;background:var(--line);margin:16px 0;"></div>
+<label style="display:block;font-size:11px;font-weight:700;color:var(--brand-a);margin-bottom:8px;">Segurança e privacidade</label>
+<label style="display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:600;margin-bottom:8px;cursor:pointer;">
+<input type="checkbox" id="ferr-toggle-blur-privacidade" onchange="mudarBlurPrivacidade(this.checked)" style="width:18px;height:18px;"> Esconder valores ao mudar de separador/app
+</label>
+<label style="display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:600;margin-bottom:8px;cursor:pointer;">
+<input type="checkbox" id="ferr-toggle-convidado" onchange="mudarModoConvidado(this.checked)" style="width:18px;height:18px;"> Modo convidado (só visualização)
+</label>
+<button class="btn-main" style="background:var(--surface-2);color:var(--text);box-shadow:none;margin-bottom:10px;" onclick="verRegistoSessoes()">🕘 Ver registo de sessões</button>
+<div class="field"><label>Avisar se não usar a app há mais de (dias)</label><input type="number" id="ferr-aviso-inatividade" onchange="mudarAvisoInatividade(this.value)" placeholder="Ex: 14"></div>
+
+<div style="height:1px;background:var(--line);margin:16px 0;"></div>
+<label style="display:block;font-size:11px;font-weight:700;color:var(--brand-a);margin-bottom:8px;">Relatórios</label>
+<button class="btn-main" style="background:var(--surface-2);color:var(--text);box-shadow:none;margin-bottom:10px;" onclick="gerarRelatorioMensal()">📄 Gerar relatório mensal automático</button>
+<button class="btn-main" style="background:var(--surface-2);color:var(--text);box-shadow:none;margin-bottom:10px;" onclick="verEvolucaoAnualCombinada()">📊 Ver evolução anual combinada (todas as contas)</button>
+<button class="btn-main" style="background:var(--surface-2);color:var(--text);box-shadow:none;margin-bottom:10px;" onclick="exportarRelatorioImprimivel()">🖨️ Exportar relatório para impressão/PDF</button>
+<label style="display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:600;margin-bottom:8px;cursor:pointer;">
+<input type="checkbox" id="ferr-toggle-fecho-mes" onchange="mudarNotificacaoFechoMes(this.checked)" style="width:18px;height:18px;"> Notificação de fecho de mês
+
+</label>
+
+<div style="height:1px;background:var(--line);margin:16px 0;"></div>
+<label style="display:block;font-size:11px;font-weight:700;color:var(--brand-a);margin-bottom:8px;">Formatação e outras utilidades</label>
+<div class="row2">
+<div class="field"><label>Taxa de câmbio USD por 1€</label><input type="number" step="0.01" id="ferr-taxa-usd" onchange="mudarTaxaCambio('usd',this.value)" placeholder="1.08"></div>
+<div class="field"><label>Taxa de câmbio GBP por 1€</label><input type="number" step="0.01" id="ferr-taxa-gbp" onchange="mudarTaxaCambio('gbp',this.value)" placeholder="0.85"></div>
+</div>
+<button class="btn-main" style="background:var(--surface-2);color:var(--text);box-shadow:none;margin-bottom:10px;" onclick="lerSaldoTotalEmVoz()">🔊 Ler o saldo total em voz alta</button>
+<label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px;">Formato de data</label>
+<select id="ferr-formato-data" onchange="mudarFormatoData(this.value)" style="width:100%;padding:8px 10px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface-2);color:var(--text);font-size:12.5px;margin-bottom:12px;">
+<option value="dmy">DD/MM/AAAA</option>
+<option value="mdy">MM/DD/AAAA</option>
+</select>
+<button class="btn-main" style="background:var(--surface-2);color:var(--text);box-shadow:none;margin-bottom:10px;" onclick="verSaldoMedioDiario()">📆 Ver saldo médio diário do mês atual</button>
+<label style="display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:600;margin-bottom:8px;cursor:pointer;">
+<input type="checkbox" id="ferr-toggle-bloquear-saldos" onchange="mudarBloquearEdicaoSaldos(this.checked)" style="width:18px;height:18px;"> Bloquear edição de saldos (só leitura)
+</label>
+<button class="btn-main" style="background:var(--surface-2);color:var(--text);box-shadow:none;margin-bottom:10px;" onclick="testarDesempenhoApp()">⚡ Testar desempenho da app</button>
+<label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px;">Movimentos visíveis por página</label>
+<select id="ferr-paginacao-select" onchange="mudarPaginacaoMovimentos(this.value)" style="width:100%;padding:8px 10px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface-2);color:var(--text);font-size:12.5px;margin-bottom:12px;">
+<option value="0">Mostrar todos</option>
+<option value="10">10 por página</option>
+<option value="25">25 por página</option>
+<option value="50">50 por página</option>
+</select>
+<label style="display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:600;margin-bottom:8px;cursor:pointer;">
+<input type="checkbox" id="ferr-toggle-confirmar-eliminar-mov" onchange="mudarConfirmarEliminarMovimento(this.checked)" style="width:18px;height:18px;"> Confirmar sempre antes de eliminar um movimento
+</label>
+<button class="btn-main" style="background:var(--surface-2);color:var(--text);box-shadow:none;" onclick="verCrescimentoPatrimonial()">📈 Ver relatório de crescimento patrimonial</button>
+</div>
+
 <div id="admin-tab-editar" style="display:none;">
 <label style="display:block;font-size:11px;font-weight:700;color:var(--brand-a);margin-bottom:8px;">Editar textos e secções das páginas</label>
 <div style="font-size:11px;color:var(--muted);margin-bottom:10px;">Escolhe uma página, vê a pré-visualização e edita tudo o que quiseres antes de aplicar. Já com mais de 50 opções de edição.</div>
@@ -999,12 +1157,40 @@ body.dark.alto-contraste{--text:#FFFFFF;--bg:#000000;--surface:#000000;--muted:#
 </select>
 <div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:6px;">Pré-visualização</div>
 <div id="editor-preview-box" style="background:var(--bg);border:1.5px dashed var(--line);border-radius:14px;padding:12px;margin-bottom:14px;"></div>
+
+<label style="display:block;font-size:11px;font-weight:700;color:var(--brand-a);margin-bottom:8px;">Estilo só desta página</label>
+<div id="editor-estilo-pagina-aviso" style="display:none;font-size:11.5px;color:var(--muted);margin-bottom:10px;">A página "Geral" não tem um único ecrã próprio — usa a aba Cores/Estilo para alterações globais.</div>
+<div id="editor-estilo-pagina-controlos">
+<label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px;">Cor de destaque desta página</label>
+<input type="color" id="editor-cor-pagina" onchange="mudarCorPagina(this.value)" style="width:100%;height:36px;border:1.5px solid var(--line);border-radius:var(--radius-s);margin-bottom:14px;cursor:pointer;">
+<label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px;">Tamanho dos títulos desta página: <span id="editor-titulo-size-val">15px</span></label>
+<input type="range" id="editor-titulo-size-slider" min="12" max="22" value="15" oninput="mudarTituloSizePagina(this.value)" style="width:100%;margin-bottom:14px;">
+<label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px;">Espaçamento entre secções desta página: <span id="editor-gap-pagina-val">20px</span></label>
+<input type="range" id="editor-gap-pagina-slider" min="8" max="40" value="20" oninput="mudarGapPagina(this.value)" style="width:100%;margin-bottom:8px;">
+<button class="link-btn" style="margin-bottom:14px;" onclick="reporEstiloPagina()">↩️ Repor estilo desta página</button>
+</div>
+
+<label style="display:block;font-size:11px;font-weight:700;color:var(--brand-a);margin-bottom:8px;">Reorganizar secções (arrasta para mover)</label>
+<div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Uma tela pequena com as secções desta página — arrasta os blocos para mudar a ordem em que aparecem.</div>
+<div id="editor-canvas" style="background:var(--bg);border:1.5px dashed var(--line);border-radius:14px;padding:10px;margin-bottom:14px;min-height:60px;display:flex;flex-direction:column;gap:6px;"></div>
+
 <div id="editor-secoes-box" style="margin-bottom:14px;"></div>
 <div id="editor-campos-box"></div>
 <div class="row2" style="margin-top:12px;">
 <button class="sheet-btn primary" style="flex:1;" onclick="aplicarEditorPagina()">Aplicar alterações</button>
 <button class="sheet-btn" style="flex:1;" onclick="reporTextosPagina()">Repor textos desta página</button>
 </div>
+
+<div style="height:1px;background:var(--line);margin:18px 0;"></div>
+<label style="display:block;font-size:11px;font-weight:700;color:var(--brand-a);margin-bottom:8px;">✨ Assistente Inteligente da app</label>
+<div style="font-size:11px;color:var(--muted);margin-bottom:10px;">Pede o que quiseres em linguagem normal: mudar estilo, navegar entre abas, perguntar pelo saldo, gerir a wishlist, bloquear a app e muito mais. Escreve "ajuda" para veres tudo o que sei fazer. Funciona todo dentro da app, sem ligação à internet.</div>
+<div id="ia-chat-historico" style="max-height:180px;overflow-y:auto;margin-bottom:8px;display:flex;flex-direction:column;gap:8px;"></div>
+<div id="ia-chat-sugestoes" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;"></div>
+<div class="row2">
+<input type="text" id="ia-chat-input" placeholder="Ex: qual é o meu saldo?" style="flex:1;padding:9px 10px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface-2);color:var(--text);font-size:12.5px;" onkeydown="if(event.key==='Enter')enviarComandoIA()">
+<button class="sheet-btn primary" onclick="enviarComandoIA()">➤</button>
+</div>
+<button class="link-btn" style="margin-top:8px;" onclick="limparChatIA()">🧹 Limpar conversa</button>
 </div>
 
 <button class="btn-main" style="margin-top:14px;" onclick="fecharCores()">Aplicado — fechar</button>
@@ -1020,7 +1206,7 @@ body.dark.alto-contraste{--text:#FFFFFF;--bg:#000000;--surface:#000000;--muted:#
 </div>
 </div>
 
-<div class="sheet-overlay fw-overlay" id="ampliar-cat-sheet" onclick="fecharAmpliarCategorias(event)">
+<div class="sheet-overlay fw-overlay" id="ampliar-cat-sheet" onclick="minimizarOuFechar(event,'ampliar-cat-sheet')">
 <div class="fw-panel" id="ampliar-cat-panel" onclick="event.stopPropagation()">
 <div class="fw-edge fw-edge-n"></div><div class="fw-edge fw-edge-s"></div><div class="fw-edge fw-edge-e"></div><div class="fw-edge fw-edge-w"></div>
 <div class="fw-edge fw-edge-ne"></div><div class="fw-edge fw-edge-nw"></div><div class="fw-edge fw-edge-se"></div><div class="fw-edge fw-edge-sw"></div>
@@ -1049,7 +1235,7 @@ body.dark.alto-contraste{--text:#FFFFFF;--bg:#000000;--surface:#000000;--muted:#
 </div>
 </div>
 
-<div class="sheet-overlay fw-overlay" id="ampliar-evo-sheet" onclick="fecharAmpliarEvolucao(event)">
+<div class="sheet-overlay fw-overlay" id="ampliar-evo-sheet" onclick="minimizarOuFechar(event,'ampliar-evo-sheet')">
 <div class="fw-panel" id="ampliar-evo-panel" onclick="event.stopPropagation()">
 <div class="fw-edge fw-edge-n"></div><div class="fw-edge fw-edge-s"></div><div class="fw-edge fw-edge-e"></div><div class="fw-edge fw-edge-w"></div>
 <div class="fw-edge fw-edge-ne"></div><div class="fw-edge fw-edge-nw"></div><div class="fw-edge fw-edge-se"></div><div class="fw-edge fw-edge-sw"></div>
@@ -1074,7 +1260,7 @@ body.dark.alto-contraste{--text:#FFFFFF;--bg:#000000;--surface:#000000;--muted:#
 </div>
 </div>
 
-<div class="sheet-overlay fw-overlay" id="pin-ampliar-sheet" onclick="fecharPinAmpliado(event)">
+<div class="sheet-overlay fw-overlay" id="pin-ampliar-sheet" onclick="minimizarOuFechar(event,'pin-ampliar-sheet')">
 <div class="fw-panel" id="pin-ampliar-panel" onclick="event.stopPropagation()">
 <div class="fw-edge fw-edge-n"></div><div class="fw-edge fw-edge-s"></div><div class="fw-edge fw-edge-e"></div><div class="fw-edge fw-edge-w"></div>
 <div class="fw-edge fw-edge-ne"></div><div class="fw-edge fw-edge-nw"></div><div class="fw-edge fw-edge-se"></div><div class="fw-edge fw-edge-sw"></div>
@@ -1128,6 +1314,91 @@ body.dark.alto-contraste{--text:#FFFFFF;--bg:#000000;--surface:#000000;--muted:#
 <button class="sheet-btn" style="flex:1;" onclick="document.getElementById('esquecer-pin-confirmar').style.display='none'">Cancelar</button>
 </div>
 </div>
+
+<div style="height:1px;background:var(--line);margin:16px 0;"></div>
+<label style="display:block;font-size:11px;font-weight:700;color:var(--brand-a);margin-bottom:10px;">Mais opções de segurança (20+)</label>
+
+<label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px;">Comprimento mínimo do PIN</label>
+<select id="pin-comprimento-select" onchange="mudarPinComprimento(this.value)" style="width:100%;padding:8px 10px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface-2);color:var(--text);font-size:12.5px;margin-bottom:12px;">
+<option value="4">4 dígitos</option>
+<option value="5">5 dígitos</option>
+<option value="6">6 dígitos</option>
+</select>
+
+<label style="display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:600;cursor:pointer;margin-bottom:10px;">
+<input type="checkbox" id="pin-toggle-confirmar-duas-vezes" onchange="mudarPinConfirmarDuasVezes(this.checked)" style="width:18px;height:18px;"> Confirmar o PIN duas vezes ao definir
+</label>
+<label style="display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:600;cursor:pointer;margin-bottom:10px;">
+<input type="checkbox" id="pin-toggle-mostrar-escrever" onchange="mudarPinMostrarEscrever(this.checked)" style="width:18px;height:18px;"> Mostrar o PIN enquanto escrevo
+</label>
+
+<label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px;">Dica de PIN (aparece ao fim de 3 erros)</label>
+<input type="text" id="pin-dica-input" onchange="mudarPinDica(this.value)" placeholder="Ex: O ano que nasceste" style="width:100%;padding:8px 10px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface);color:var(--text);font-size:12.5px;margin-bottom:12px;">
+
+<div class="row2" style="margin-bottom:12px;">
+<div class="field"><label style="font-size:11px;">Bloqueio após X erros</label>
+<select id="pin-tentativas-max-select" onchange="mudarPinTentativasMax(this.value)" style="width:100%;padding:6px 8px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface-2);color:var(--text);font-size:12px;">
+<option value="0">Desativado</option>
+<option value="3">3 erros</option>
+<option value="5">5 erros</option>
+<option value="10">10 erros</option>
+</select>
+</div>
+<div class="field"><label style="font-size:11px;">Duração do bloqueio</label>
+<select id="pin-bloqueio-duracao-select" onchange="mudarPinBloqueioDuracao(this.value)" style="width:100%;padding:6px 8px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface-2);color:var(--text);font-size:12px;">
+<option value="1">1 min</option>
+<option value="5">5 min</option>
+<option value="15">15 min</option>
+</select>
+</div>
+</div>
+
+<label style="display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:600;cursor:pointer;margin-bottom:10px;">
+<input type="checkbox" id="pin-toggle-exportar" onchange="mudarPinPedirExportar(this.checked)" style="width:18px;height:18px;"> Pedir PIN para exportar dados
+</label>
+<label style="display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:600;cursor:pointer;margin-bottom:10px;">
+<input type="checkbox" id="pin-toggle-reiniciar" onchange="mudarPinPedirReiniciar(this.checked)" style="width:18px;height:18px;"> Pedir PIN para reiniciar a app
+</label>
+<label style="display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:600;cursor:pointer;margin-bottom:10px;">
+<input type="checkbox" id="pin-toggle-som-desbloquear" onchange="mudarPinSomDesbloquear(this.checked)" style="width:18px;height:18px;"> Som ao desbloquear com sucesso
+</label>
+<label style="display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:600;cursor:pointer;margin-bottom:10px;">
+<input type="checkbox" id="pin-toggle-som-erro" onchange="mudarPinSomErro(this.checked)" style="width:18px;height:18px;"> Som ao errar o PIN
+</label>
+<label style="display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:600;cursor:pointer;margin-bottom:10px;">
+<input type="checkbox" id="pin-toggle-confetti" onchange="mudarPinConfetti(this.checked)" style="width:18px;height:18px;"> Confetti ao desbloquear
+</label>
+<label style="display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:600;cursor:pointer;margin-bottom:10px;">
+<input type="checkbox" id="pin-toggle-vibrar-sucesso" onchange="mudarPinVibrarSucesso(this.checked)" style="width:18px;height:18px;"> Vibrar ao desbloquear com sucesso
+</label>
+<label style="display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:600;cursor:pointer;margin-bottom:10px;">
+<input type="checkbox" id="pin-toggle-blur" onchange="mudarPinBloquearAoMudarAba(this.checked)" style="width:18px;height:18px;"> Bloquear ao mudar de separador/app
+</label>
+<label style="display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:600;cursor:pointer;margin-bottom:10px;">
+<input type="checkbox" id="pin-toggle-teclado-baralhado" onchange="mudarPinTecladoBaralhado(this.checked)" style="width:18px;height:18px;"> Teclado numérico embaralhado no bloqueio
+</label>
+<label style="display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:600;cursor:pointer;margin-bottom:10px;">
+<input type="checkbox" id="pin-toggle-meia-noite" onchange="mudarPinBloquearMeiaNoite(this.checked)" style="width:18px;height:18px;"> Bloquear automaticamente à meia-noite
+
+</label>
+
+<label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px;">Emoji do ecrã de bloqueio</label>
+<input type="text" id="pin-emoji-input" onchange="mudarPinEmoji(this.value)" maxlength="4" style="width:100%;padding:8px 10px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface);color:var(--text);font-size:16px;text-align:center;margin-bottom:12px;">
+
+<div style="background:var(--bg);border-radius:12px;padding:12px;margin-bottom:12px;">
+<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px;"><span style="color:var(--muted);">Último desbloqueio</span><b id="pin-ultimo-desbloqueio-info">—</b></div>
+<div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;">
+<span style="color:var(--muted);">Total de desbloqueios</span>
+<span style="display:flex;align-items:center;gap:8px;"><b id="pin-total-desbloqueios-info">0</b><button class="link-btn" onclick="resetTotalDesbloqueiosPin()">Repor</button></span>
+</div>
+</div>
+
+<div class="row2" style="margin-bottom:10px;">
+<button class="sheet-btn" style="flex:1;" onclick="exportarLogPin()">📤 Exportar registo</button>
+<button class="sheet-btn" style="flex:1;" onclick="limparLogPin()">🧹 Limpar registo</button>
+</div>
+<button class="link-btn" onclick="toggleVerHistoricoPin()" id="btn-ver-historico-pin">Ver histórico ▾</button>
+<div id="pin-historico-lista" style="display:none;max-height:150px;overflow-y:auto;margin-top:8px;"></div>
 </div>
 </div>
 </div>
@@ -1220,30 +1491,64 @@ body.dark.alto-contraste{--text:#FFFFFF;--bg:#000000;--surface:#000000;--muted:#
 </div>
 </div>
 
-<div class="sheet-overlay" id="wishlist-sheet" onclick="fecharWishlist(event)">
-<div class="sheet-panel" onclick="event.stopPropagation()">
-<div class="sheet-handle"></div>
+<div class="sheet-overlay fw-overlay" id="wishlist-sheet" onclick="minimizarOuFechar(event,'wishlist-sheet')">
+<div class="fw-panel" id="wishlist-panel" onclick="event.stopPropagation()">
+<div class="fw-edge fw-edge-n"></div><div class="fw-edge fw-edge-s"></div><div class="fw-edge fw-edge-e"></div><div class="fw-edge fw-edge-w"></div>
+<div class="fw-edge fw-edge-ne"></div><div class="fw-edge fw-edge-nw"></div><div class="fw-edge fw-edge-se"></div><div class="fw-edge fw-edge-sw"></div>
+<div class="fw-header">
+<div class="fw-header-main">
 <div class="sheet-title"><span id="txt-wishlist-titulo">⭐ Wishlist</span></div>
 <div class="sheet-sub" id="wishlist-total-info">Coisas que queres comprar ou lembrar</div>
+</div>
+<div class="fw-header-actions">
+<button onclick="fecharWishlist()" title="Fechar">✕</button>
+</div>
+</div>
+<div class="fw-content">
 <button class="btn-main" style="margin-bottom:10px;" onclick="abrirWishlistDetalhe(null)"><span id="txt-btn-novo-item-wishlist">+ Novo item</span></button>
-<div class="hist-filters" style="margin-bottom:12px;">
+<div class="row2" style="margin-bottom:10px;">
+<button class="sheet-btn" style="flex:1;" onclick="exportarWishlist()">📤 Exportar</button>
+<button class="sheet-btn" style="flex:1;" onclick="copiarWishlistTexto()">📋 Copiar lista</button>
+<button class="sheet-btn" style="flex:1;" onclick="sortearWishlist()">🎲 Escolhe por mim</button>
+</div>
+<div id="wishlist-stats-box" style="display:flex;gap:8px;margin-bottom:10px;"></div>
+<input type="text" id="wishlist-pesquisa" placeholder="🔎 Pesquisar na wishlist..." oninput="renderWishlist()" style="width:100%;padding:8px 10px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface-2);color:var(--text);font-size:12.5px;margin-bottom:10px;">
+<select id="wishlist-ordenar" onchange="renderWishlist()" style="width:100%;padding:8px 10px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface-2);color:var(--text);font-size:12.5px;margin-bottom:10px;">
+<option value="recente">Mais recente primeiro</option>
+<option value="antigo">Mais antigo primeiro</option>
+<option value="preco-desc">Preço: maior para menor</option>
+<option value="preco-asc">Preço: menor para maior</option>
+<option value="prioridade">Por prioridade</option>
+</select>
+<div class="hist-filters" style="margin-bottom:8px;" id="wishlist-filtros-prioridade">
 <div class="hist-chip active" data-p="todas" onclick="filtrarWishlist('todas')">Todas</div>
 <div class="hist-chip" data-p="alta" onclick="filtrarWishlist('alta')">Alta</div>
 <div class="hist-chip" data-p="media" onclick="filtrarWishlist('media')">Média</div>
 <div class="hist-chip" data-p="baixa" onclick="filtrarWishlist('baixa')">Baixa</div>
 </div>
+<div class="hist-filters" style="margin-bottom:12px;" id="wishlist-filtros-tag"></div>
 <label style="display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;cursor:pointer;margin-bottom:12px;">
 <input type="checkbox" id="wishlist-esconder-comprados" onchange="renderWishlist()" style="width:16px;height:16px;"> Esconder já comprados
 </label>
 <div id="lista-wishlist" style="display:flex;flex-direction:column;gap:8px;"></div>
 </div>
 </div>
+</div>
 
-<div class="sheet-overlay" id="wishlist-detalhe-sheet" onclick="fecharWishlistDetalhe(event)">
-<div class="sheet-panel" onclick="event.stopPropagation()">
-<div class="sheet-handle"></div>
+<div class="sheet-overlay fw-overlay" id="wishlist-detalhe-sheet" onclick="minimizarOuFechar(event,'wishlist-detalhe-sheet')">
+<div class="fw-panel" id="wishlist-detalhe-panel" onclick="event.stopPropagation()">
+<div class="fw-edge fw-edge-n"></div><div class="fw-edge fw-edge-s"></div><div class="fw-edge fw-edge-e"></div><div class="fw-edge fw-edge-w"></div>
+<div class="fw-edge fw-edge-ne"></div><div class="fw-edge fw-edge-nw"></div><div class="fw-edge fw-edge-se"></div><div class="fw-edge fw-edge-sw"></div>
+<div class="fw-header">
+<div class="fw-header-main">
 <div class="sheet-title" id="wishlist-detalhe-title">Novo item</div>
 <div class="sheet-sub" id="wishlist-detalhe-data"></div>
+</div>
+<div class="fw-header-actions">
+<button onclick="fecharWishlistDetalhe()" title="Fechar">✕</button>
+</div>
+</div>
+<div class="fw-content">
 <div id="wishlist-detalhe-foto-preview" style="display:none;margin-bottom:10px;text-align:center;">
 <img id="wishlist-detalhe-foto-img" style="max-width:100%;max-height:160px;border-radius:var(--radius-s);" alt="Foto do item">
 <div><button class="link-btn" style="color:var(--neg);" onclick="removerFotoWishlist()">Remover foto</button></div>
@@ -1260,25 +1565,83 @@ body.dark.alto-contraste{--text:#FFFFFF;--bg:#000000;--surface:#000000;--muted:#
 </div>
 </div>
 <div class="field"><label>Link (opcional)</label><input type="url" id="wishlist-detalhe-link" placeholder="https://..."></div>
+<div class="field"><label>Categoria/etiqueta (opcional)</label>
+<select id="wishlist-detalhe-tag">
+<option value="">Sem categoria</option>
+<option value="Tecnologia">Tecnologia</option>
+<option value="Roupa">Roupa</option>
+<option value="Casa">Casa</option>
+<option value="Lazer">Lazer</option>
+<option value="Viagens">Viagens</option>
+<option value="Outro">Outro</option>
+</select>
+</div>
 <div class="field"><label>Foto (opcional)</label><input type="file" accept="image/*" id="wishlist-detalhe-foto-input" onchange="carregarFotoWishlist(this.files[0])"></div>
 <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;cursor:pointer;margin-bottom:6px;">
 <input type="checkbox" id="wishlist-detalhe-comprado" style="width:16px;height:16px;"> ✔️ Já comprei este item
 </label>
 <div class="sheet-actions" style="margin-top:8px;">
 <button class="sheet-btn primary" id="wishlist-detalhe-guardar-btn"><span id="txt-btn-guardar-wishlist">✎ Guardar</span></button>
+<button class="sheet-btn" id="wishlist-detalhe-duplicar-btn" style="display:none;" onclick="duplicarItemWishlist()">⧉ Duplicar</button>
 <button class="sheet-btn danger" id="wishlist-detalhe-apagar-btn"><span id="txt-btn-eliminar-wishlist">✕ Eliminar</span></button>
+</div>
+<div id="wishlist-apagar-confirmar" style="display:none;background:var(--neg-soft);border-radius:var(--radius-s);padding:10px;margin-top:8px;">
+<div style="font-size:11.5px;color:var(--neg);font-weight:700;margin-bottom:8px;">Eliminar este item da wishlist?</div>
+<div class="row2">
+<button class="sheet-btn danger" style="flex:1;" onclick="confirmarApagarWishlist()">Sim, eliminar</button>
+<button class="sheet-btn" style="flex:1;" onclick="document.getElementById('wishlist-apagar-confirmar').style.display='none'">Cancelar</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="sheet-overlay fw-overlay" id="novidades-sheet" onclick="minimizarOuFechar(event,'novidades-sheet')">
+<div class="fw-panel" id="novidades-panel" onclick="event.stopPropagation()">
+<div class="fw-edge fw-edge-n"></div><div class="fw-edge fw-edge-s"></div><div class="fw-edge fw-edge-e"></div><div class="fw-edge fw-edge-w"></div>
+<div class="fw-edge fw-edge-ne"></div><div class="fw-edge fw-edge-nw"></div><div class="fw-edge fw-edge-se"></div><div class="fw-edge fw-edge-sw"></div>
+<div class="fw-header">
+<div class="fw-header-main">
+<div class="sheet-title">📰 Novidades e histórico</div>
+<div class="sheet-sub">Vê o que mudou em cada atualização</div>
+</div>
+<div class="fw-header-actions">
+<button onclick="fecharNovidades()" title="Fechar">✕</button>
+</div>
+</div>
+<div class="fw-content">
+<label style="display:block;font-size:11px;font-weight:700;color:var(--brand-a);margin-bottom:8px;">Atualizações</label>
+<div id="novidades-versoes-botoes" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;"></div>
+<div id="novidades-detalhe-box" style="margin-bottom:14px;"></div>
+<div class="divider" style="height:1px;background:var(--line);margin:6px 0 14px;"></div>
+<label style="display:block;font-size:11px;font-weight:700;color:var(--brand-a);margin-bottom:8px;">Comparar duas versões</label>
+<div class="row2" style="align-items:center;">
+<div class="field"><label style="font-size:11px;">De</label>
+<select id="novidades-comparar-de" style="width:100%;padding:6px 8px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface-2);color:var(--text);font-size:12px;"></select>
+</div>
+<div style="font-size:16px;padding-top:14px;">→</div>
+<div class="field"><label style="font-size:11px;">Para</label>
+<select id="novidades-comparar-para" style="width:100%;padding:6px 8px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface-2);color:var(--text);font-size:12px;"></select>
+</div>
+</div>
+<button class="sheet-btn primary" style="width:100%;margin-top:8px;" onclick="compararVersoesNovidades()">Comparar</button>
+<div id="novidades-comparar-resultado" style="margin-top:12px;font-size:12.5px;"></div>
+<div class="divider" style="height:1px;background:var(--line);margin:14px 0 10px;"></div>
+<div id="novidades-resumo-geral" style="font-size:12.5px;color:var(--muted);line-height:1.5;">Usa o comparador acima para ver o que mudou entre duas versões específicas.</div>
 </div>
 </div>
 </div>
 
 <div class="sheet-overlay" id="lock-screen" style="align-items:center;z-index:300;">
 <div class="sheet-panel" style="max-width:340px;border-radius:24px;text-align:center;padding:32px 22px;" onclick="event.stopPropagation()">
-<div style="font-size:40px;margin-bottom:12px;">🔒</div>
+<div style="font-size:40px;margin-bottom:12px;" id="lock-emoji">🔒</div>
 <div class="sheet-title" style="margin-bottom:4px;">App bloqueada</div>
 <div class="sheet-sub" style="margin-bottom:16px;">Insere o teu PIN para continuar</div>
 <input type="password" id="lock-pin-input" inputmode="numeric" placeholder="PIN" style="width:100%;padding:12px;border-radius:var(--radius-s);border:1.5px solid var(--line);background:var(--surface-2);color:var(--text);text-align:center;font-size:18px;letter-spacing:4px;margin-bottom:8px;">
-<div id="lock-pin-erro" style="color:var(--neg);font-size:12px;margin-bottom:12px;height:14px;"></div>
-<button class="btn-main" onclick="tentarDesbloquear()">Desbloquear</button>
+<div id="lock-pin-erro" style="color:var(--neg);font-size:12px;margin-bottom:8px;height:14px;"></div>
+<div id="lock-pin-dica" style="display:none;color:var(--muted);font-size:11.5px;margin-bottom:10px;"></div>
+<div id="lock-keypad" style="display:none;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;"></div>
+<button class="btn-main" id="lock-desbloquear-btn" onclick="tentarDesbloquear()">Desbloquear</button>
 </div>
 </div>
 
@@ -1388,8 +1751,57 @@ let pinTentativasErradas=lerJSON('pinTentativasErradas',0);
 let pinAutoLockMin=lerJSON('pinAutoLockMin',0);
 let pinVibrarErro=lerJSON('pinVibrarErro',true);
 let pinInatividadeTimer=null;
+let pinComprimentoMin=lerJSON('pinComprimentoMin',4);
+let pinConfirmarDuasVezes=lerJSON('pinConfirmarDuasVezes',false);
+let pinMostrarEscrever=lerJSON('pinMostrarEscrever',false);
+let pinDica=lerJSON('pinDica','');
+let pinTentativasMax=lerJSON('pinTentativasMax',0);
+let pinBloqueioDuracaoMin=lerJSON('pinBloqueioDuracaoMin',1);
+let pinBloqueadoAte=lerJSON('pinBloqueadoAte',null);
+let pinPedirExportar=lerJSON('pinPedirExportar',false);
+let pinPedirReiniciar=lerJSON('pinPedirReiniciar',false);
+let pinSomDesbloquear=lerJSON('pinSomDesbloquear',false);
+let pinSomErro=lerJSON('pinSomErro',false);
+let pinConfettiDesbloquear=lerJSON('pinConfettiDesbloquear',false);
+let pinVibrarSucesso=lerJSON('pinVibrarSucesso',false);
+let pinBloquearAoMudarAba=lerJSON('pinBloquearAoMudarAba',false);
+let pinTecladoBaralhado=lerJSON('pinTecladoBaralhado',false);
+let pinBloquearMeiaNoite=lerJSON('pinBloquearMeiaNoite',false);
+let pinEmoji=lerJSON('pinEmoji','🔒');
+let pinUltimoDesbloqueio=lerJSON('pinUltimoDesbloqueio',null);
+let pinTotalDesbloqueios=lerJSON('pinTotalDesbloqueios',0);
+let pinLog=lerJSON('pinLog',[]);
+let pinMeiaNoiteJaBloqueadoHoje=false;
 let textosApp=lerJSON('textosApp',{});
 let secoesApp=lerJSON('secoesApp',{});
+let planoTipoGrafico=lerJSON('planoTipoGrafico','line');
+let planoTolerancia=lerJSON('planoTolerancia',10);
+let planoContaAmpliada=null;
+let ferrBackupAutoAtivo=lerJSON('ferrBackupAutoAtivo',false);
+let ferrBackupAutoHoras=lerJSON('ferrBackupAutoHoras',24);
+let ferrBackupAutoInterval=null;
+let ferrMetaPoupancaAnual=lerJSON('ferrMetaPoupancaAnual',0);
+let ferrAlertaGastoElevado=lerJSON('ferrAlertaGastoElevado',0);
+let ferrOrcamentoGlobal=lerJSON('ferrOrcamentoGlobal',0);
+let ferrDiaSalario=lerJSON('ferrDiaSalario',0);
+let ferrTarefas=lerJSON('ferrTarefas',[]);
+let ferrAtalhosAtivo=lerJSON('ferrAtalhosAtivo',false);
+let ferrAbaFavorita=lerJSON('ferrAbaFavorita','');
+let ferrBlurPrivacidade=lerJSON('ferrBlurPrivacidade',false);
+let ferrModoConvidado=lerJSON('ferrModoConvidado',false);
+let ferrAvisoInatividadeDias=lerJSON('ferrAvisoInatividadeDias',0);
+let ferrNotificacaoFechoMes=lerJSON('ferrNotificacaoFechoMes',false);
+let ferrTaxaUsd=lerJSON('ferrTaxaUsd',1.08);
+let ferrTaxaGbp=lerJSON('ferrTaxaGbp',0.85);
+let ferrFormatoDataOrdem=lerJSON('ferrFormatoDataOrdem','dmy');
+let ferrBloquearEdicaoSaldos=lerJSON('ferrBloquearEdicaoSaldos',false);
+let ferrPaginacaoMovimentos=lerJSON('ferrPaginacaoMovimentos',0);
+let ferrConfirmarEliminarMovimento=lerJSON('ferrConfirmarEliminarMovimento',false);
+let ferrSessoes=lerJSON('ferrSessoes',[]);
+let ferrUltimoUso=lerJSON('ferrUltimoUso',null);
+let estiloPorPagina=lerJSON('estiloPorPagina',{});
+let ordemSecoesPorPagina=lerJSON('ordemSecoesPorPagina',{});
+let iaChatHistorico=[];
 let saudacaoIndex=0;
 const saudacaoEmojis=['👋','😀','🤑','💸','🐷','😎'];
 
@@ -1443,6 +1855,26 @@ function salvarTudo(){
   gravarJSON('pinTentativasErradas', pinTentativasErradas);
   gravarJSON('pinAutoLockMin', pinAutoLockMin);
   gravarJSON('pinVibrarErro', pinVibrarErro);
+  gravarJSON('pinComprimentoMin', pinComprimentoMin);
+  gravarJSON('pinConfirmarDuasVezes', pinConfirmarDuasVezes);
+  gravarJSON('pinMostrarEscrever', pinMostrarEscrever);
+  gravarJSON('pinDica', pinDica);
+  gravarJSON('pinTentativasMax', pinTentativasMax);
+  gravarJSON('pinBloqueioDuracaoMin', pinBloqueioDuracaoMin);
+  gravarJSON('pinBloqueadoAte', pinBloqueadoAte);
+  gravarJSON('pinPedirExportar', pinPedirExportar);
+  gravarJSON('pinPedirReiniciar', pinPedirReiniciar);
+  gravarJSON('pinSomDesbloquear', pinSomDesbloquear);
+  gravarJSON('pinSomErro', pinSomErro);
+  gravarJSON('pinConfettiDesbloquear', pinConfettiDesbloquear);
+  gravarJSON('pinVibrarSucesso', pinVibrarSucesso);
+  gravarJSON('pinBloquearAoMudarAba', pinBloquearAoMudarAba);
+  gravarJSON('pinTecladoBaralhado', pinTecladoBaralhado);
+  gravarJSON('pinBloquearMeiaNoite', pinBloquearMeiaNoite);
+  gravarJSON('pinEmoji', pinEmoji);
+  gravarJSON('pinUltimoDesbloqueio', pinUltimoDesbloqueio);
+  gravarJSON('pinTotalDesbloqueios', pinTotalDesbloqueios);
+  gravarJSON('pinLog', pinLog);
   gravarJSON('textosApp', textosApp);
   gravarJSON('secoesApp', secoesApp);
 }
@@ -1509,7 +1941,7 @@ document.querySelectorAll('.seg-btn').forEach(t=>t.addEventListener('click',()=>
   ['saldos','movimentos','plano'].forEach(id=>{
     const panel=document.getElementById('panel-'+id);
     if(id===t.dataset.tab){
-      panel.style.display='block';
+      panel.style.display='flex';
       panel.style.animation='none';
       void panel.offsetWidth;
       panel.style.animation='';
@@ -1910,6 +2342,7 @@ document.getElementById('nota-detalhe-apagar-btn').addEventListener('click',()=>
 });
 /* ---- wishlist (tipo notas, mas para coisas que queres comprar) ---- */
 let filtroWishlist='todas';
+let filtroTagWishlist='todas';
 let fotoWishlistTemp=null;
 const corPrioridade={alta:'var(--neg)',media:'var(--amber)',baixa:'var(--pos)'};
 const labelPrioridade={alta:'Alta',media:'Média',baixa:'Baixa'};
@@ -1920,12 +2353,45 @@ function abrirWishlist(){
 }
 function fecharWishlist(e){
   if(e && e.target && e.target.id!=='wishlist-sheet') return;
+  restaurarJanela('wishlist-sheet');
   document.getElementById('wishlist-sheet').classList.remove('open');
 }
 function filtrarWishlist(p){
   filtroWishlist=p;
-  document.querySelectorAll('#wishlist-sheet .hist-chip').forEach(c=>c.classList.toggle('active',c.dataset.p===p));
+  document.querySelectorAll('#wishlist-filtros-prioridade .hist-chip').forEach(c=>c.classList.toggle('active',c.dataset.p===p));
   renderWishlist();
+}
+function filtrarWishlistTag(t){
+  filtroTagWishlist=t;
+  document.querySelectorAll('#wishlist-filtros-tag .hist-chip').forEach(c=>c.classList.toggle('active',c.dataset.t===t));
+  renderWishlist();
+}
+function exportarWishlist(){
+  const blob=new Blob([JSON.stringify(wishlist,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download='wishlist.json';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('Wishlist exportada','📤');
+}
+function copiarWishlistTexto(){
+  if(wishlist.length===0){ showToast('A wishlist está vazia','⚠️'); return; }
+  const linhas=wishlist.filter(it=>!it.comprado).map(it=>`• ${it.texto}${it.preco?` (${dinheiro(it.preco)})`:''}`);
+  const texto='Wishlist:\n'+linhas.join('\n');
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(texto).then(()=>showToast('Lista copiada','📋')).catch(()=>showToast('Não foi possível copiar','⚠️'));
+  }else{
+    showToast('Não foi possível copiar','⚠️');
+  }
+}
+function sortearWishlist(){
+  const pendentes=wishlist.map((it,i)=>({it,i})).filter(({it})=>!it.comprado);
+  if(pendentes.length===0){ showToast('Não há itens por comprar para sortear','⚠️'); return; }
+  const escolha=pendentes[Math.floor(Math.random()*pendentes.length)];
+  confetti();
+  showToast('A sorte escolheu: '+escolha.it.texto.slice(0,60),'🎲');
+  abrirWishlistDetalhe(escolha.i);
 }
 function carregarFotoWishlist(file){
   if(!file) return;
@@ -1961,19 +2427,49 @@ function renderWishlist(){
   if(!el) return;
   el.innerHTML='';
   const escondeComprados = document.getElementById('wishlist-esconder-comprados').checked;
-  let total=0, totalPendente=0;
-  wishlist.forEach(it=>{ total++; if(!it.comprado) totalPendente+=(it.preco||0); });
+  const pesquisaEl=document.getElementById('wishlist-pesquisa');
+  const pesquisa = pesquisaEl ? pesquisaEl.value.trim().toLowerCase() : '';
+  const ordenarEl=document.getElementById('wishlist-ordenar');
+  const ordem = ordenarEl ? ordenarEl.value : 'recente';
+  let total=0, totalPendente=0, totalGasto=0;
+  wishlist.forEach(it=>{ total++; if(!it.comprado) totalPendente+=(it.preco||0); else totalGasto+=(it.preco||0); });
   const infoEl=document.getElementById('wishlist-total-info');
   if(infoEl) infoEl.textContent = total>0 ? `${total} item${total===1?'':'s'} · ${dinheiro(totalPendente)} em itens por comprar` : textoEfetivo('txt-wishlist-sub');
+  const statsBox=document.getElementById('wishlist-stats-box');
+  if(statsBox) statsBox.innerHTML = total>0 ? `
+    <div style="flex:1;background:var(--bg);border-radius:12px;padding:8px 10px;text-align:center;"><div style="font-size:10.5px;color:var(--muted);">Por comprar</div><div style="font-weight:700;font-size:13px;">${dinheiro(totalPendente)}</div></div>
+    <div style="flex:1;background:var(--bg);border-radius:12px;padding:8px 10px;text-align:center;"><div style="font-size:10.5px;color:var(--muted);">Já gasto</div><div style="font-weight:700;font-size:13px;">${dinheiro(totalGasto)}</div></div>` : '';
+
+  const porPrioridade={alta:0,media:0,baixa:0};
+  wishlist.forEach(it=>{ porPrioridade[it.prioridade||'media']++; });
+  document.querySelectorAll('#wishlist-filtros-prioridade .hist-chip').forEach(c=>{
+    const p=c.dataset.p;
+    const base={todas:'Todas',alta:'Alta',media:'Média',baixa:'Baixa'}[p];
+    c.textContent = p==='todas' ? `${base} (${wishlist.length})` : `${base} (${porPrioridade[p]})`;
+  });
+  const tagBox=document.getElementById('wishlist-filtros-tag');
+  if(tagBox){
+    const tagsUsadas=[...new Set(wishlist.map(it=>it.tag).filter(Boolean))];
+    tagBox.innerHTML = tagsUsadas.length ? `<div class="hist-chip ${filtroTagWishlist==='todas'?'active':''}" data-t="todas" onclick="filtrarWishlistTag('todas')">Todas as etiquetas</div>` + tagsUsadas.map(t=>`<div class="hist-chip ${filtroTagWishlist===t?'active':''}" data-t="${esc(t)}" onclick="filtrarWishlistTag('${esc(t)}')">${esc(t)}</div>`).join('') : '';
+  }
 
   let comIndice = wishlist.map((it,i)=>({it,i}));
   if(filtroWishlist!=='todas') comIndice=comIndice.filter(({it})=>(it.prioridade||'media')===filtroWishlist);
+  if(filtroTagWishlist!=='todas') comIndice=comIndice.filter(({it})=>it.tag===filtroTagWishlist);
   if(escondeComprados) comIndice=comIndice.filter(({it})=>!it.comprado);
+  if(pesquisa) comIndice=comIndice.filter(({it})=>it.texto.toLowerCase().includes(pesquisa));
 
   if(wishlist.length===0){ el.innerHTML=`<div class="empty">${esc(textoEfetivo('txt-empty-wishlist'))}</div>`; return; }
   if(comIndice.length===0){ el.innerHTML='<div class="empty">Sem itens para este filtro.</div>'; return; }
 
-  comIndice.sort((a,b)=>b.i-a.i).forEach(({it,i})=>{
+  const ordemPrioridade={alta:0,media:1,baixa:2};
+  if(ordem==='antigo') comIndice.sort((a,b)=>a.i-b.i);
+  else if(ordem==='preco-desc') comIndice.sort((a,b)=>(b.it.preco||0)-(a.it.preco||0));
+  else if(ordem==='preco-asc') comIndice.sort((a,b)=>(a.it.preco||0)-(b.it.preco||0));
+  else if(ordem==='prioridade') comIndice.sort((a,b)=>ordemPrioridade[a.it.prioridade||'media']-ordemPrioridade[b.it.prioridade||'media']);
+  else comIndice.sort((a,b)=>b.i-a.i);
+
+  comIndice.forEach(({it,i})=>{
     const dataFmt=new Date(it.criadaEm).toLocaleString('pt-PT',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
     const prioridade=it.prioridade||'media';
     const div=document.createElement('div');
@@ -1997,30 +2493,44 @@ function abrirWishlistDetalhe(idx){
   document.getElementById('wishlist-detalhe-preco').value = item && item.preco ? item.preco : '';
   document.getElementById('wishlist-detalhe-prioridade').value = item && item.prioridade ? item.prioridade : 'media';
   document.getElementById('wishlist-detalhe-link').value = item && item.link ? item.link : '';
+  document.getElementById('wishlist-detalhe-tag').value = item && item.tag ? item.tag : '';
   document.getElementById('wishlist-detalhe-comprado').checked = !!(item && item.comprado);
   document.getElementById('wishlist-detalhe-foto-input').value='';
   fotoWishlistTemp = item && item.foto ? item.foto : null;
   mostrarPreviewFoto(fotoWishlistTemp);
   document.getElementById('wishlist-detalhe-apagar-btn').style.display = item ? '' : 'none';
+  document.getElementById('wishlist-detalhe-duplicar-btn').style.display = item ? '' : 'none';
+  document.getElementById('wishlist-apagar-confirmar').style.display='none';
   document.getElementById('wishlist-detalhe-data').textContent = item ? 'Adicionado em '+new Date(item.criadaEm).toLocaleString('pt-PT',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '';
   document.getElementById('wishlist-detalhe-sheet').classList.add('open');
 }
 function fecharWishlistDetalhe(e){
   if(e && e.target && e.target.id!=='wishlist-detalhe-sheet') return;
+  restaurarJanela('wishlist-detalhe-sheet');
   document.getElementById('wishlist-detalhe-sheet').classList.remove('open');
+}
+function duplicarItemWishlist(){
+  if(wishlistIdxAtual===null || wishlistIdxAtual===undefined) return;
+  const original=wishlist[wishlistIdxAtual];
+  wishlist.push({...original,comprado:false,criadaEm:new Date().toISOString()});
+  salvarTudo();
+  renderWishlist();
+  document.getElementById('wishlist-detalhe-sheet').classList.remove('open');
+  showToast('Item duplicado','⧉');
 }
 document.getElementById('wishlist-detalhe-guardar-btn').addEventListener('click',()=>{
   const texto=document.getElementById('wishlist-detalhe-texto').value.trim();
   const preco=parseFloat(document.getElementById('wishlist-detalhe-preco').value)||0;
   const prioridade=document.getElementById('wishlist-detalhe-prioridade').value;
   const link=document.getElementById('wishlist-detalhe-link').value.trim();
+  const tag=document.getElementById('wishlist-detalhe-tag').value;
   const comprado=document.getElementById('wishlist-detalhe-comprado').checked;
   const foto=fotoWishlistTemp;
   if(!texto){ showToast('Escreve o que queres antes de guardar','⚠️'); return; }
   if(wishlistIdxAtual!==null && wishlistIdxAtual!==undefined){
-    Object.assign(wishlist[wishlistIdxAtual],{texto,preco,prioridade,link,comprado,foto});
+    Object.assign(wishlist[wishlistIdxAtual],{texto,preco,prioridade,link,tag,comprado,foto});
   }else{
-    wishlist.push({texto,preco,prioridade,link,comprado,foto,criadaEm:new Date().toISOString()});
+    wishlist.push({texto,preco,prioridade,link,tag,comprado,foto,criadaEm:new Date().toISOString()});
   }
   salvarTudo();
   renderWishlist();
@@ -2029,13 +2539,17 @@ document.getElementById('wishlist-detalhe-guardar-btn').addEventListener('click'
   if(comprado) confetti();
 });
 document.getElementById('wishlist-detalhe-apagar-btn').addEventListener('click',()=>{
+  document.getElementById('wishlist-apagar-confirmar').style.display='block';
+});
+function confirmarApagarWishlist(){
   if(wishlistIdxAtual===null || wishlistIdxAtual===undefined) return;
   wishlist.splice(wishlistIdxAtual,1);
   salvarTudo();
   renderWishlist();
+  document.getElementById('wishlist-apagar-confirmar').style.display='none';
   document.getElementById('wishlist-detalhe-sheet').classList.remove('open');
   showToast('Item eliminado');
-});
+}
 
 function renderNotasGerais(){
   const el=document.getElementById('lista-notas-gerais');
@@ -2171,6 +2685,44 @@ function abrirCores(){
   if(somEasterEggAtivo) tocarSomForcado(660,90);
 }
 
+/* ---- minimizar janelas ao clicar fora (estilo Stage Manager): fica visível e acessível, não fecha ---- */
+let janelasMinimizadas=[];
+function minimizarOuFechar(e,overlayId){
+  if(e && e.target && e.target.id!==overlayId) return;
+  minimizarJanela(overlayId);
+}
+function minimizarJanela(overlayId){
+  const overlay=document.getElementById(overlayId);
+  if(!overlay) return;
+  const panel=overlay.querySelector('.fw-panel');
+  if(!panel || panel.classList.contains('fw-minimizado')) return;
+  panel.classList.add('fw-minimizado');
+  overlay.classList.add('fw-minimizado');
+  if(!janelasMinimizadas.includes(overlayId)) janelasMinimizadas.push(overlayId);
+  panel.onclick=(ev)=>{ ev.stopPropagation(); restaurarJanela(overlayId); };
+  reposicionarMinimizadas();
+}
+function restaurarJanela(overlayId){
+  const overlay=document.getElementById(overlayId);
+  if(!overlay) return;
+  const panel=overlay.querySelector('.fw-panel');
+  if(panel){
+    panel.classList.remove('fw-minimizado');
+    panel.onclick=(ev)=>{ ev.stopPropagation(); };
+    panel.style.removeProperty('--fw-min-bottom');
+  }
+  overlay.classList.remove('fw-minimizado');
+  janelasMinimizadas=janelasMinimizadas.filter(id=>id!==overlayId);
+  reposicionarMinimizadas();
+}
+function reposicionarMinimizadas(){
+  janelasMinimizadas.forEach((id,i)=>{
+    const overlay=document.getElementById(id);
+    const panel=overlay && overlay.querySelector('.fw-panel');
+    if(panel) panel.style.setProperty('--fw-min-bottom',(16+i*54)+'px');
+  });
+}
+
 /* ---- janelas flutuantes reutilizáveis: arrastar pelo cabeçalho, redimensionar pelas bordas (estilo iPad) ---- */
 function criarJanelaFlutuante(painel){
   if(!painel) return null;
@@ -2265,12 +2817,16 @@ criarJanelaFlutuante(document.getElementById('ampliar-cat-panel'));
 criarJanelaFlutuante(document.getElementById('ampliar-evo-panel'));
 criarJanelaFlutuante(document.getElementById('ampliar-plano-panel'));
 criarJanelaFlutuante(document.getElementById('pin-ampliar-panel'));
+criarJanelaFlutuante(document.getElementById('wishlist-panel'));
+criarJanelaFlutuante(document.getElementById('novidades-panel'));
+criarJanelaFlutuante(document.getElementById('wishlist-detalhe-panel'));
 window.reporJanelaAdmin=function(){
   if(janelaFlutuanteAdmin) janelaFlutuanteAdmin.reset();
   showToast('Janela reposta ao tamanho e posição original');
 };
 function fecharCores(e){
   if(e && e.target && e.target.id!=='cores-sheet') return;
+  restaurarJanela('cores-sheet');
   document.getElementById('cores-sheet').classList.remove('open');
 }
 function pedirConfirmacaoReporCores(){
@@ -2320,10 +2876,11 @@ aplicarCores(cores.a,cores.b,cores.pos,cores.neg);
  
 function mudarAdminTab(tab){
   document.querySelectorAll('[data-admtab]').forEach(t=>t.classList.toggle('active',t.dataset.admtab===tab));
-  ['cores','estilo','diversao','mais','editar'].forEach(id=>{
+  ['cores','estilo','diversao','mais','ferramentas','editar'].forEach(id=>{
     document.getElementById('admin-tab-'+id).style.display = id===tab ? 'block' : 'none';
   });
   if(tab==='editar') renderEditorPagina();
+  if(tab==='ferramentas') atualizarStatusFerramentas();
 }
 
 /* ---- editor de textos e secções das páginas (aba "Editar" do painel de administrador) ---- */
@@ -2478,7 +3035,392 @@ function renderEditorPagina(){
     inp.addEventListener('input',()=>atualizarPreviewEditor());
   });
   renderEditorSecoes();
+  renderEditorEstiloPagina();
+  renderEditorCanvas();
   atualizarPreviewEditor();
+  renderIaSugestoes();
+  if(iaChatHistorico.length===0){
+    iaChatHistorico.push({autor:'bot',texto:'Olá! Sou o assistente da app. Podes pedir-me para mudar o estilo, navegar entre abas, consultar o saldo, gerir a wishlist e muito mais. Escreve "ajuda" para veres tudo.'});
+    renderIaChat();
+  }
+}
+const paginaParaPanel={saldos:'panel-saldos',movimentos:'panel-movimentos',plano:'panel-plano'};
+function renderEditorEstiloPagina(){
+  const pagina=document.getElementById('editor-pagina-select').value;
+  const aviso=document.getElementById('editor-estilo-pagina-aviso');
+  const controlos=document.getElementById('editor-estilo-pagina-controlos');
+  if(!paginaParaPanel[pagina]){
+    aviso.style.display='block'; controlos.style.display='none'; return;
+  }
+  aviso.style.display='none'; controlos.style.display='block';
+  const cs=getComputedStyle(document.documentElement);
+  const est=estiloPorPagina[pagina]||{};
+  document.getElementById('editor-cor-pagina').value = est.cor || rgbParaHex(cs.getPropertyValue('--brand-a').trim()) || '#6C4CF1';
+  const tsize=est.tituloSize||15;
+  document.getElementById('editor-titulo-size-slider').value=tsize;
+  document.getElementById('editor-titulo-size-val').textContent=tsize+'px';
+  const gap=est.gap||20;
+  document.getElementById('editor-gap-pagina-slider').value=gap;
+  document.getElementById('editor-gap-pagina-val').textContent=gap+'px';
+}
+function rgbParaHex(cor){
+  if(!cor) return null;
+  if(cor.startsWith('#')) return cor;
+  const m=cor.match(/\d+/g);
+  if(!m) return null;
+  return '#'+m.slice(0,3).map(n=>parseInt(n).toString(16).padStart(2,'0')).join('');
+}
+function mudarCorPagina(v){
+  const pagina=document.getElementById('editor-pagina-select').value;
+  if(!estiloPorPagina[pagina]) estiloPorPagina[pagina]={};
+  estiloPorPagina[pagina].cor=v;
+  gravarJSON('estiloPorPagina',estiloPorPagina);
+  aplicarEstiloPagina(pagina);
+}
+function mudarTituloSizePagina(v){
+  const pagina=document.getElementById('editor-pagina-select').value;
+  if(!estiloPorPagina[pagina]) estiloPorPagina[pagina]={};
+  estiloPorPagina[pagina].tituloSize=parseInt(v);
+  document.getElementById('editor-titulo-size-val').textContent=v+'px';
+  gravarJSON('estiloPorPagina',estiloPorPagina);
+  aplicarEstiloPagina(pagina);
+}
+function mudarGapPagina(v){
+  const pagina=document.getElementById('editor-pagina-select').value;
+  if(!estiloPorPagina[pagina]) estiloPorPagina[pagina]={};
+  estiloPorPagina[pagina].gap=parseInt(v);
+  document.getElementById('editor-gap-pagina-val').textContent=v+'px';
+  gravarJSON('estiloPorPagina',estiloPorPagina);
+  aplicarEstiloPagina(pagina);
+}
+function reporEstiloPagina(){
+  const pagina=document.getElementById('editor-pagina-select').value;
+  delete estiloPorPagina[pagina];
+  gravarJSON('estiloPorPagina',estiloPorPagina);
+  aplicarEstiloPagina(pagina);
+  renderEditorEstiloPagina();
+  showToast('Estilo desta página reposto');
+}
+function aplicarEstiloPagina(pagina){
+  const panelId=paginaParaPanel[pagina];
+  if(!panelId) return;
+  const el=document.getElementById(panelId);
+  if(!el) return;
+  const est=estiloPorPagina[pagina]||{};
+  if(est.cor) el.style.setProperty('--brand-a',est.cor); else el.style.removeProperty('--brand-a');
+  if(est.tituloSize) el.style.setProperty('--section-title-size',est.tituloSize+'px'); else el.style.removeProperty('--section-title-size');
+  if(est.gap) el.style.setProperty('--section-gap',est.gap+'px'); else el.style.removeProperty('--section-gap');
+}
+function aplicarEstiloTodasPaginas(){
+  Object.keys(paginaParaPanel).forEach(p=>aplicarEstiloPagina(p));
+}
+/* -- tela de reorganização de secções (arrastar e largar) -- */
+function renderEditorCanvas(){
+  const pagina=document.getElementById('editor-pagina-select').value;
+  const canvas=document.getElementById('editor-canvas');
+  const secoes=secoesEditor[pagina]||[];
+  if(secoes.length<2){
+    canvas.innerHTML=`<div style="color:var(--muted);font-size:12px;padding:6px 2px;">Esta página não tem secções suficientes para reorganizar.</div>`;
+    return;
+  }
+  const ordem=ordemSecoesPorPagina[pagina];
+  let lista=secoes.slice();
+  if(ordem){
+    lista=ordem.map(id=>secoes.find(s=>s.id===id)).filter(Boolean);
+    secoes.forEach(s=>{ if(!lista.find(x=>x.id===s.id)) lista.push(s); });
+  }
+  canvas.innerHTML='';
+  lista.forEach(s=>{
+    const bloco=document.createElement('div');
+    bloco.className='editor-canvas-bloco';
+    bloco.draggable=true;
+    bloco.dataset.id=s.id;
+    bloco.innerHTML=`<span class="drag-handle">⠿</span><span>${esc(tituloCampoCurto(s.label))}</span>`;
+    bloco.addEventListener('dragstart',()=>{ bloco.classList.add('a-arrastar-bloco'); });
+    bloco.addEventListener('dragend',()=>{ bloco.classList.remove('a-arrastar-bloco'); guardarOrdemCanvas(pagina); });
+    bloco.addEventListener('dragover',e=>{
+      e.preventDefault();
+      const emArrasto=canvas.querySelector('.a-arrastar-bloco');
+      if(!emArrasto || emArrasto===bloco) return;
+      const rect=bloco.getBoundingClientRect();
+      const depoisDoMeio=(e.clientY-rect.top)>rect.height/2;
+      canvas.insertBefore(emArrasto, depoisDoMeio ? bloco.nextSibling : bloco);
+    });
+    canvas.appendChild(bloco);
+  });
+}
+function guardarOrdemCanvas(pagina){
+  const canvas=document.getElementById('editor-canvas');
+  const ordem=[...canvas.querySelectorAll('.editor-canvas-bloco')].map(b=>b.dataset.id);
+  ordemSecoesPorPagina[pagina]=ordem;
+  gravarJSON('ordemSecoesPorPagina',ordemSecoesPorPagina);
+  aplicarOrdemSecoes(pagina);
+  showToast('Ordem das secções guardada','↕️');
+}
+function aplicarOrdemSecoes(pagina){
+  const ordem=ordemSecoesPorPagina[pagina];
+  if(!ordem) return;
+  ordem.forEach((id,i)=>{
+    const el=document.getElementById(id);
+    if(el) el.style.order=i;
+  });
+}
+function aplicarOrdemTodasPaginas(){
+  Object.keys(ordemSecoesPorPagina).forEach(p=>aplicarOrdemSecoes(p));
+}
+/* -- assistente local da app (interpreta comandos simples em português, sem ligação à internet) -- */
+const iaCoresConhecidas={
+  azul:'#2D6CDF', vermelho:'#E0483F', verde:'#2FAE66', roxo:'#6C4CF1', púrpura:'#6C4CF1',
+  laranja:'#E08A3F', rosa:'#D63384', preto:'#111111', branco:'#FFFFFF', amarelo:'#E0C93F', cinza:'#8A8A8E'
+};
+function renderIaChat(){
+  const box=document.getElementById('ia-chat-historico');
+  box.innerHTML=iaChatHistorico.map(m=>`<div class="ia-msg ${m.autor}">${esc(m.texto).replace(/\n/g,'<br>')}</div>`).join('');
+  box.scrollTop=box.scrollHeight;
+}
+const iaSugestoesRapidas=['qual é o meu saldo','abre a wishlist','aumenta o tamanho dos títulos','ajuda'];
+function renderIaSugestoes(){
+  const box=document.getElementById('ia-chat-sugestoes');
+  if(!box) return;
+  box.innerHTML=iaSugestoesRapidas.map(s=>`<button class="sheet-btn" style="padding:5px 10px;font-size:11px;" onclick="executarSugestaoIA('${s.replace(/'/g,"\\'")}')">${esc(s)}</button>`).join('');
+}
+function executarSugestaoIA(texto){
+  document.getElementById('ia-chat-input').value=texto;
+  enviarComandoIA();
+}
+function limparChatIA(){
+  iaChatHistorico=[];
+  renderIaChat();
+  showToast('Conversa limpa');
+}
+function enviarComandoIA(){
+  const inp=document.getElementById('ia-chat-input');
+  const texto=inp.value.trim();
+  if(!texto) return;
+  iaChatHistorico.push({autor:'user',texto});
+  inp.value='';
+  const resposta=processarComandoIA(texto);
+  iaChatHistorico.push({autor:'bot',texto:resposta});
+  renderIaChat();
+}
+const iaCapacidades=[
+  {grupo:'Estilo da página',exemplos:['aumenta o tamanho dos títulos','diminui os títulos','aumenta o espaçamento','muda a cor para azul','repõe o estilo desta página']},
+  {grupo:'Secções',exemplos:['esconde os recorrentes','mostra as notas','esconde a evolução mensal']},
+  {grupo:'Navegação',exemplos:['abre os movimentos','vai para o planeamento','mostra os saldos','abre a wishlist','abre as novidades','abre o painel de administração']},
+  {grupo:'Finanças',exemplos:['qual é o meu saldo','quanto gastei este mês','quais as categorias que mais gasto','compara com o mês passado','resume as minhas finanças']},
+  {grupo:'Wishlist',exemplos:['adiciona X à wishlist','quantos itens tenho na wishlist','escolhe um item da wishlist por mim']},
+  {grupo:'Aparência geral',exemplos:['ativa o modo escuro','ativa o modo claro']},
+  {grupo:'Segurança',exemplos:['bloqueia a app agora','define um novo pin']},
+  {grupo:'Diversão',exemplos:['faz confetti','toca um som']}
+];
+function iaListarAjuda(){
+  return 'Aqui está o que eu sei fazer, por categoria:\n\n'+iaCapacidades.map(c=>`• ${c.grupo}: ${c.exemplos.map(e=>'"'+e+'"').join(', ')}`).join('\n');
+}
+function iaSugerirParecido(t){
+  const todos=iaCapacidades.flatMap(c=>c.exemplos);
+  const palavrasT=new Set(t.split(/\s+/).filter(w=>w.length>2));
+  let melhor=null, melhorPontos=0;
+  todos.forEach(ex=>{
+    const palavrasEx=ex.toLowerCase().split(/\s+/).filter(w=>w.length>2);
+    const pontos=palavrasEx.filter(w=>palavrasT.has(w)).length;
+    if(pontos>melhorPontos){ melhorPontos=pontos; melhor=ex; }
+  });
+  return melhorPontos>0 ? melhor : null;
+}
+function irParaAba(id){
+  const btn=document.querySelector(`.seg-btn[data-tab="${id}"]`);
+  if(btn) btn.click();
+}
+/* -- "teletransporte": índice de todos os locais/secções conhecidos da app, para o assistente conseguir levar-te a qualquer parte -- */
+function destacarElemento(el){
+  if(!el) return;
+  try{ el.scrollIntoView({behavior:'smooth',block:'center'}); }catch(e){}
+  el.classList.add('ia-destaque');
+  setTimeout(()=>el.classList.remove('ia-destaque'),2000);
+}
+const iaIndiceLocais=[
+  {label:'Saldos',keywords:['saldo','saldos','contas','total geral','as tuas contas'],ir:()=>{ irParaAba('saldos'); setTimeout(()=>destacarElemento(document.getElementById('panel-saldos')),150); }},
+  {label:'Movimentos',keywords:['movimento','movimentos','lançamento','lançamentos','transações','transacoes'],ir:()=>{ irParaAba('movimentos'); setTimeout(()=>destacarElemento(document.getElementById('panel-movimentos')),150); }},
+  {label:'Planeamento',keywords:['planeamento','planejamento','orçamento anual','orcamento anual'],ir:()=>{ irParaAba('plano'); setTimeout(()=>destacarElemento(document.getElementById('panel-plano')),150); }},
+  {label:'Recorrentes',keywords:['recorrente','recorrentes','mensalidade','mensalidades','assinatura','assinaturas'],ir:()=>{ irParaAba('movimentos'); setTimeout(()=>destacarElemento(document.getElementById('secao-recorrentes')),150); }},
+  {label:'Gastos por categoria',keywords:['categoria','categorias','gastos por categoria','gráfico de categorias','grafico de categorias','pizza','doughnut'],ir:()=>{ irParaAba('movimentos'); setTimeout(()=>destacarElemento(document.getElementById('secao-gastos-categoria')),150); }},
+  {label:'Evolução mensal',keywords:['evolução','evolucao','tendência','tendencia','histórico de saldo','historico de saldo'],ir:()=>{ irParaAba('movimentos'); setTimeout(()=>destacarElemento(document.getElementById('secao-evolucao-mensal')),150); }},
+  {label:'Notas',keywords:['nota','notas','apontamento','apontamentos'],ir:()=>{ irParaAba('movimentos'); setTimeout(()=>destacarElemento(document.getElementById('secao-notas-gerais')),150); }},
+  {label:'Exportar / importar dados',keywords:['exportar','importar','backup','ficheiro json','dados json'],ir:()=>{ irParaAba('saldos'); setTimeout(()=>destacarElemento(document.getElementById('secao-export')),150); }},
+  {label:'Wishlist',keywords:['wishlist','lista de desejos','desejos','quero comprar'],ir:()=>abrirWishlist()},
+  {label:'Novidades e histórico de versões',keywords:['novidade','novidades','atualização','atualizacao','changelog','versão','versao','histórico de versões'],ir:()=>abrirNovidades()},
+  {label:'Cores',keywords:['cor','cores','personalizar cor','gradiente do topo'],ir:()=>{ abrirCores(); mudarAdminTab('cores'); }},
+  {label:'Estilo',keywords:['estilo','fonte','tipo de letra','arredondamento','sombra','opacidade'],ir:()=>{ abrirCores(); mudarAdminTab('estilo'); }},
+  {label:'Diversão',keywords:['diversão','diversao','easter egg','glitch','modo festa','cor aleatória'],ir:()=>{ abrirCores(); mudarAdminTab('diversao'); }},
+  {label:'Bloqueio por PIN',keywords:['pin','bloqueio','senha','password','cadeado','bloquear a app'],ir:()=>{ abrirCores(); mudarAdminTab('diversao'); setTimeout(()=>destacarElemento(document.getElementById('pin-status-info')),200); }},
+  {label:'Mais opções de cores e estilo',keywords:['mais opções','mais cores','daltonismo','alto contraste'],ir:()=>{ abrirCores(); mudarAdminTab('mais'); }},
+  {label:'Ferramentas',keywords:['ferramentas','backup automático','meta de poupança','juros compostos','conversor de moeda','tarefas rápidas','relatório mensal'],ir:()=>{ abrirCores(); mudarAdminTab('ferramentas'); }},
+  {label:'Editar textos, secções e estilo por página',keywords:['editar','editor','textos da app','secções da página','tela de reorganização','estilo da página','assistente'],ir:()=>{ abrirCores(); mudarAdminTab('editar'); }}
+];
+function pontuarLocal(t,local){
+  let pontos=0;
+  local.keywords.forEach(k=>{ if(t.includes(k)) pontos+=k.length; });
+  if(t.includes(local.label.toLowerCase())) pontos+=local.label.length;
+  return pontos;
+}
+function teletransportar(t){
+  let melhor=null, melhorPontos=0;
+  iaIndiceLocais.forEach(local=>{
+    const p=pontuarLocal(t,local);
+    if(p>melhorPontos){ melhorPontos=p; melhor=local; }
+  });
+  if(melhor){ melhor.ir(); return `Claro! Levei-te até "${melhor.label}".`; }
+  return null;
+}
+function processarComandoIA(textoOriginal){
+  const t=textoOriginal.toLowerCase().trim();
+  const pagina=document.getElementById('editor-pagina-select').value;
+  const temPainelProprio=!!paginaParaPanel[pagina];
+
+  /* -- conversa simples -- */
+  if(/^(ol[áa]|oi|boa tarde|bom dia|boa noite|hey)(\s|$|!|\?)/.test(t)) return 'Olá! Sou o assistente da app. Escreve "ajuda" para veres tudo o que sei fazer, ou pede-me diretamente para mudar alguma coisa — até consigo levar-te diretamente a qualquer parte da app.';
+  if(/obrigad[oa]|valeu|fixe,? obrigad/.test(t)) return 'De nada! Sempre que precisares, estou aqui. 🙂';
+  if(/^(ajuda|help|o que consegues fazer|o que sabes fazer|capacidades)\b/.test(t)) return iaListarAjuda()+'\n\nTambém consigo "teletransportar-te": pede-me, por exemplo, "leva-me para os recorrentes" ou "onde está o bloqueio por PIN" e eu levo-te lá diretamente e destaco o sítio certo.';
+
+  /* -- "teletransporte" explícito: pedidos claros de navegação levam logo ao índice de locais -- */
+  const gatilhoTeleporte=/^(leva[- ]?me|vai[- ]?me|leva[- ]?nos|mostra[- ]?me onde|onde (fica|est[áa]|est[ãa]o|posso|consigo)|encontra|aponta|indica|abre[- ]?me|preciso de encontrar|quero ir para|quero ver)/;
+  if(gatilhoTeleporte.test(t)){
+    const resto=t.replace(gatilhoTeleporte,'').replace(/^(a|o|as|os|para|até|ate|onde diz|onde|é|e)\s+/,'').trim();
+    const resultado=teletransportar(resto||t);
+    if(resultado) return resultado;
+    return 'Não encontrei nada na app parecido com isso. Escreve "ajuda" para veres as secções que conheço.';
+  }
+
+  /* -- estilo da página: tamanho dos títulos -- */
+  if(/(aumenta|maior|aumentar).*(t[íi]tulo|letra|texto)/.test(t) || /(t[íi]tulo).*(maior|aumenta)/.test(t)){
+    if(!temPainelProprio) return 'Esta página ("Geral") não tem um estilo próprio — escolhe "Saldos", "Movimentos" ou "Planeamento" no seletor acima.';
+    const atual=(estiloPorPagina[pagina]&&estiloPorPagina[pagina].tituloSize)||15;
+    const novo=Math.min(22,atual+2);
+    document.getElementById('editor-titulo-size-slider').value=novo;
+    mudarTituloSizePagina(novo);
+    return `Aumentei o tamanho dos títulos desta página para ${novo}px.`;
+  }
+  if(/(diminui|menor|reduzir|reduz).*(t[íi]tulo|letra|texto)/.test(t) || /(t[íi]tulo).*(menor|diminui)/.test(t)){
+    if(!temPainelProprio) return 'Esta página ("Geral") não tem um estilo próprio — escolhe "Saldos", "Movimentos" ou "Planeamento" no seletor acima.';
+    const atual=(estiloPorPagina[pagina]&&estiloPorPagina[pagina].tituloSize)||15;
+    const novo=Math.max(12,atual-2);
+    document.getElementById('editor-titulo-size-slider').value=novo;
+    mudarTituloSizePagina(novo);
+    return `Diminuí o tamanho dos títulos desta página para ${novo}px.`;
+  }
+  /* -- espaçamento -- */
+  if(/(aumenta|maior).*(espaç|espac)/.test(t)){
+    if(!temPainelProprio) return 'Esta página ("Geral") não tem espaçamento próprio para ajustar.';
+    const atual=(estiloPorPagina[pagina]&&estiloPorPagina[pagina].gap)||20;
+    const novo=Math.min(40,atual+6);
+    document.getElementById('editor-gap-pagina-slider').value=novo;
+    mudarGapPagina(novo);
+    return `Aumentei o espaçamento entre secções para ${novo}px.`;
+  }
+  if(/(diminui|menor|reduz).*(espaç|espac)/.test(t)){
+    if(!temPainelProprio) return 'Esta página ("Geral") não tem espaçamento próprio para ajustar.';
+    const atual=(estiloPorPagina[pagina]&&estiloPorPagina[pagina].gap)||20;
+    const novo=Math.max(8,atual-6);
+    document.getElementById('editor-gap-pagina-slider').value=novo;
+    mudarGapPagina(novo);
+    return `Diminuí o espaçamento entre secções para ${novo}px.`;
+  }
+  /* -- cor da página -- */
+  const corPedida=Object.keys(iaCoresConhecidas).find(c=>t.includes(c));
+  if(corPedida && /(cor|azul|vermelho|verde|roxo|laranja|rosa|preto|branco|amarelo|cinza)/.test(t)){
+    if(!temPainelProprio) return 'Esta página ("Geral") não tem uma cor própria — escolhe "Saldos", "Movimentos" ou "Planeamento".';
+    const hex=iaCoresConhecidas[corPedida];
+    document.getElementById('editor-cor-pagina').value=hex;
+    mudarCorPagina(hex);
+    return `Mudei a cor de destaque desta página para ${corPedida}.`;
+  }
+  /* -- mostrar/esconder secções -- */
+  const secoesDaPagina=secoesEditor[pagina]||[];
+  for(const s of secoesDaPagina){
+    const chave=tituloCampoCurto(s.label).toLowerCase();
+    if(t.includes(chave.split(' ')[0])){
+      const esconder=/esconde|oculta|remove/.test(t);
+      const mostrar=/mostra|ativa|exibe/.test(t);
+      if(esconder||mostrar){
+        secoesApp[s.id]=mostrar;
+        gravarJSON('secoesApp',secoesApp);
+        aplicarSecoesApp();
+        renderEditorSecoes();
+        return `${mostrar?'Mostrei':'Escondi'} a secção "${tituloCampoCurto(s.label)}".`;
+      }
+    }
+  }
+  /* -- repor estilo -- */
+  if(/(rep[oõ]e|reset|restaura).*(estilo|p[áa]gina)/.test(t)){
+    if(!temPainelProprio) return 'Esta página não tem estilo próprio para repor.';
+    reporEstiloPagina();
+    return 'Reposto o estilo desta página às predefinições.';
+  }
+  /* -- navegação entre abas principais -- */
+  if(/(abre|vai para|mostra|muda para).*(movimento)/.test(t)){ irParaAba('movimentos'); return 'Abri a aba Movimentos.'; }
+  if(/(abre|vai para|mostra|muda para).*(planeamento|planejamento)/.test(t)){ irParaAba('plano'); return 'Abri a aba Planeamento.'; }
+  if(/(abre|vai para|mostra|muda para).*(saldo)/.test(t)){ irParaAba('saldos'); return 'Abri a aba Saldos.'; }
+  if(/(abre|mostra).*(wishlist|lista de desejos)/.test(t)){ abrirWishlist(); return 'Abri a Wishlist.'; }
+  if(/(abre|mostra).*(novidade)/.test(t)){ abrirNovidades(); return 'Abri as Novidades.'; }
+  if(/(abre|mostra).*(admin|administra[çc][ãa]o|painel)/.test(t)){ abrirCores(); return 'Abri o painel de administração.'; }
+  /* -- modo escuro/claro -- */
+  if(/(ativa|muda para|liga).*(escuro|dark)/.test(t)){
+    if(!document.body.classList.contains('dark')) toggleDark();
+    return 'Modo escuro ativado.';
+  }
+  if(/(ativa|muda para|liga).*(claro|light)/.test(t)){
+    if(document.body.classList.contains('dark')) toggleDark();
+    return 'Modo claro ativado.';
+  }
+  /* -- perguntas financeiras diretas -- */
+  if(/qual.*(o meu saldo|saldo total)|saldo total/.test(t)){
+    const totalAtual=Object.values(abas).reduce((s,v)=>s+v,0);
+    return `O teu saldo total é de ${dinheiro(totalAtual)}.`;
+  }
+  if(/quanto gastei|gastos deste m[êe]s|gastei este m[êe]s/.test(t)){
+    const hoje=new Date();
+    const chave=hoje.getFullYear()+'-'+String(hoje.getMonth()+1).padStart(2,'0');
+    const gastos=(movimentos[chave]||[]).filter(x=>x.tipo==='gasto').reduce((s,x)=>s+x.valor,0);
+    return `Este mês já gastaste ${dinheiro(gastos)}.`;
+  }
+  if(/categorias? que mais gast|top categorias/.test(t)){
+    verTopCategorias();
+    return 'Já te mostrei as categorias que mais pesam no orçamento (vê a notificação).';
+  }
+  if(/compara.*(m[êe]s passado|m[êe]s anterior)/.test(t)){
+    compararComMesAnterior();
+    return 'Comparei os teus gastos com o mês anterior (vê a notificação).';
+  }
+  if(/resum[eo].*(finan|saldo)/.test(t)){
+    mostrarResumoFinanceiroRapido();
+    return 'Aqui está o teu resumo financeiro rápido (vê a notificação).';
+  }
+  /* -- wishlist -- */
+  if(/quantos itens.*(wishlist|lista de desejos)/.test(t)){
+    return wishlist.length===0 ? 'A tua wishlist está vazia.' : `Tens ${wishlist.length} item${wishlist.length===1?'':'s'} na wishlist.`;
+  }
+  const addWishlistMatch=t.match(/(?:adiciona|p[õo]e|mete)\s+(.+?)\s+(?:à|na|para a)\s+wishlist/);
+  if(addWishlistMatch){
+    const texto=addWishlistMatch[1].trim();
+    wishlist.push({texto,preco:0,prioridade:'media',link:'',tag:'',comprado:false,foto:null,criadaEm:new Date().toISOString()});
+    salvarTudo(); renderWishlist();
+    return `Adicionei "${texto}" à wishlist.`;
+  }
+  if(/escolhe.*(wishlist|por mim)/.test(t)){ sortearWishlist(); return 'Escolhi um item por ti (vê a janela da wishlist).'; }
+  /* -- segurança -- */
+  if(/bloqueia a app|tranca a app/.test(t)){ bloquearAgora(); return 'A app foi bloqueada.'; }
+  if(/define.*(pin|senha)|novo pin/.test(t)){ definirPin(); return 'Segue as instruções para definires o novo PIN.'; }
+  /* -- diversão -- */
+  if(/confetti|festa/.test(t)){ confetti(); return 'Confetti! 🎉'; }
+  if(/toca um som|faz um som/.test(t)){ tocarSomForcado(660,150); return 'Som tocado.'; }
+
+  /* -- fallback inteligente: tenta perceber se a pessoa está a falar de algum sítio da app e leva-a lá -- */
+  const resultadoTeleporte=teletransportar(t);
+  if(resultadoTeleporte) return resultadoTeleporte;
+  /* -- último recurso: sugere o comando mais parecido -- */
+  const sugestao=iaSugerirParecido(t);
+  if(sugestao) return `Não tenho a certeza, mas talvez quisesses dizer: "${sugestao}"? Escreve "ajuda" para veres tudo o que sei fazer.`;
+  return 'Não percebi bem esse pedido. Escreve "ajuda" para veres tudo o que sei fazer, ou tenta algo como "aumenta o tamanho dos títulos", "leva-me à wishlist" ou "qual é o meu saldo".';
 }
 function atualizarPreviewEditor(){
   const pagina=document.getElementById('editor-pagina-select').value;
@@ -2706,15 +3648,29 @@ function tocarSomForcado(freq,dur){
     setTimeout(()=>{ o.stop(); ctx.close(); },dur);
   }catch(e){}
 }
+function registarLogPin(tipo){
+  pinLog.unshift({tipo,data:new Date().toISOString()});
+  if(pinLog.length>50) pinLog=pinLog.slice(0,50);
+  gravarJSON('pinLog',pinLog);
+  if(document.getElementById('pin-historico-lista').style.display!=='none') renderHistoricoPin();
+}
 function definirPin(){
-  const pin=prompt('Define um PIN (só números, 4 dígitos ou mais):');
+  let pin=prompt(`Define um PIN (só números, mínimo ${pinComprimentoMin} dígitos):`);
   if(!pin) return;
+  if(!/^\d+$/.test(pin) || pin.length<pinComprimentoMin){ showToast(`O PIN tem de ter pelo menos ${pinComprimentoMin} dígitos numéricos`,'⚠️'); return; }
+  if(pinConfirmarDuasVezes){
+    const confirmacao=prompt('Confirma o PIN outra vez:');
+    if(confirmacao!==pin){ showToast('Os dois PINs não coincidem — nada foi alterado','⚠️'); return; }
+  }
   pinApp=pin;
   pinDefinidoEm=new Date().toISOString();
   pinTentativasErradas=0;
+  pinBloqueadoAte=null;
   gravarJSON('pinApp',pinApp);
   gravarJSON('pinDefinidoEm',pinDefinidoEm);
   gravarJSON('pinTentativasErradas',pinTentativasErradas);
+  gravarJSON('pinBloqueadoAte',pinBloqueadoAte);
+  registarLogPin('PIN definido/alterado');
   atualizarPinStatus();
   reiniciarTimerInatividade();
   showToast('PIN definido','🔒');
@@ -2727,25 +3683,81 @@ function bloquearAgora(){
 function mostrarEcraBloqueio(){
   document.getElementById('lock-pin-erro').textContent='';
   document.getElementById('lock-pin-input').value='';
+  document.getElementById('lock-pin-input').type = pinMostrarEscrever ? 'text' : 'password';
+  document.getElementById('lock-emoji').textContent=pinEmoji||'🔒';
+  const dicaEl=document.getElementById('lock-pin-dica');
+  dicaEl.style.display='none'; dicaEl.textContent='';
+  renderLockKeypad();
   document.getElementById('lock-screen').classList.add('open');
   setTimeout(()=>{ const i=document.getElementById('lock-pin-input'); if(i) i.focus(); },100);
 }
+function renderLockKeypad(){
+  const box=document.getElementById('lock-keypad');
+  if(!pinTecladoBaralhado){ box.style.display='none'; box.innerHTML=''; return; }
+  let digitos=['1','2','3','4','5','6','7','8','9','⌫','0','OK'];
+  const soDigitos=digitos.slice(0,9);
+  for(let i=soDigitos.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [soDigitos[i],soDigitos[j]]=[soDigitos[j],soDigitos[i]]; }
+  digitos=[...soDigitos,'⌫','0','OK'];
+  box.style.display='grid';
+  box.innerHTML='';
+  digitos.forEach(d=>{
+    const b=document.createElement('button');
+    b.textContent=d;
+    b.className='sheet-btn';
+    b.style.cssText='padding:12px;font-size:16px;';
+    b.addEventListener('click',()=>{
+      const inp=document.getElementById('lock-pin-input');
+      if(d==='⌫') inp.value=inp.value.slice(0,-1);
+      else if(d==='OK') tentarDesbloquear();
+      else inp.value+=d;
+    });
+    box.appendChild(b);
+  });
+}
 function tentarDesbloquear(){
+  if(pinBloqueadoAte && Date.now()<pinBloqueadoAte){
+    const restam=Math.ceil((pinBloqueadoAte-Date.now())/1000);
+    document.getElementById('lock-pin-erro').textContent=`Demasiadas tentativas — espera ${restam}s.`;
+    return;
+  }
   const val=document.getElementById('lock-pin-input').value;
   if(val && val===pinApp){
     appBloqueada=false;
     pinTentativasErradas=0;
+    pinBloqueadoAte=null;
+    pinUltimoDesbloqueio=new Date().toISOString();
+    pinTotalDesbloqueios++;
     gravarJSON('pinTentativasErradas',pinTentativasErradas);
+    gravarJSON('pinBloqueadoAte',pinBloqueadoAte);
+    gravarJSON('pinUltimoDesbloqueio',pinUltimoDesbloqueio);
+    gravarJSON('pinTotalDesbloqueios',pinTotalDesbloqueios);
+    registarLogPin('Desbloqueado com sucesso');
     document.getElementById('lock-screen').classList.remove('open');
     document.getElementById('lock-pin-input').value='';
     document.getElementById('lock-pin-erro').textContent='';
     atualizarPinStatus();
     reiniciarTimerInatividade();
+    if(pinSomDesbloquear) tocarSomForcado(880,120);
+    if(pinConfettiDesbloquear) confetti();
+    if(pinVibrarSucesso && typeof navigator!=='undefined' && navigator.vibrate){ try{ navigator.vibrate(80); }catch(e){} }
   }else{
     document.getElementById('lock-pin-erro').textContent='PIN incorreto. Tenta outra vez.';
     pinTentativasErradas++;
     gravarJSON('pinTentativasErradas',pinTentativasErradas);
+    registarLogPin('Tentativa errada');
+    if(pinDica && pinTentativasErradas>=3){
+      const dicaEl=document.getElementById('lock-pin-dica');
+      dicaEl.style.display='block';
+      dicaEl.textContent='Dica: '+pinDica;
+    }
+    if(pinTentativasMax>0 && pinTentativasErradas>=pinTentativasMax){
+      pinBloqueadoAte=Date.now()+pinBloqueioDuracaoMin*60000;
+      gravarJSON('pinBloqueadoAte',pinBloqueadoAte);
+      document.getElementById('lock-pin-erro').textContent=`Demasiadas tentativas erradas — espera ${pinBloqueioDuracaoMin} min.`;
+      registarLogPin('Bloqueio temporário ativado');
+    }
     atualizarPinStatus();
+    if(pinSomErro) tocarSomForcado(160,180);
     if(pinVibrarErro && typeof navigator!=='undefined' && navigator.vibrate){ try{ navigator.vibrate(200); }catch(e){} }
   }
 }
@@ -2786,6 +3798,59 @@ function esquecerPin(){
   atualizarPinStatus();
   showToast('PIN esquecido — o bloqueio foi desativado');
 }
+function mudarPinComprimento(v){ pinComprimentoMin=parseInt(v)||4; gravarJSON('pinComprimentoMin',pinComprimentoMin); }
+function mudarPinConfirmarDuasVezes(v){ pinConfirmarDuasVezes=v; gravarJSON('pinConfirmarDuasVezes',v); }
+function mudarPinMostrarEscrever(v){ pinMostrarEscrever=v; gravarJSON('pinMostrarEscrever',v); }
+function mudarPinDica(v){ pinDica=v.trim(); gravarJSON('pinDica',pinDica); }
+function mudarPinTentativasMax(v){ pinTentativasMax=parseInt(v)||0; gravarJSON('pinTentativasMax',pinTentativasMax); }
+function mudarPinBloqueioDuracao(v){ pinBloqueioDuracaoMin=parseInt(v)||1; gravarJSON('pinBloqueioDuracaoMin',pinBloqueioDuracaoMin); }
+function mudarPinPedirExportar(v){ pinPedirExportar=v; gravarJSON('pinPedirExportar',v); }
+function mudarPinPedirReiniciar(v){ pinPedirReiniciar=v; gravarJSON('pinPedirReiniciar',v); }
+function mudarPinSomDesbloquear(v){ pinSomDesbloquear=v; gravarJSON('pinSomDesbloquear',v); }
+function mudarPinSomErro(v){ pinSomErro=v; gravarJSON('pinSomErro',v); }
+function mudarPinConfetti(v){ pinConfettiDesbloquear=v; gravarJSON('pinConfettiDesbloquear',v); }
+function mudarPinVibrarSucesso(v){ pinVibrarSucesso=v; gravarJSON('pinVibrarSucesso',v); }
+function mudarPinBloquearAoMudarAba(v){ pinBloquearAoMudarAba=v; gravarJSON('pinBloquearAoMudarAba',v); }
+function mudarPinTecladoBaralhado(v){ pinTecladoBaralhado=v; gravarJSON('pinTecladoBaralhado',v); }
+function mudarPinBloquearMeiaNoite(v){ pinBloquearMeiaNoite=v; gravarJSON('pinBloquearMeiaNoite',v); }
+function mudarPinEmoji(v){ pinEmoji=(v||'🔒').trim().slice(0,4); gravarJSON('pinEmoji',pinEmoji); atualizarPinStatus(); }
+function resetTotalDesbloqueiosPin(){
+  pinTotalDesbloqueios=0; pinUltimoDesbloqueio=null;
+  gravarJSON('pinTotalDesbloqueios',0); gravarJSON('pinUltimoDesbloqueio',null);
+  atualizarPinStatus();
+  showToast('Contador de desbloqueios reposto');
+}
+function exportarLogPin(){
+  const blob=new Blob([JSON.stringify(pinLog,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download='registo-pin.json';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('Registo exportado','📤');
+}
+function limparLogPin(){
+  pinLog=[];
+  gravarJSON('pinLog',pinLog);
+  renderHistoricoPin();
+  showToast('Registo limpo');
+}
+function renderHistoricoPin(){
+  const el=document.getElementById('pin-historico-lista');
+  if(pinLog.length===0){ el.innerHTML='<div class="empty">Sem registos ainda.</div>'; return; }
+  el.innerHTML=pinLog.slice(0,10).map(l=>{
+    const d=new Date(l.data).toLocaleString('pt-PT',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+    return `<div style="font-size:11.5px;padding:5px 0;border-top:1px solid var(--line);display:flex;justify-content:space-between;"><span>${esc(l.tipo)}</span><span style="color:var(--muted);">${d}</span></div>`;
+  }).join('');
+}
+function toggleVerHistoricoPin(){
+  const el=document.getElementById('pin-historico-lista');
+  const btn=document.getElementById('btn-ver-historico-pin');
+  const aberto = el.style.display!=='none';
+  el.style.display = aberto ? 'none' : 'block';
+  btn.textContent = aberto ? 'Ver histórico ▾' : 'Ver histórico ▴';
+  if(!aberto) renderHistoricoPin();
+}
 function reiniciarTimerInatividade(){
   if(pinInatividadeTimer){ clearTimeout(pinInatividadeTimer); pinInatividadeTimer=null; }
   if(pinAutoLockMin>0 && pinApp){
@@ -2797,6 +3862,21 @@ function reiniciarTimerInatividade(){
 ['mousedown','touchstart','keydown','scroll'].forEach(evt=>{
   window.addEventListener(evt, ()=>{ if(!appBloqueada) reiniciarTimerInatividade(); }, {passive:true});
 });
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden && pinBloquearAoMudarAba && pinApp && !appBloqueada){
+    appBloqueada=true;
+    mostrarEcraBloqueio();
+  }
+});
+setInterval(()=>{
+  if(!pinBloquearMeiaNoite || !pinApp) return;
+  const agora=new Date();
+  if(agora.getHours()===0 && agora.getMinutes()===0){
+    if(!pinMeiaNoiteJaBloqueadoHoje && !appBloqueada){ appBloqueada=true; mostrarEcraBloqueio(); pinMeiaNoiteJaBloqueadoHoje=true; }
+  }else{
+    pinMeiaNoiteJaBloqueadoHoje=false;
+  }
+},30000);
 document.getElementById('lock-pin-input').addEventListener('keydown',e=>{ if(e.key==='Enter') tentarDesbloquear(); });
 function atualizarPinStatus(){
   const texto = pinApp ? (pinSempreAtivo?'PIN ativo — vai ser pedido sempre que abrires a app.':'PIN definido, mas ainda não é pedido automaticamente.') : 'Ainda não definiste nenhum PIN.';
@@ -2814,6 +3894,29 @@ function atualizarPinStatus(){
   if(autoLockEl) autoLockEl.value=String(pinAutoLockMin);
   const vibrarEl=document.getElementById('pin-toggle-vibrar');
   if(vibrarEl) vibrarEl.checked=!!pinVibrarErro;
+  const setSel=(id,v)=>{ const el=document.getElementById(id); if(el) el.value=String(v); };
+  const setChk=(id,v)=>{ const el=document.getElementById(id); if(el) el.checked=!!v; };
+  const setVal=(id,v)=>{ const el=document.getElementById(id); if(el) el.value=v; };
+  setSel('pin-comprimento-select',pinComprimentoMin);
+  setChk('pin-toggle-confirmar-duas-vezes',pinConfirmarDuasVezes);
+  setChk('pin-toggle-mostrar-escrever',pinMostrarEscrever);
+  setVal('pin-dica-input',pinDica);
+  setSel('pin-tentativas-max-select',pinTentativasMax);
+  setSel('pin-bloqueio-duracao-select',pinBloqueioDuracaoMin);
+  setChk('pin-toggle-exportar',pinPedirExportar);
+  setChk('pin-toggle-reiniciar',pinPedirReiniciar);
+  setChk('pin-toggle-som-desbloquear',pinSomDesbloquear);
+  setChk('pin-toggle-som-erro',pinSomErro);
+  setChk('pin-toggle-confetti',pinConfettiDesbloquear);
+  setChk('pin-toggle-vibrar-sucesso',pinVibrarSucesso);
+  setChk('pin-toggle-blur',pinBloquearAoMudarAba);
+  setChk('pin-toggle-teclado-baralhado',pinTecladoBaralhado);
+  setChk('pin-toggle-meia-noite',pinBloquearMeiaNoite);
+  setVal('pin-emoji-input',pinEmoji);
+  const ultimoEl=document.getElementById('pin-ultimo-desbloqueio-info');
+  if(ultimoEl) ultimoEl.textContent = pinUltimoDesbloqueio ? new Date(pinUltimoDesbloqueio).toLocaleString('pt-PT',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : '—';
+  const totalEl=document.getElementById('pin-total-desbloqueios-info');
+  if(totalEl) totalEl.textContent=pinTotalDesbloqueios;
 }
 function onTogglePinSempre(e){
   if(e.target.checked && !pinApp){
@@ -2833,6 +3936,7 @@ function abrirPinAmpliado(){
 }
 function fecharPinAmpliado(e){
   if(e && e.target && e.target.id!=='pin-ampliar-sheet') return;
+  restaurarJanela('pin-ampliar-sheet');
   document.getElementById('pin-ampliar-sheet').classList.remove('open');
 }
 function reporSoCores(){
@@ -3017,7 +4121,175 @@ function trocarEmojiTitulo(){
   showToast('Emoji do separador trocado',emojisTituloLista[emojiTituloIndex]);
 }
 function verVersao(){ showToast('Gonçalo Banco app — edição Gonçalo','ℹ️'); }
-function verNovidades(){ showToast('Novidades: notas gerais, planeamento ampliado, filtros por categoria e 80+ opções de personalização','📰'); }
+const versoesApp=[
+  {id:'jan',label:'Janeiro',resumo:'Primeira versão da app: o essencial para começar a gerir o dinheiro.',
+    novidades:['Total geral e lista de saldos por conta','Registo de movimentos organizado por mês','Gráfico de barras dos saldos','Modo escuro/claro','Tabela de planeamento fixa para Money 2026 e Dela'],
+    detalhes:[
+      {categoria:'Saldos',pontos:['Cartão com o total geral de todas as contas, sempre visível no topo.','Lista editável de saldos por conta (Ibiza, Dela, Money 2026, carteiras, cartões...).','Gráfico de barras a comparar visualmente o saldo de cada conta.']},
+      {categoria:'Movimentos',pontos:['Registo de entradas e saídas com tipo, valor, descrição, conta e data.','Organização automática dos movimentos por mês (Ano-Mês).','Sub-abas para navegar rapidamente entre meses.']},
+      {categoria:'Planeamento',pontos:['Tabela fixa com entradas, gastos e saldo previsto mês a mês para Money 2026 e Dela.']},
+      {categoria:'Aparência',pontos:['Alternância simples entre modo claro e escuro.']}
+    ]},
+  {id:'abr',label:'Abril',resumo:'Versão expandida: categorias, gráficos e filtros mais avançados.',
+    novidades:['Categoria em cada movimento (Compras, Comida, Outros...)','Gráfico de pizza dos gastos por categoria','Filtros por mês e por aba nos movimentos','Sub-abas de meses clicáveis','Valores do planeamento editáveis diretamente na tabela','Botão para apagar movimentos'],
+    detalhes:[
+      {categoria:'Movimentos',pontos:['Cada movimento passou a ter uma categoria (Compras, Comida, Outros), permitindo perceber onde o dinheiro é gasto.','Filtros combináveis por mês e por conta/aba, para encontrar movimentos específicos mais depressa.','Possibilidade de apagar um movimento diretamente da lista, com o saldo da conta a ser corrigido automaticamente.']},
+      {categoria:'Gráficos',pontos:['Novo gráfico de pizza a mostrar a distribuição dos gastos por categoria em cada mês.']},
+      {categoria:'Planeamento',pontos:['Os valores da tabela de planeamento passaram a ser editáveis diretamente, célula a célula.']}
+    ]},
+  {id:'atual',label:'Atual',resumo:'A versão mais completa até hoje — praticamente uma app nova.',
+    novidades:['Bloqueio por PIN com 20+ opções (tentativas máximas, dica, som, confetti, teclado embaralhado, bloqueio à meia-noite, histórico...)','Janelas flutuantes arrastáveis e redimensionáveis (estilo iPad) em quase todas as abas ampliadas','Aba "Editar" para personalizar todos os textos e secções da app, com pré-visualização','Percentagem de cumprimento do planeamento, ligada automaticamente aos movimentos reais','Wishlist com fotos, prioridade, link e como janela flutuante','Resumo Mensal e Planeamento redesenhados com destaque do mês atual e tendências','Centenas de opções de personalização (cores, estilo, diversão, notas)','Esta janela de Novidades, com histórico e comparação entre versões'],
+    detalhes:[
+      {categoria:'Segurança e bloqueio por PIN',pontos:[
+        'Comprimento mínimo do PIN configurável (4, 5 ou 6 dígitos) e confirmação dupla obrigatória ao definir um novo PIN.',
+        'Opção de mostrar o PIN em texto simples enquanto o escreves, em vez de pontos escondidos.',
+        'Dica pessoal que aparece automaticamente depois de 3 tentativas erradas.',
+        'Número máximo de tentativas configurável, com bloqueio temporário (1, 5 ou 15 minutos) quando é excedido.',
+        'Sons diferentes ao desbloquear com sucesso ou ao errar o PIN, com confetti e vibração no telemóvel ao entrar corretamente.',
+        'Bloqueio automático da app ao mudar de separador ou aplicação, e bloqueio automático à meia-noite todos os dias.',
+        'Teclado numérico embaralhado no ecrã de bloqueio, para dificultar quem estiver a espreitar.',
+        'Emoji do cadeado personalizável e histórico completo de desbloqueios (data, hora e tipo de evento), exportável em JSON.',
+        'PIN pode agora ser exigido também antes de exportar os dados ou de reiniciar a app.'
+      ]},
+      {categoria:'Janelas flutuantes e interface',pontos:[
+        'Todas as janelas de ampliação (Planeamento, Categorias, Evolução, PIN, Wishlist, Novidades e o painel de administração) usam agora o mesmo sistema de janela flutuante: arrastáveis pelo cabeçalho e redimensionáveis pelas bordas, como no iPad.',
+        'Efeito "génio" suave ao abrir qualquer uma destas janelas, semelhante ao efeito de abrir janelas no macOS.',
+        'Clicar fora de uma janela já não a fecha — em vez disso, ela minimiza-se para um pequeno separador no canto do ecrã (tal como o Stage Manager do macOS), continuando acessível com um clique.'
+      ]},
+      {categoria:'Editar e personalizar a app',pontos:[
+        'Nova aba "Editar" no painel de administração com mais de 50 textos editáveis em todas as páginas (Saldos, Movimentos, Planeamento e Geral), com pré-visualização antes de aplicar.',
+        'Controlo de visibilidade de secções inteiras (por exemplo, esconder "Recorrentes" ou "Notas" se não forem usadas).',
+        'Controlos de estilo específicos por página: cor de destaque, tamanho dos títulos e espaçamento entre secções, cada um independente das outras páginas.',
+        'Uma pequena "tela" onde podes arrastar para reorganizar a ordem das secções de cada página.',
+        'Um assistente local ("IA" da app) a quem podes pedir alterações em linguagem natural, sem precisar de mexer nos controlos manualmente.'
+      ]},
+      {categoria:'Planeamento',pontos:[
+        'Percentagem grande de cumprimento do orçamento, calculada automaticamente ao ligar os gastos reais dos movimentos aos valores planeados de cada conta.',
+        'Estatísticas por conta: média de entradas e gastos por mês, taxa de poupança média, melhor e pior mês.',
+        'Projeção do saldo previsto para o fim do ano e contagem dos meses que faltam.',
+        'Comparação lado a lado entre Money 2026 e Dela, tipo de gráfico (linha ou barras) à escolha, tolerância de alerta configurável e exportação da tabela em CSV.'
+      ]},
+      {categoria:'Wishlist',pontos:[
+        'Wishlist convertida em janela flutuante, com fotos, prioridade (alta/média/baixa), link e estado de "já comprado".',
+        'Pesquisa por texto, ordenação (recente, antigo, preço, prioridade) e categorias/etiquetas com filtro.',
+        'Estatísticas de quanto falta comprar e quanto já foi gasto, duplicar item, sorteio aleatório ("Escolhe por mim"), exportar e copiar a lista, e confirmação em duas etapas antes de eliminar um item.'
+      ]},
+      {categoria:'Resumo Mensal e Movimentos',pontos:[
+        'Resumo Mensal e tabela de Planeamento redesenhados, com destaque visual do mês atual e setas de tendência face ao mês anterior.',
+        'Correção de um problema em que o filtro por categoria no gráfico de gastos ficava preso ao mudar de mês.'
+      ]},
+      {categoria:'Ferramentas e produtividade',pontos:[
+        'Mais de 40 novas ferramentas úteis: backup automático periódico, restaurar backup a partir de ficheiro, exportar movimentos em CSV, verificar integridade dos dados, perfis secundários, meta de poupança anual, alerta de gasto elevado, calculadora de juros compostos, conversor de moeda, tarefas rápidas, atalhos de teclado, pesquisa global, relatórios automáticos e muito mais.'
+      ]},
+      {categoria:'Novidades (esta janela)',pontos:[
+        'Histórico de versões com resumo e informações completas por atualização, e um comparador para ver o que mudou entre duas versões à tua escolha.'
+      ]}
+    ]}
+];
+function abrirNovidades(){
+  renderNovidadesVersoes();
+  mostrarDetalheNovidade('atual');
+  document.getElementById('novidades-sheet').classList.add('open');
+}
+function verNovidades(){ abrirNovidades(); }
+function fecharNovidades(e){
+  if(e && e.target && e.target.id!=='novidades-sheet') return;
+  restaurarJanela('novidades-sheet');
+  document.getElementById('novidades-sheet').classList.remove('open');
+}
+function renderNovidadesVersoes(){
+  const box=document.getElementById('novidades-versoes-botoes');
+  box.innerHTML='';
+  versoesApp.forEach(v=>{
+    const b=document.createElement('button');
+    b.className='sheet-btn';
+    b.style.cssText='padding:8px 12px;font-size:12.5px;';
+    b.id='novidades-btn-'+v.id;
+    b.textContent=v.label;
+    b.onclick=()=>toggleNovidadeVersao(v.id);
+    box.appendChild(b);
+  });
+  const de=document.getElementById('novidades-comparar-de');
+  const para=document.getElementById('novidades-comparar-para');
+  de.innerHTML=''; para.innerHTML='';
+  versoesApp.forEach((v,i)=>{
+    const o1=document.createElement('option'); o1.value=v.id; o1.textContent=v.label; de.appendChild(o1);
+    const o2=document.createElement('option'); o2.value=v.id; o2.textContent=v.label; para.appendChild(o2);
+  });
+  if(versoesApp.length>1){ de.value=versoesApp[versoesApp.length-2].id; para.value=versoesApp[versoesApp.length-1].id; }
+}
+let novidadeAberta=null;
+let novidadeModo='resumo';
+function toggleNovidadeVersao(id){
+  if(novidadeAberta===id){
+    novidadeAberta=null;
+    document.getElementById('novidades-detalhe-box').innerHTML='';
+    marcarBotaoNovidadeAtivo(null);
+    return;
+  }
+  mostrarDetalheNovidade(id);
+}
+function mostrarDetalheNovidade(id){
+  novidadeAberta=id;
+  novidadeModo='resumo';
+  renderDetalheNovidade();
+  marcarBotaoNovidadeAtivo(id);
+}
+function marcarBotaoNovidadeAtivo(id){
+  document.querySelectorAll('#novidades-versoes-botoes button').forEach(b=>{
+    const ativo = b.id==='novidades-btn-'+id;
+    b.style.background = ativo ? 'var(--brand-a)' : '';
+    b.style.color = ativo ? '#fff' : '';
+  });
+}
+function renderDetalheNovidade(){
+  const box=document.getElementById('novidades-detalhe-box');
+  const v=versoesApp.find(x=>x.id===novidadeAberta);
+  if(!v){ box.innerHTML=''; return; }
+  let corpo;
+  if(novidadeModo==='resumo'){
+    corpo=`<div style="font-size:12.5px;line-height:1.5;">${esc(v.resumo)}</div>
+      <ul style="padding-left:18px;font-size:12px;line-height:1.6;margin-top:8px;">${v.novidades.map(n=>`<li>${esc(n)}</li>`).join('')}</ul>`;
+  }else{
+    const detalhes=v.detalhes||[];
+    const totalPontos=detalhes.reduce((s,c)=>s+c.pontos.length,0);
+    corpo=`<div style="font-size:11.5px;color:var(--muted);margin-bottom:10px;">${totalPontos} novidades detalhadas em ${detalhes.length} categoria${detalhes.length===1?'':'s'} nesta atualização.</div>`
+      + detalhes.map(c=>`<div style="margin-bottom:12px;">
+          <div style="font-weight:700;font-size:12.5px;color:var(--brand-a);margin-bottom:4px;">${esc(c.categoria)}</div>
+          <ul style="padding-left:18px;font-size:12px;line-height:1.65;">${c.pontos.map(p=>`<li style="margin-bottom:4px;">${esc(p)}</li>`).join('')}</ul>
+        </div>`).join('');
+    if(detalhes.length===0) corpo=`<ul style="padding-left:18px;font-size:12px;line-height:1.6;">${v.novidades.map(n=>`<li>${esc(n)}</li>`).join('')}</ul>`;
+  }
+  box.innerHTML=`<div style="background:var(--bg);border-radius:var(--radius-s);padding:12px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px;">
+      <div style="font-weight:700;font-size:13px;">${esc(v.label)}</div>
+      <div style="display:flex;gap:8px;flex-shrink:0;">
+        <button class="link-btn" style="font-weight:${novidadeModo==='resumo'?'700':'500'};" onclick="mudarModoNovidade('resumo')">Resumo</button>
+        <button class="link-btn" style="font-weight:${novidadeModo==='completo'?'700':'500'};" onclick="mudarModoNovidade('completo')">Informações completas</button>
+      </div>
+    </div>
+    ${corpo}
+  </div>`;
+}
+function mudarModoNovidade(m){ novidadeModo=m; renderDetalheNovidade(); }
+function compararVersoesNovidades(){
+  const deId=document.getElementById('novidades-comparar-de').value;
+  const paraId=document.getElementById('novidades-comparar-para').value;
+  const resultado=document.getElementById('novidades-comparar-resultado');
+  if(deId===paraId){ resultado.innerHTML='<div style="color:var(--muted);">Escolhe duas versões diferentes para comparar.</div>'; return; }
+  const iDe=versoesApp.findIndex(v=>v.id===deId);
+  const iPara=versoesApp.findIndex(v=>v.id===paraId);
+  if(iDe<0 || iPara<0) return;
+  const de=versoesApp[iDe], para=versoesApp[iPara];
+  if(iDe>iPara){
+    resultado.innerHTML=`<div style="color:var(--muted);">"${esc(para.label)}" é anterior a "${esc(de.label)}" — escolhe a ordem cronológica certa (mais antiga em "De").</div>`;
+    return;
+  }
+  const antesSet=new Set(de.novidades);
+  const novas=para.novidades.filter(n=>!antesSet.has(n));
+  resultado.innerHTML=`<div style="font-weight:700;margin-bottom:6px;">Novidades de "${esc(de.label)}" até "${esc(para.label)}":</div>
+    ${novas.length? `<ul style="padding-left:18px;line-height:1.6;">${novas.map(n=>`<li>${esc(n)}</li>`).join('')}</ul>` : '<div style="color:var(--muted);">Sem novidades registadas entre estas versões.</div>'}`;
+}
 function modoApresentacao(){
   modoApresentacaoAtivo=!modoApresentacaoAtivo;
   if(modoApresentacaoAtivo){
@@ -3465,6 +4737,7 @@ function abrirAmpliarCategorias(mesForcado){
 }
 function fecharAmpliarCategorias(e){
   if(e && e.target && e.target.id!=='ampliar-cat-sheet') return;
+  restaurarJanela('ampliar-cat-sheet');
   document.getElementById('ampliar-cat-sheet').classList.remove('open');
 }
  
@@ -3516,6 +4789,7 @@ function calcularCumprimentoPlaneamento(conta,linhas){
   const anoAtual=hoje.getFullYear();
   const mesAtualIdx=hoje.getMonth();
   let mesesAvaliados=0, mesesCumpridos=0, gastoRealMesAtual=0, gastoPlaneadoMesAtual=0;
+  const tolerancia=1+(planoTolerancia||0)/100;
   linhas.forEach((linha,i)=>{
     if(i>mesAtualIdx) return;
     const gastosPlaneados=linha[2];
@@ -3524,7 +4798,7 @@ function calcularCumprimentoPlaneamento(conta,linhas){
     let gastoReal=0;
     movsMes.forEach(x=>{ if(x.tipo==='gasto' && x.aba===conta) gastoReal+=x.valor; });
     mesesAvaliados++;
-    if(gastoReal<=gastosPlaneados) mesesCumpridos++;
+    if(gastoReal<=gastosPlaneados*tolerancia) mesesCumpridos++;
     if(i===mesAtualIdx){ gastoRealMesAtual=gastoReal; gastoPlaneadoMesAtual=gastosPlaneados; }
   });
   return {
@@ -3534,20 +4808,45 @@ function calcularCumprimentoPlaneamento(conta,linhas){
   };
 }
 let planoChartAmpliado=null;
+function mudarContaAmpliada(conta){
+  planoContaAmpliada=conta;
+  renderAmpliarPlano();
+}
+function mudarTipoGraficoPlano(v){
+  planoTipoGrafico=v;
+  gravarJSON('planoTipoGrafico',v);
+  renderAmpliarPlano();
+}
+function mudarPlanoTolerancia(v){
+  planoTolerancia=parseInt(v)||0;
+  gravarJSON('planoTolerancia',planoTolerancia);
+  renderAmpliarPlano();
+}
 function abrirAmpliarPlano(){
-  const conta=document.getElementById('p-conta').value;
+  planoContaAmpliada=document.getElementById('p-conta').value;
+  document.getElementById('plano-conta-ampliada-select').value=planoContaAmpliada;
+  document.getElementById('plano-tipo-grafico-select').value=planoTipoGrafico;
+  document.getElementById('plano-tolerancia-select').value=String(planoTolerancia);
+  document.getElementById('plano-comparacao-box').style.display='none';
+  document.getElementById('ampliar-plano-sheet').classList.add('open');
+  renderAmpliarPlano();
+}
+function renderAmpliarPlano(){
+  const conta=planoContaAmpliada;
   const linhas=planeamento[conta]||[];
   document.getElementById('ampliar-plano-sub').textContent=`Conta: ${conta}`;
-  document.getElementById('ampliar-plano-sheet').classList.add('open');
   if(planoChartAmpliado){ try{planoChartAmpliado.destroy();}catch(e){} planoChartAmpliado=null; }
   const canvas=document.getElementById('plano-chart-ampliado');
   const tbl=document.getElementById('plano-tabela-ampliada');
   const cumprimentoBox=document.getElementById('plano-cumprimento-box');
   const cumprimentoPerc=document.getElementById('plano-cumprimento-perc');
   const cumprimentoLabel=document.getElementById('plano-cumprimento-label');
+  const statsGrid=document.getElementById('plano-stats-grid');
+  const projecaoBox=document.getElementById('plano-projecao-box');
   if(linhas.length===0){
     canvas.style.display='none';
     cumprimentoBox.style.display='none';
+    statsGrid.innerHTML=''; projecaoBox.innerHTML='';
     tbl.innerHTML=`<div style="color:var(--muted);font-size:13px;padding:18px 4px;text-align:center;">${esc(textoEfetivo('txt-empty-planeamento'))}</div>`;
     return;
   }
@@ -3562,6 +4861,24 @@ function abrirAmpliarPlano(){
     const dentroFora = cump.gastoRealMesAtual<=cump.gastoPlaneadoMesAtual ? '✅ dentro do estipulado' : '⚠️ acima do estipulado';
     cumprimentoLabel.innerHTML=`meses dentro do orçamento (${cump.mesesCumpridos}/${cump.mesesAvaliados})<br>Em ${cump.nomeMesAtual}: gastaste ${dinheiro(cump.gastoRealMesAtual)} de ${dinheiro(cump.gastoPlaneadoMesAtual)} planeados — ${dentroFora}`;
   }
+  // -- estatísticas --
+  const mediaEntradas = linhas.reduce((s,l)=>s+l[1],0)/linhas.length;
+  const mediaGastos = linhas.reduce((s,l)=>s+l[2],0)/linhas.length;
+  const taxaPoupanca = mediaEntradas>0 ? Math.round((1-mediaGastos/mediaEntradas)*100) : (mediaGastos===0?100:0);
+  let melhor=linhas[0], pior=linhas[0];
+  linhas.forEach(l=>{ if(l[3]>melhor[3]) melhor=l; if(l[3]<pior[3]) pior=l; });
+  statsGrid.innerHTML=`
+    <div style="background:var(--bg);border-radius:12px;padding:8px 10px;text-align:center;"><div style="font-size:10.5px;color:var(--muted);">Média entradas/mês</div><div style="font-weight:700;font-size:13px;">${dinheiro(mediaEntradas)}</div></div>
+    <div style="background:var(--bg);border-radius:12px;padding:8px 10px;text-align:center;"><div style="font-size:10.5px;color:var(--muted);">Média gastos/mês</div><div style="font-weight:700;font-size:13px;">${dinheiro(mediaGastos)}</div></div>
+    <div style="background:var(--bg);border-radius:12px;padding:8px 10px;text-align:center;"><div style="font-size:10.5px;color:var(--muted);">Taxa de poupança média</div><div style="font-weight:700;font-size:13px;color:${taxaPoupanca>=0?'var(--pos)':'var(--neg)'};">${taxaPoupanca}%</div></div>
+    <div style="background:var(--bg);border-radius:12px;padding:8px 10px;text-align:center;"><div style="font-size:10.5px;color:var(--muted);">Melhor / pior mês</div><div style="font-weight:700;font-size:12px;">${melhor[0]} / ${pior[0]}</div></div>
+  `;
+  // -- projeção fim de ano --
+  const hoje=new Date(), mesAtualIdx=hoje.getMonth();
+  const saldoAtual = linhas[Math.min(mesAtualIdx,linhas.length-1)][3];
+  const saldoFinalPlaneado = linhas[linhas.length-1][3];
+  const mesesRestantes = Math.max(0,11-mesAtualIdx);
+  projecaoBox.innerHTML=`<b>Projeção para o fim do ano:</b> ${dinheiro(saldoFinalPlaneado)} planeado para Dezembro (com base no plano atual).<br>Faltam <b>${mesesRestantes}</b> mês${mesesRestantes===1?'':'es'} para terminar ${hoje.getFullYear()}.`;
   canvas.style.display='';
   const labels=linhas.map(l=>l[0]);
   const saldos=linhas.map(l=>l[3]);
@@ -3570,8 +4887,8 @@ function abrirAmpliarPlano(){
       const cs=getComputedStyle(document.documentElement);
       const corA=cs.getPropertyValue('--brand-a').trim()||'#6C4CF1';
       planoChartAmpliado=new Chart(canvas.getContext('2d'),{
-        type:'line',
-        data:{labels,datasets:[{label:'Saldo previsto',data:saldos,borderColor:corA,backgroundColor:corA+'22',fill:true,tension:0.3,pointRadius:3}]},
+        type:planoTipoGrafico,
+        data:{labels,datasets:[{label:'Saldo previsto',data:saldos,borderColor:corA,backgroundColor:corA+(planoTipoGrafico==='bar'?'aa':'22'),fill:planoTipoGrafico==='line',tension:0.3,pointRadius:3}]},
         options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{
           x:{grid:{display:false}},
           y:{grid:{color:'rgba(128,128,128,0.15)'}}
@@ -3579,13 +4896,48 @@ function abrirAmpliarPlano(){
       });
     }catch(e){}
   }
+  if(document.getElementById('plano-comparacao-box').style.display!=='none') renderPlanoComparacao();
   let html=`<table><thead><tr><th>${esc(textoEfetivo('txt-th-mes'))}</th><th>${esc(textoEfetivo('txt-th-entradas'))}</th><th>${esc(textoEfetivo('txt-th-gastos'))}</th><th>${esc(textoEfetivo('txt-th-saldo'))}</th></tr></thead><tbody>`;
   linhas.forEach(([mes,e,g,s])=>{ html+=`<tr><td>${mes}</td><td>${moeda()}${fmt(e)}</td><td>${moeda()}${fmt(g)}</td><td>${moeda()}${fmt(s)}</td></tr>`; });
   html+='</tbody></table>';
   tbl.innerHTML=html;
 }
+function toggleComparacaoContas(){
+  const box=document.getElementById('plano-comparacao-box');
+  const aberto = box.style.display!=='none';
+  box.style.display = aberto ? 'none' : 'block';
+  if(!aberto) renderPlanoComparacao();
+}
+function renderPlanoComparacao(){
+  const box=document.getElementById('plano-comparacao-box');
+  const outraConta = planoContaAmpliada==='Money 2026' ? 'Dela' : 'Money 2026';
+  const linhasA=planeamento[planoContaAmpliada]||[];
+  const linhasB=planeamento[outraConta]||[];
+  if(linhasA.length===0 || linhasB.length===0){ box.innerHTML='<div style="color:var(--muted);">Sem dados suficientes para comparar.</div>'; return; }
+  const saldoFinalA=linhasA[linhasA.length-1][3];
+  const saldoFinalB=linhasB[linhasB.length-1][3];
+  const gastosA=linhasA.reduce((s,l)=>s+l[2],0);
+  const gastosB=linhasB.reduce((s,l)=>s+l[2],0);
+  box.innerHTML=`<b>${esc(planoContaAmpliada)}</b> vs <b>${esc(outraConta)}</b><br>
+    Saldo final planeado: ${dinheiro(saldoFinalA)} vs ${dinheiro(saldoFinalB)}<br>
+    Total de gastos planeados no ano: ${dinheiro(gastosA)} vs ${dinheiro(gastosB)}`;
+}
+function exportarPlaneamentoCSV(){
+  const linhas=planeamento[planoContaAmpliada]||[];
+  if(linhas.length===0){ showToast('Sem dados para exportar','⚠️'); return; }
+  let csv='Mes,Entradas,Gastos,Saldo\n';
+  linhas.forEach(([mes,e,g,s])=>{ csv+=`${mes},${e},${g},${s}\n`; });
+  const blob=new Blob([csv],{type:'text/csv'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download=`planeamento-${planoContaAmpliada.replace(/\s+/g,'-')}.csv`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('Planeamento exportado','📤');
+}
 function fecharAmpliarPlano(e){
   if(e && e.target && e.target.id!=='ampliar-plano-sheet') return;
+  restaurarJanela('ampliar-plano-sheet');
   document.getElementById('ampliar-plano-sheet').classList.remove('open');
 }
  
@@ -3736,6 +5088,7 @@ function abrirAmpliarEvolucao(manterFiltro){
 }
 function fecharAmpliarEvolucao(e){
   if(e && e.target && e.target.id!=='ampliar-evo-sheet') return;
+  restaurarJanela('ampliar-evo-sheet');
   document.getElementById('ampliar-evo-sheet').classList.remove('open');
 }
  
@@ -3782,7 +5135,326 @@ function importarDados(file){
   };
   reader.readAsText(file);
 }
- 
+/* ---- Ferramentas (40 utilidades) ---- */
+function atualizarStatusFerramentas(){
+  const setChk=(id,v)=>{ const el=document.getElementById(id); if(el) el.checked=!!v; };
+  const setVal=(id,v)=>{ const el=document.getElementById(id); if(el) el.value=v; };
+  setChk('ferr-toggle-backup-auto',ferrBackupAutoAtivo);
+  setVal('ferr-backup-auto-horas',ferrBackupAutoHoras);
+  setVal('ferr-meta-poupanca',ferrMetaPoupancaAnual||'');
+  setVal('ferr-alerta-gasto',ferrAlertaGastoElevado||'');
+  setVal('ferr-orcamento-global',ferrOrcamentoGlobal||'');
+  setVal('ferr-dia-salario',ferrDiaSalario||'');
+  setChk('ferr-toggle-atalhos',ferrAtalhosAtivo);
+  setVal('ferr-aba-favorita',ferrAbaFavorita);
+  setChk('ferr-toggle-blur-privacidade',ferrBlurPrivacidade);
+  setChk('ferr-toggle-convidado',ferrModoConvidado);
+  setVal('ferr-aviso-inatividade',ferrAvisoInatividadeDias||'');
+  setChk('ferr-toggle-fecho-mes',ferrNotificacaoFechoMes);
+  setVal('ferr-taxa-usd',ferrTaxaUsd);
+  setVal('ferr-taxa-gbp',ferrTaxaGbp);
+  setVal('ferr-formato-data',ferrFormatoDataOrdem);
+  setChk('ferr-toggle-bloquear-saldos',ferrBloquearEdicaoSaldos);
+  setVal('ferr-paginacao-select',ferrPaginacaoMovimentos);
+  setChk('ferr-toggle-confirmar-eliminar-mov',ferrConfirmarEliminarMovimento);
+  renderMetaPoupancaProgresso();
+  renderListaTarefasRapidas();
+}
+function renderMetaPoupancaProgresso(){
+  const box=document.getElementById('ferr-meta-poupanca-progresso');
+  if(!box) return;
+  if(!ferrMetaPoupancaAnual){ box.textContent=''; return; }
+  const totalAtual=Object.values(abas).reduce((s,v)=>s+v,0);
+  const perc=Math.min(100,Math.round(totalAtual/ferrMetaPoupancaAnual*100));
+  box.textContent=`${dinheiro(totalAtual)} de ${dinheiro(ferrMetaPoupancaAnual)} (${perc}%)`;
+}
+/* -- dados e backup -- */
+function mudarBackupAuto(v){
+  ferrBackupAutoAtivo=v;
+  gravarJSON('ferrBackupAutoAtivo',v);
+  configurarBackupAutoInterval();
+  showToast(v?'Backup automático ativado':'Backup automático desativado','💾');
+}
+function mudarBackupAutoHoras(v){
+  ferrBackupAutoHoras=parseInt(v)||24;
+  gravarJSON('ferrBackupAutoHoras',ferrBackupAutoHoras);
+  configurarBackupAutoInterval();
+}
+function configurarBackupAutoInterval(){
+  if(ferrBackupAutoInterval){ clearInterval(ferrBackupAutoInterval); ferrBackupAutoInterval=null; }
+  if(ferrBackupAutoAtivo){
+    ferrBackupAutoInterval=setInterval(()=>{ exportarDados(); }, ferrBackupAutoHoras*3600000);
+  }
+}
+function restaurarBackupFicheiro(file){
+  if(!file) return;
+  importarDados(file);
+}
+function verTamanhoDados(){
+  let total=0;
+  for(const k in localStorage){ if(localStorage.hasOwnProperty(k)) total+=(localStorage[k].length+k.length); }
+  showToast(`Os teus dados ocupam cerca de ${(total/1024).toFixed(1)} KB`,'💾');
+}
+function exportarMovimentosCSV(){
+  let csv='Data,Tipo,Aba,Descricao,Categoria,Valor\n';
+  Object.keys(movimentos).sort().forEach(mes=>{
+    movimentos[mes].forEach(m=>{
+      csv+=`${m.data||mes},${m.tipo},${(m.aba||'').replace(/,/g,' ')},${(m.desc||'').replace(/,/g,' ')},${(m.categoria||'').replace(/,/g,' ')},${m.valor}\n`;
+    });
+  });
+  const blob=new Blob([csv],{type:'text/csv'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download='movimentos.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('Movimentos exportados em CSV','📊');
+}
+function verificarIntegridadeDados(){
+  const problemas=[];
+  Object.keys(movimentos).forEach(mes=>{
+    movimentos[mes].forEach(m=>{
+      if(typeof m.valor!=='number' || isNaN(m.valor)) problemas.push(`Movimento inválido em ${mes}: ${m.desc||'sem descrição'}`);
+    });
+  });
+  if(Object.keys(abas).length===0) problemas.push('Não existem contas registadas');
+  if(problemas.length===0) showToast('Tudo em ordem — não foram encontrados problemas','✅');
+  else showToast(`${problemas.length} problema(s) encontrado(s): ${problemas[0]}`,'⚠️');
+}
+function exportarSoConfiguracoes(){
+  const config={cores,estilo:{avatarEstilo,ordenarMovimentos,moedaPosicao,formatoData,casasDecimais,esconderCentimos,sinalSempre,compactoAtivo},textosApp,secoesApp};
+  const blob=new Blob([JSON.stringify(config,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download='configuracoes.json';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('Configurações exportadas','⚙️');
+}
+function guardarPerfilSecundario(){
+  const payload={abas,movimentos,recorrentes,cores,guardadoEm:new Date().toISOString()};
+  gravarJSON('perfilSecundario',payload);
+  showToast('Perfil secundário guardado','🗂️');
+}
+function carregarPerfilSecundario(){
+  const perfil=lerJSON('perfilSecundario',null);
+  if(!perfil){ showToast('Não há nenhum perfil secundário guardado','⚠️'); return; }
+  abas=perfil.abas||abas;
+  movimentos=perfil.movimentos||movimentos;
+  recorrentes=perfil.recorrentes||recorrentes;
+  renderWallet(); fillSelects(); render(); renderRecorrentes(); salvarTudo();
+  showToast('Perfil secundário carregado','🔄');
+}
+/* -- financeiro -- */
+function mudarMetaPoupanca(v){ ferrMetaPoupancaAnual=parseFloat(v)||0; gravarJSON('ferrMetaPoupancaAnual',ferrMetaPoupancaAnual); renderMetaPoupancaProgresso(); }
+function mudarAlertaGastoElevado(v){ ferrAlertaGastoElevado=parseFloat(v)||0; gravarJSON('ferrAlertaGastoElevado',ferrAlertaGastoElevado); }
+function mudarOrcamentoGlobal(v){ ferrOrcamentoGlobal=parseFloat(v)||0; gravarJSON('ferrOrcamentoGlobal',ferrOrcamentoGlobal); }
+function mostrarResumoFinanceiroRapido(){
+  const totalAtual=Object.values(abas).reduce((s,v)=>s+v,0);
+  const meses=Object.keys(movimentos);
+  const mediaMensal = meses.length ? meses.reduce((s,m)=>s+movimentos[m].reduce((s2,x)=>s2+(x.tipo==='gasto'?-x.valor:x.valor),0),0)/meses.length : 0;
+  showToast(`Saldo total: ${dinheiro(totalAtual)} · Média mensal: ${dinheiro(mediaMensal)}`,'⚡');
+}
+function compararComMesAnterior(){
+  const hoje=new Date();
+  const chaveAtual=hoje.getFullYear()+'-'+String(hoje.getMonth()+1).padStart(2,'0');
+  const mesAnterior=new Date(hoje.getFullYear(),hoje.getMonth()-1,1);
+  const chaveAnterior=mesAnterior.getFullYear()+'-'+String(mesAnterior.getMonth()+1).padStart(2,'0');
+  const gastosMes=chave=>(movimentos[chave]||[]).filter(x=>x.tipo==='gasto').reduce((s,x)=>s+x.valor,0);
+  const atual=gastosMes(chaveAtual), anterior=gastosMes(chaveAnterior);
+  const diff = anterior>0 ? Math.round((atual-anterior)/anterior*100) : null;
+  showToast(diff===null ? `Gastos este mês: ${dinheiro(atual)} (sem dados do mês anterior)` : `Gastos este mês: ${dinheiro(atual)} (${diff>=0?'+':''}${diff}% vs mês anterior)`,'📈');
+}
+function calcularJurosCompostos(){
+  const capital=parseFloat(prompt('Capital inicial (€):','1000'))||0;
+  const taxa=parseFloat(prompt('Taxa de juro anual (%):','3'))||0;
+  const anos=parseFloat(prompt('Número de anos:','5'))||0;
+  const final=capital*Math.pow(1+taxa/100,anos);
+  showToast(`Após ${anos} anos: ${dinheiro(final)} (juros: ${dinheiro(final-capital)})`,'🧮');
+}
+function converterMoedaSimples(){
+  const valor=parseFloat(prompt('Valor em euros (€):','100'))||0;
+  showToast(`${dinheiro(valor)} ≈ $${(valor*ferrTaxaUsd).toFixed(2)} · £${(valor*ferrTaxaGbp).toFixed(2)}`,'💱');
+}
+function mudarDiaSalario(v){ ferrDiaSalario=parseInt(v)||0; gravarJSON('ferrDiaSalario',ferrDiaSalario); showToast(ferrDiaSalario?`Dia de salário definido: dia ${ferrDiaSalario}`:'Dia de salário removido','💶'); }
+function verTopCategorias(){
+  const totais={};
+  Object.values(movimentos).forEach(lista=>lista.forEach(m=>{
+    if(m.tipo==='gasto' && m.categoria){ totais[m.categoria]=(totais[m.categoria]||0)+m.valor; }
+  }));
+  const top=Object.entries(totais).sort((a,b)=>b[1]-a[1]).slice(0,3);
+  if(top.length===0){ showToast('Ainda não há categorias suficientes','⚠️'); return; }
+  showToast('Top categorias: '+top.map(([c,v])=>`${c} (${dinheiro(v)})`).join(', '),'🏅');
+}
+/* -- produtividade -- */
+function adicionarTarefaRapida(){
+  const inp=document.getElementById('ferr-tarefa-input');
+  const texto=inp.value.trim();
+  if(!texto) return;
+  ferrTarefas.push({texto,feita:false,criadaEm:new Date().toISOString()});
+  gravarJSON('ferrTarefas',ferrTarefas);
+  inp.value='';
+  renderListaTarefasRapidas();
+  showToast('Tarefa adicionada','✅');
+}
+function renderListaTarefasRapidas(){
+  const box=document.getElementById('ferr-lista-tarefas');
+  if(!box) return;
+  if(ferrTarefas.length===0){ box.innerHTML='<div class="empty" style="padding:8px 0;">Sem tarefas pendentes.</div>'; return; }
+  box.innerHTML=ferrTarefas.map((t,i)=>`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--line);font-size:12.5px;">
+    <input type="checkbox" ${t.feita?'checked':''} onchange="toggleTarefaRapida(${i})" style="width:16px;height:16px;">
+    <span style="flex:1;${t.feita?'text-decoration:line-through;color:var(--muted);':''}">${esc(t.texto)}</span>
+    <button class="link-btn" style="color:var(--neg);" onclick="removerTarefaRapida(${i})">✕</button>
+  </div>`).join('');
+}
+function toggleTarefaRapida(i){ ferrTarefas[i].feita=!ferrTarefas[i].feita; gravarJSON('ferrTarefas',ferrTarefas); renderListaTarefasRapidas(); }
+function removerTarefaRapida(i){ ferrTarefas.splice(i,1); gravarJSON('ferrTarefas',ferrTarefas); renderListaTarefasRapidas(); }
+function mudarAtalhosTeclado(v){
+  ferrAtalhosAtivo=v;
+  gravarJSON('ferrAtalhosAtivo',v);
+  showToast(v?'Atalhos de teclado ativados (Ctrl+K para pesquisar)':'Atalhos de teclado desativados','⌨️');
+}
+document.addEventListener('keydown',e=>{
+  if(ferrAtalhosAtivo && (e.ctrlKey||e.metaKey) && e.key==='k'){ e.preventDefault(); pesquisaGlobal(); }
+});
+function duplicarUltimoMovimento(){
+  const meses=Object.keys(movimentos).sort();
+  if(meses.length===0){ showToast('Ainda não há movimentos','⚠️'); return; }
+  const ultimoMes=meses[meses.length-1];
+  const lista=movimentos[ultimoMes];
+  if(!lista || lista.length===0){ showToast('Ainda não há movimentos','⚠️'); return; }
+  const ultimo=lista[lista.length-1];
+  const copia={...ultimo,data:new Date().toISOString().slice(0,10)};
+  const chaveMes=copia.data.slice(0,7);
+  if(!movimentos[chaveMes]) movimentos[chaveMes]=[];
+  movimentos[chaveMes].push(copia);
+  if(copia.tipo==='gasto') abas[copia.aba]=(abas[copia.aba]||0)-copia.valor;
+  else abas[copia.aba]=(abas[copia.aba]||0)+copia.valor;
+  salvarTudo(); renderWallet(); render();
+  showToast('Último movimento duplicado para hoje','⧉');
+}
+function mudarAbaFavorita(v){ ferrAbaFavorita=v; gravarJSON('ferrAbaFavorita',v); showToast(v?`Vai abrir sempre em "${v}"`:'Sem preferência de aba','⭐'); }
+function pesquisaGlobal(){
+  const termo=(prompt('Pesquisar em movimentos, notas e wishlist:')||'').trim().toLowerCase();
+  if(!termo) return;
+  let resultados=[];
+  Object.values(movimentos).forEach(lista=>lista.forEach(m=>{ if((m.desc||'').toLowerCase().includes(termo)) resultados.push('Movimento: '+m.desc); }));
+  (notasGerais||[]).forEach(n=>{ if((n.texto||'').toLowerCase().includes(termo)) resultados.push('Nota: '+n.texto.slice(0,40)); });
+  (wishlist||[]).forEach(w=>{ if((w.texto||'').toLowerCase().includes(termo)) resultados.push('Wishlist: '+w.texto.slice(0,40)); });
+  if(resultados.length===0){ showToast('Nada encontrado para "'+termo+'"','🔎'); return; }
+  showToast(`${resultados.length} resultado(s): ${resultados.slice(0,3).join(' · ')}`,'🔎');
+}
+/* -- segurança e privacidade -- */
+function mudarBlurPrivacidade(v){ ferrBlurPrivacidade=v; gravarJSON('ferrBlurPrivacidade',v); showToast(v?'Valores serão escondidos ao mudar de separador':'Privacidade desativada','🙈'); }
+document.addEventListener('visibilitychange',()=>{
+  if(!ferrBlurPrivacidade) return;
+  document.body.style.filter = document.hidden ? 'blur(14px)' : '';
+});
+function mudarModoConvidado(v){
+  ferrModoConvidado=v;
+  gravarJSON('ferrModoConvidado',v);
+  document.body.classList.toggle('modo-convidado-ativo',v);
+  showToast(v?'Modo convidado ativado — edição bloqueada':'Modo convidado desativado','👤');
+}
+function verRegistoSessoes(){
+  if(ferrSessoes.length===0){ showToast('Ainda não há registo de sessões','🕘'); return; }
+  const ultimas=ferrSessoes.slice(-3).map(s=>new Date(s).toLocaleString('pt-PT',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}));
+  showToast('Últimas sessões: '+ultimas.join(' · '),'🕘');
+}
+function mudarAvisoInatividade(v){ ferrAvisoInatividadeDias=parseInt(v)||0; gravarJSON('ferrAvisoInatividadeDias',ferrAvisoInatividadeDias); }
+/* -- relatórios -- */
+function gerarRelatorioMensal(){
+  const hoje=new Date();
+  const chave=hoje.getFullYear()+'-'+String(hoje.getMonth()+1).padStart(2,'0');
+  const lista=movimentos[chave]||[];
+  const entradas=lista.filter(x=>x.tipo==='ganho').reduce((s,x)=>s+x.valor,0);
+  const gastos=lista.filter(x=>x.tipo==='gasto').reduce((s,x)=>s+x.valor,0);
+  showToast(`Relatório de ${nomesMeses[hoje.getMonth()]}: entradas ${dinheiro(entradas)}, gastos ${dinheiro(gastos)}, saldo do mês ${dinheiro(entradas-gastos)}`,'📄');
+}
+function verEvolucaoAnualCombinada(){
+  const meses=Object.keys(movimentos).sort();
+  if(meses.length===0){ showToast('Ainda não há dados suficientes','⚠️'); return; }
+  const saldos=meses.map(m=>movimentos[m].reduce((s,x)=>s+(x.tipo==='gasto'?-x.valor:x.valor),0));
+  const total=saldos.reduce((s,v)=>s+v,0);
+  showToast(`Ao longo de ${meses.length} mês(es) registados, o fluxo combinado foi de ${dinheiro(total)}`,'📊');
+}
+function exportarRelatorioImprimivel(){
+  const totalAtual=Object.values(abas).reduce((s,v)=>s+v,0);
+  const win=window.open('','_blank');
+  if(!win){ showToast('O bloqueador de pop-ups impediu a impressão','⚠️'); return; }
+  win.document.write(`<html><head><title>Relatório</title></head><body style="font-family:sans-serif;padding:24px;">
+    <h1>Gonçalo Banco app — Relatório</h1>
+    <p>Gerado em ${new Date().toLocaleString('pt-PT')}</p>
+    <p><b>Saldo total:</b> ${dinheiro(totalAtual)}</p>
+    </body></html>`);
+  win.document.close();
+  win.print();
+}
+function mudarNotificacaoFechoMes(v){ ferrNotificacaoFechoMes=v; gravarJSON('ferrNotificacaoFechoMes',v); }
+/* -- formatação e outras utilidades -- */
+function mudarTaxaCambio(moedaAlvo,v){
+  const valor=parseFloat(v)||0;
+  if(moedaAlvo==='usd'){ ferrTaxaUsd=valor; gravarJSON('ferrTaxaUsd',valor); }
+  else { ferrTaxaGbp=valor; gravarJSON('ferrTaxaGbp',valor); }
+}
+function lerSaldoTotalEmVoz(){
+  const totalAtual=Object.values(abas).reduce((s,v)=>s+v,0);
+  const texto=`O teu saldo total é de ${fmt(totalAtual)} euros`;
+  if(typeof speechSynthesis!=='undefined'){
+    try{
+      const u=new SpeechSynthesisUtterance(texto);
+      u.lang='pt-PT';
+      speechSynthesis.speak(u);
+    }catch(e){ showToast(texto,'🔊'); }
+  }else{
+    showToast(texto,'🔊');
+  }
+}
+function mudarFormatoData(v){ ferrFormatoDataOrdem=v; gravarJSON('ferrFormatoDataOrdem',v); showToast('Ordem de data: '+(v==='dmy'?'DD/MM/AAAA':'MM/DD/AAAA'),'📅'); }
+function mudarBloquearEdicaoSaldos(v){
+  ferrBloquearEdicaoSaldos=v;
+  gravarJSON('ferrBloquearEdicaoSaldos',v);
+  document.querySelectorAll('#lista-saldos input, .wallet-card input').forEach(inp=>{ inp.disabled=v; });
+  showToast(v?'Edição de saldos bloqueada':'Edição de saldos desbloqueada','🔒');
+}
+function testarDesempenhoApp(){
+  const t0=performance.now();
+  try{ render(); renderWallet(); }catch(e){}
+  const t1=performance.now();
+  showToast(`Render concluído em ${(t1-t0).toFixed(1)} ms`,'⚡');
+}
+function mudarPaginacaoMovimentos(v){ ferrPaginacaoMovimentos=parseInt(v)||0; gravarJSON('ferrPaginacaoMovimentos',ferrPaginacaoMovimentos); showToast(ferrPaginacaoMovimentos?`${ferrPaginacaoMovimentos} movimentos por página`:'A mostrar todos os movimentos','📄'); }
+function mudarConfirmarEliminarMovimento(v){ ferrConfirmarEliminarMovimento=v; gravarJSON('ferrConfirmarEliminarMovimento',v); }
+function verSaldoMedioDiario(){
+  const hoje=new Date();
+  const chave=hoje.getFullYear()+'-'+String(hoje.getMonth()+1).padStart(2,'0');
+  const lista=movimentos[chave]||[];
+  const fluxo=lista.reduce((s,x)=>s+(x.tipo==='gasto'?-x.valor:x.valor),0);
+  const diasNoMes=new Date(hoje.getFullYear(),hoje.getMonth()+1,0).getDate();
+  const diaAtual=hoje.getDate();
+  const mediaDiaria=fluxo/diaAtual;
+  showToast(`Média diária este mês: ${dinheiro(mediaDiaria)} (${diaAtual}/${diasNoMes} dias)`,'📆');
+}
+function verCrescimentoPatrimonial(){
+  const meses=Object.keys(movimentos).sort();
+  const totalAtual=Object.values(abas).reduce((s,v)=>s+v,0);
+  if(meses.length<2){ showToast(`Saldo atual: ${dinheiro(totalAtual)} — ainda não há histórico suficiente para ver tendência`,'📈'); return; }
+  const fluxoPrimeiro=movimentos[meses[0]].reduce((s,x)=>s+(x.tipo==='gasto'?-x.valor:x.valor),0);
+  const fluxoUltimo=movimentos[meses[meses.length-1]].reduce((s,x)=>s+(x.tipo==='gasto'?-x.valor:x.valor),0);
+  const tendencia = fluxoUltimo>=fluxoPrimeiro ? '📈 a crescer' : '📉 a abrandar';
+  showToast(`Saldo atual: ${dinheiro(totalAtual)} · Tendência de fluxo mensal: ${tendencia}`,'📈');
+}
+ferrSessoes.push(new Date().toISOString());
+if(ferrSessoes.length>30) ferrSessoes=ferrSessoes.slice(-30);
+gravarJSON('ferrSessoes',ferrSessoes);
+if(ferrAvisoInatividadeDias>0 && ferrUltimoUso){
+  const diasPassados=Math.floor((Date.now()-new Date(ferrUltimoUso).getTime())/86400000);
+  if(diasPassados>=ferrAvisoInatividadeDias) setTimeout(()=>showToast(`Já não usas a app há ${diasPassados} dias`,'⏰'),1200);
+}
+ferrUltimoUso=new Date().toISOString();
+gravarJSON('ferrUltimoUso',ferrUltimoUso);
+configurarBackupAutoInterval();
+
 /* ---- arranque ---- */
 try{ renderWallet(); }catch(e){ console.error('renderWallet falhou',e); }
 try{ fillSelects(); }catch(e){ console.error('fillSelects falhou',e); }
@@ -3794,6 +5466,8 @@ try{ renderWishlist(); }catch(e){ console.error('renderWishlist falhou',e); }
 try{ atualizarPinStatus(); }catch(e){ console.error('atualizarPinStatus falhou',e); }
 try{ aplicarTextosApp(); }catch(e){ console.error('aplicarTextosApp falhou',e); }
 try{ aplicarSecoesApp(); }catch(e){ console.error('aplicarSecoesApp falhou',e); }
+try{ aplicarEstiloTodasPaginas(); }catch(e){ console.error('aplicarEstiloTodasPaginas falhou',e); }
+try{ aplicarOrdemTodasPaginas(); }catch(e){ console.error('aplicarOrdemTodasPaginas falhou',e); }
 try{ reiniciarTimerInatividade(); }catch(e){ console.error('reiniciarTimerInatividade falhou',e); }
 try{ if(pinSempreAtivo && pinApp){ appBloqueada=true; mostrarEcraBloqueio(); } }catch(e){ console.error('bloqueio inicial falhou',e); }
 document.getElementById('m-data').value=new Date().toISOString().slice(0,10);
@@ -3801,4 +5475,3 @@ salvarTudo();
 </script>
 </body>
 </html>
-
