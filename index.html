@@ -404,6 +404,11 @@ body.dark.alto-contraste{--text:#FFFFFF;--bg:#000000;--surface:#000000;--muted:#
   position:fixed;inset:0;background:rgba(15,10,30,0.45);display:none;align-items:flex-end;justify-content:center;z-index:60;
 }
 .sheet-overlay.open{display:flex;}
+#lock-screen{
+  background:rgba(10,8,20,0.86);
+  backdrop-filter:blur(24px) saturate(1.1);
+  -webkit-backdrop-filter:blur(24px) saturate(1.1);
+}
 .sheet-panel{
   width:100%;max-width:460px;background:var(--surface);border-radius:24px 24px 0 0;
   padding:10px 18px 22px;box-shadow:0 -14px 40px rgba(0,0,0,0.3);
@@ -1143,6 +1148,8 @@ body.dark.alto-contraste{--text:#FFFFFF;--bg:#000000;--surface:#000000;--muted:#
 <input type="checkbox" id="ferr-toggle-convidado" onchange="mudarModoConvidado(this.checked)" style="width:18px;height:18px;"> Modo convidado (só visualização)
 </label>
 <button class="btn-main" style="background:var(--surface-2);color:var(--text);box-shadow:none;margin-bottom:10px;" onclick="verRegistoSessoes()">🕘 Ver registo de sessões</button>
+<button class="btn-main" id="ferr-btn-face-id" style="background:var(--surface-2);color:var(--text);box-shadow:none;margin-bottom:4px;" onclick="configurarFaceId()">🙂 Configurar Face ID</button>
+<div id="ferr-face-id-status" style="font-size:11px;color:var(--muted);margin-bottom:10px;"></div>
 <div class="field"><label>Avisar se não usar a app há mais de (dias)</label><input type="number" id="ferr-aviso-inatividade" onchange="mudarAvisoInatividade(this.value)" placeholder="Ex: 14"></div>
 
 <div style="height:1px;background:var(--line);margin:16px 0;"></div>
@@ -1714,6 +1721,7 @@ body.dark.alto-contraste{--text:#FFFFFF;--bg:#000000;--surface:#000000;--muted:#
 <div id="lock-pin-dica" style="display:none;color:var(--muted);font-size:11.5px;margin-bottom:10px;"></div>
 <div id="lock-keypad" style="display:none;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;"></div>
 <button class="btn-main" id="lock-desbloquear-btn" onclick="tentarDesbloquear()">Desbloquear</button>
+<button class="sheet-btn" id="lock-face-id-btn" style="width:100%;margin-top:8px;display:none;" onclick="tentarDesbloqueioFaceId(false)">🙂 Desbloquear com Face ID</button>
 </div>
 </div>
 
@@ -1880,6 +1888,8 @@ let planoMesSelecionado=null;
 let smdPeriodo='mes';
 let smdMesIdx=null;
 let smdContasSelecionadas=null;
+let faceIdAtivo=lerJSON('faceIdAtivo',false);
+let faceIdCredencialId=lerJSON('faceIdCredencialId',null);
 let saudacaoIndex=0;
 const saudacaoEmojis=['👋','😀','🤑','💸','🐷','😎'];
 
@@ -3814,8 +3824,11 @@ function mostrarEcraBloqueio(){
   const dicaEl=document.getElementById('lock-pin-dica');
   dicaEl.style.display='none'; dicaEl.textContent='';
   renderLockKeypad();
+  const btnFaceId=document.getElementById('lock-face-id-btn');
+  if(btnFaceId) btnFaceId.style.display = (faceIdAtivo && faceIdSuportado()) ? 'block' : 'none';
   document.getElementById('lock-screen').classList.add('open');
   setTimeout(()=>{ const i=document.getElementById('lock-pin-input'); if(i) i.focus(); },100);
+  if(faceIdAtivo && faceIdSuportado()) setTimeout(()=>tentarDesbloqueioFaceId(true),350);
 }
 function renderLockKeypad(){
   const box=document.getElementById('lock-keypad');
@@ -3840,6 +3853,99 @@ function renderLockKeypad(){
     box.appendChild(b);
   });
 }
+function desbloquearComSucesso(origem){
+  appBloqueada=false;
+  pinTentativasErradas=0;
+  pinBloqueadoAte=null;
+  pinUltimoDesbloqueio=new Date().toISOString();
+  pinTotalDesbloqueios++;
+  gravarJSON('pinTentativasErradas',pinTentativasErradas);
+  gravarJSON('pinBloqueadoAte',pinBloqueadoAte);
+  gravarJSON('pinUltimoDesbloqueio',pinUltimoDesbloqueio);
+  gravarJSON('pinTotalDesbloqueios',pinTotalDesbloqueios);
+  registarLogPin(origem==='Face ID' ? 'Desbloqueado com Face ID' : 'Desbloqueado com sucesso');
+  document.getElementById('lock-screen').classList.remove('open');
+  document.getElementById('lock-pin-input').value='';
+  document.getElementById('lock-pin-erro').textContent='';
+  atualizarPinStatus();
+  reiniciarTimerInatividade();
+  if(pinSomDesbloquear) tocarSomForcado(880,120);
+  if(pinConfettiDesbloquear) confetti();
+  if(pinVibrarSucesso && typeof navigator!=='undefined' && navigator.vibrate){ try{ navigator.vibrate(80); }catch(e){} }
+}
+/* -- Face ID / biometria (via WebAuthn, autenticador da plataforma) -- */
+function faceIdSuportado(){
+  return typeof window!=='undefined' && typeof window.PublicKeyCredential!=='undefined' && typeof navigator!=='undefined' && !!navigator.credentials;
+}
+function gerarDesafioAleatorio(){
+  const arr=new Uint8Array(32);
+  if(typeof crypto!=='undefined' && crypto.getRandomValues) crypto.getRandomValues(arr);
+  else for(let i=0;i<arr.length;i++) arr[i]=Math.floor(Math.random()*256);
+  return arr;
+}
+async function configurarFaceId(){
+  if(faceIdAtivo){
+    faceIdAtivo=false; faceIdCredencialId=null;
+    gravarJSON('faceIdAtivo',false); gravarJSON('faceIdCredencialId',null);
+    atualizarEstadoFaceId();
+    showToast('Face ID desativado','🙂');
+    return;
+  }
+  if(!faceIdSuportado()){
+    showToast('Este navegador/dispositivo não suporta Face ID — vai continuar a pedir o código PIN','⚠️');
+    return;
+  }
+  if(!pinApp){
+    showToast('Define primeiro um PIN — o Face ID funciona em conjunto com ele','⚠️');
+    return;
+  }
+  try{
+    if(window.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable){
+      const disponivel=await window.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+      if(!disponivel){ showToast('Não foi detetado Face ID/biometria neste dispositivo','⚠️'); return; }
+    }
+    const cred=await navigator.credentials.create({publicKey:{
+      challenge:gerarDesafioAleatorio(),
+      rp:{name:'Gonçalo Banco app'},
+      user:{ id:gerarDesafioAleatorio(), name:'goncalo-banco-app', displayName:'Gonçalo Banco app' },
+      pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257}],
+      authenticatorSelection:{authenticatorAttachment:'platform',userVerification:'required'},
+      timeout:60000,
+      attestation:'none'
+    }});
+    if(!cred){ showToast('Não foi possível configurar o Face ID','⚠️'); return; }
+    faceIdCredencialId=btoa(String.fromCharCode(...new Uint8Array(cred.rawId)));
+    faceIdAtivo=true;
+    gravarJSON('faceIdAtivo',true);
+    gravarJSON('faceIdCredencialId',faceIdCredencialId);
+    atualizarEstadoFaceId();
+    showToast('Face ID configurado com sucesso 🙂','🔒');
+  }catch(e){
+    console.error('configurarFaceId falhou',e);
+    showToast('Não foi possível configurar o Face ID — vai continuar a pedir o código PIN','⚠️');
+  }
+}
+function atualizarEstadoFaceId(){
+  const btn=document.getElementById('ferr-btn-face-id');
+  const status=document.getElementById('ferr-face-id-status');
+  if(btn) btn.textContent = faceIdAtivo ? '🙂 Desativar Face ID' : '🙂 Configurar Face ID';
+  if(status) status.textContent = faceIdAtivo ? 'Face ID: ativo — se falhar, o código PIN é sempre pedido.' : (faceIdSuportado() ? 'Face ID: não configurado.' : 'Face ID: não suportado neste navegador/dispositivo.');
+}
+async function tentarDesbloqueioFaceId(automatico){
+  if(!faceIdAtivo || !faceIdCredencialId || !faceIdSuportado()){ return; }
+  try{
+    const idBytes=Uint8Array.from(atob(faceIdCredencialId),c=>c.charCodeAt(0));
+    const resultado=await navigator.credentials.get({publicKey:{
+      challenge:gerarDesafioAleatorio(),
+      allowCredentials:[{id:idBytes,type:'public-key'}],
+      userVerification:'required',
+      timeout:60000
+    }});
+    if(resultado){ desbloquearComSucesso('Face ID'); }
+  }catch(e){
+    if(!automatico) showToast('Face ID não reconhecido — insere o código PIN','⚠️');
+  }
+}
 function tentarDesbloquear(){
   if(pinBloqueadoAte && Date.now()<pinBloqueadoAte){
     const restam=Math.ceil((pinBloqueadoAte-Date.now())/1000);
@@ -3848,24 +3954,7 @@ function tentarDesbloquear(){
   }
   const val=document.getElementById('lock-pin-input').value;
   if(val && val===pinApp){
-    appBloqueada=false;
-    pinTentativasErradas=0;
-    pinBloqueadoAte=null;
-    pinUltimoDesbloqueio=new Date().toISOString();
-    pinTotalDesbloqueios++;
-    gravarJSON('pinTentativasErradas',pinTentativasErradas);
-    gravarJSON('pinBloqueadoAte',pinBloqueadoAte);
-    gravarJSON('pinUltimoDesbloqueio',pinUltimoDesbloqueio);
-    gravarJSON('pinTotalDesbloqueios',pinTotalDesbloqueios);
-    registarLogPin('Desbloqueado com sucesso');
-    document.getElementById('lock-screen').classList.remove('open');
-    document.getElementById('lock-pin-input').value='';
-    document.getElementById('lock-pin-erro').textContent='';
-    atualizarPinStatus();
-    reiniciarTimerInatividade();
-    if(pinSomDesbloquear) tocarSomForcado(880,120);
-    if(pinConfettiDesbloquear) confetti();
-    if(pinVibrarSucesso && typeof navigator!=='undefined' && navigator.vibrate){ try{ navigator.vibrate(80); }catch(e){} }
+    desbloquearComSucesso('PIN');
   }else{
     document.getElementById('lock-pin-erro').textContent='PIN incorreto. Tenta outra vez.';
     pinTentativasErradas++;
@@ -5424,6 +5513,7 @@ function atualizarStatusFerramentas(){
   setChk('ferr-toggle-confirmar-eliminar-mov',ferrConfirmarEliminarMovimento);
   renderMetaPoupancaProgresso();
   renderListaTarefasRapidas();
+  atualizarEstadoFaceId();
 }
 function renderMetaPoupancaProgresso(){
   const box=document.getElementById('ferr-meta-poupanca-progresso');
@@ -5941,6 +6031,7 @@ try{
     if(optAmp) optAmp.style.display='none';
   }
 }catch(e){ console.error('esconder dela inicial falhou',e); }
+try{ atualizarEstadoFaceId(); }catch(e){ console.error('estado face id inicial falhou',e); }
 try{ if(pinSempreAtivo && pinApp){ appBloqueada=true; mostrarEcraBloqueio(); } }catch(e){ console.error('bloqueio inicial falhou',e); }
 try{
   document.getElementById('toggle-relogio').checked=relogioTopoAtivo;
