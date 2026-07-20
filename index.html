@@ -236,8 +236,6 @@ h1,h2,.num{font-family:'Sora',sans-serif;}
 .resumo-mes{font-size:13px;font-weight:700;flex:1;}
 .resumo-tend{font-size:13px;}
 .resumo-perc{font-size:11px;font-weight:600;color:var(--muted);background:var(--bg);border-radius:20px;padding:2px 8px;}
-.resumo-toggle-btn{width:26px;height:26px;font-size:15px;font-weight:800;line-height:1;}
-.resumo-row.resumo-minimizado{padding-bottom:12px;}
 .resumo-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
 .resumo-stat{display:flex;flex-direction:column;gap:3px;background:var(--bg);border-radius:12px;padding:8px 9px;}
 .resumo-stat-label{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.03em;}
@@ -647,7 +645,9 @@ body.dark.alto-contraste{--text:#FFFFFF;--bg:#000000;--surface:#000000;--muted:#
 <div id="lista-rec" style="display:flex;flex-direction:column;gap:8px;"></div>
 </div>
  
-<div class="section-head"><div class="section-title"><span id="txt-icon-resumo-mensal" class="ttl-icon"></span><span id="txt-st-resumo-mensal">Resumo mensal</span></div></div>
+<div class="section-head"><div class="section-title"><span id="txt-icon-resumo-mensal" class="ttl-icon"></span><span id="txt-st-resumo-mensal">Resumo mensal</span></div>
+<button class="link-btn" id="btn-resumo-mensal-toggle" onclick="toggleResumoMensalMinimizado()"></button>
+</div>
 <div id="resumo-mensal-lista" style="display:flex;flex-direction:column;gap:8px;margin-bottom:6px;"></div>
  
 <div class="section-head"><div class="section-title"><span id="txt-st-movimentos-lista">Movimentos</span></div></div>
@@ -1892,7 +1892,7 @@ let smdMesIdx=null;
 let smdContasSelecionadas=null;
 let faceIdAtivo=lerJSON('faceIdAtivo',false);
 let faceIdCredencialId=lerJSON('faceIdCredencialId',null);
-let resumoMesAtualMinimizado=lerJSON('resumoMesAtualMinimizado',true);
+let resumoMensalSoMesAtual=lerJSON('resumoMensalSoMesAtual',true);
 let saudacaoIndex=0;
 const saudacaoEmojis=['👋','😀','🤑','💸','🐷','😎'];
 
@@ -4799,10 +4799,15 @@ function render(){
 function renderResumoMensal(){
   const el=document.getElementById('resumo-mensal-lista');
   el.innerHTML='';
-  const meses=Object.keys(movimentos).sort().reverse();
-  if(meses.length===0){ el.innerHTML=`<div class="empty">${esc(textoEfetivo('txt-empty-movimentos'))}</div>`; return; }
   const hoje=new Date();
   const mesAtualChave=hoje.getFullYear()+'-'+String(hoje.getMonth()+1).padStart(2,'0');
+  const btnToggle=document.getElementById('btn-resumo-mensal-toggle');
+  if(btnToggle) btnToggle.textContent = resumoMensalSoMesAtual ? 'Mostrar todos os meses' : 'Mostrar só o mês atual';
+  let meses=Object.keys(movimentos).sort().reverse();
+  if(meses.length===0){ el.innerHTML=`<div class="empty">${esc(textoEfetivo('txt-empty-movimentos'))}</div>`; return; }
+  if(resumoMensalSoMesAtual){
+    meses = meses.includes(mesAtualChave) ? [mesAtualChave] : meses.slice(0,1);
+  }
   meses.forEach(m=>{
     let entradas=0,gastos=0;
     movimentos[m].forEach(x=>{
@@ -4815,19 +4820,16 @@ function renderResumoMensal(){
     const percHtml = percentagemResumoAtiva ? `<span class="resumo-perc">${perc}% gasto vs. entradas</span>` : '';
     const tendHtml = tendenciaResumoAtiva ? `<span class="resumo-tend">${fluxo>=0?'📈':'📉'}</span>` : '';
     const ehMesAtual = m===mesAtualChave;
-    const minimizado = ehMesAtual && resumoMesAtualMinimizado;
-    const toggleHtml = ehMesAtual ? `<button class="wallet-toggle resumo-toggle-btn" onclick="toggleResumoMesAtual(event)" title="${minimizado?'Aumentar':'Minimizar'}">${minimizado?'＋':'－'}</button>` : '';
     const row=document.createElement('div');
-    row.className='resumo-row'+(filtroMovMes===m?' is-active':'')+(minimizado?' resumo-minimizado':'');
+    row.className='resumo-row'+(filtroMovMes===m?' is-active':'');
     row.innerHTML=`
       <div class="resumo-head">
         <span class="dot" style="background:${cor};"></span>
         <span class="resumo-mes">${m}${ehMesAtual?' <span style="color:var(--brand-a);font-weight:700;">(atual)</span>':''}</span>
         ${tendHtml}
         ${percHtml}
-        ${toggleHtml}
       </div>
-      <div class="resumo-stats" style="${minimizado?'display:none;':''}">
+      <div class="resumo-stats">
         <div class="resumo-stat"><span class="resumo-stat-label">Entradas</span><span class="resumo-stat-val" style="color:var(--pos);">${dinheiro(entradas)}</span></div>
         <div class="resumo-stat"><span class="resumo-stat-label">Gastos</span><span class="resumo-stat-val" style="color:var(--neg);">${dinheiro(gastos)}</span></div>
         <div class="resumo-stat"><span class="resumo-stat-label">Fluxo</span><span class="resumo-stat-val">${dinheiro(fluxo)}</span></div>
@@ -4839,10 +4841,9 @@ function renderResumoMensal(){
     el.appendChild(row);
   });
 }
-function toggleResumoMesAtual(e){
-  if(e){ e.stopPropagation(); }
-  resumoMesAtualMinimizado=!resumoMesAtualMinimizado;
-  gravarJSON('resumoMesAtualMinimizado',resumoMesAtualMinimizado);
+function toggleResumoMensalMinimizado(){
+  resumoMensalSoMesAtual=!resumoMensalSoMesAtual;
+  gravarJSON('resumoMensalSoMesAtual',resumoMensalSoMesAtual);
   renderResumoMensal();
 }
  
