@@ -648,6 +648,7 @@ body.dark.alto-contraste{--text:#FFFFFF;--bg:#000000;--surface:#000000;--muted:#
 <div class="section-head"><div class="section-title"><span id="txt-icon-resumo-mensal" class="ttl-icon"></span><span id="txt-st-resumo-mensal">Resumo mensal</span></div>
 <button class="link-btn" id="btn-resumo-mensal-toggle" onclick="toggleResumoMensalMinimizado()"></button>
 </div>
+<div id="resumo-mensal-legenda-conta" style="display:none;font-size:11px;font-weight:600;color:var(--brand-a);margin:-4px 0 8px;"></div>
 <div id="resumo-mensal-lista" style="display:flex;flex-direction:column;gap:8px;margin-bottom:6px;"></div>
  
 <div class="section-head"><div class="section-title"><span id="txt-st-movimentos-lista">Movimentos</span></div></div>
@@ -4803,6 +4804,13 @@ function renderResumoMensal(){
   const mesAtualChave=hoje.getFullYear()+'-'+String(hoje.getMonth()+1).padStart(2,'0');
   const btnToggle=document.getElementById('btn-resumo-mensal-toggle');
   if(btnToggle) btnToggle.textContent = resumoMensalSoMesAtual ? 'Mostrar todos os meses' : 'Mostrar só o mês atual';
+  const contaEl=document.getElementById('f-conta');
+  const contaFiltro = (contaEl && contaEl.value) ? contaEl.value : 'todas';
+  const legendaConta=document.getElementById('resumo-mensal-legenda-conta');
+  if(legendaConta){
+    legendaConta.style.display = contaFiltro==='todas' ? 'none' : 'block';
+    legendaConta.textContent = contaFiltro==='todas' ? '' : `A mostrar só: ${contaFiltro}`;
+  }
   let meses=Object.keys(movimentos).sort().reverse();
   if(meses.length===0){ el.innerHTML=`<div class="empty">${esc(textoEfetivo('txt-empty-movimentos'))}</div>`; return; }
   if(resumoMensalSoMesAtual){
@@ -4812,6 +4820,7 @@ function renderResumoMensal(){
     let entradas=0,gastos=0;
     movimentos[m].forEach(x=>{
       if(ferrEsconderDela && (x.aba||'').toLowerCase()==='dela') return;
+      if(contaFiltro!=='todas' && x.aba!==contaFiltro) return;
       if(x.tipo==='ganho') entradas+=x.valor; else gastos+=x.valor;
     });
     const fluxo=entradas+gastos;
