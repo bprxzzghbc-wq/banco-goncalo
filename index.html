@@ -249,6 +249,7 @@ td{padding:8px 4px;border-top:1px solid var(--line);font-family:'Sora',sans-seri
 td:first-child{font-family:'Inter',sans-serif;font-weight:600;}
 tr.plano-mes-atual td{background:var(--bg);}
 tr.plano-mes-atual td:first-child{color:var(--brand-a);font-weight:700;}
+#plano-body tr.is-active td{background:var(--surface-2);}
 .plano-resumo-stat{flex:1;background:var(--bg);border-radius:12px;padding:8px 10px;text-align:center;}
 .plano-resumo-stat .lbl{font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:0.03em;font-weight:700;}
 .plano-resumo-stat .val{font-size:13px;font-weight:700;font-family:'Sora',sans-serif;margin-top:2px;}
@@ -264,7 +265,45 @@ tr.plano-mes-atual td:first-child{color:var(--brand-a);font-weight:700;}
 .plano-vs-fill{height:100%;border-radius:6px;transition:width .35s cubic-bezier(.22,1,.36,1);}
 .plano-vs-legenda{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);}
 .plano-vs-badge.over{display:inline-block;margin-left:6px;background:var(--neg-soft);color:var(--neg);font-weight:700;border-radius:6px;padding:1px 6px;font-size:10px;}
- 
+
+.plano-sim-lista{display:flex;flex-direction:column;gap:10px;}
+.plano-sim-card{
+  background:var(--surface);border:1.5px solid var(--line);border-radius:var(--radius-m);
+  padding:12px 14px;cursor:pointer;transition:border-color .15s ease,transform .15s ease;
+}
+.plano-sim-card:active{transform:scale(0.99);}
+.plano-sim-card.atual{border-color:var(--brand-a);}
+.plano-sim-card.aberto{border-color:var(--brand-a);box-shadow:0 6px 18px rgba(108,76,241,0.12);}
+.plano-sim-topo{display:flex;justify-content:space-between;align-items:center;}
+.plano-sim-mes{font-size:13px;font-weight:700;}
+.plano-sim-tag-atual{font-size:9.5px;font-weight:700;color:#fff;background:var(--brand-a);border-radius:999px;padding:2px 7px;margin-left:4px;vertical-align:middle;}
+.plano-sim-tag-editado{font-size:9.5px;font-weight:700;color:var(--brand-a);background:var(--surface-2);border-radius:999px;padding:2px 7px;margin-left:4px;vertical-align:middle;}
+.plano-sim-chevron{width:22px;height:22px;border-radius:50%;background:var(--surface-2);color:var(--muted);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0;}
+.plano-sim-linha{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px;}
+.plano-sim-stat{display:flex;flex-direction:column;gap:2px;background:var(--bg);border-radius:10px;padding:7px 8px;}
+.plano-sim-stat .lbl{font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:0.03em;font-weight:700;}
+.plano-sim-stat .val{font-size:12.5px;font-weight:700;font-family:'Sora',sans-serif;}
+.plano-sim-delta{margin-top:8px;font-size:11px;font-weight:700;text-align:center;border-radius:8px;padding:4px 6px;}
+.plano-sim-delta.pos{color:var(--pos);background:var(--pos-soft,rgba(15,174,125,0.1));}
+.plano-sim-delta.neg{color:var(--neg);background:var(--neg-soft);}
+.plano-sim-editor{overflow:hidden;}
+.plano-sim-card.aberto .plano-sim-editor{animation:planoSimAbrirEditor .22s ease;}
+@keyframes planoSimAbrirEditor{ 0%{ opacity:0; transform:translateY(-6px); } 100%{ opacity:1; transform:translateY(0); } }
+.plano-sim-slider-wrap{margin-bottom:10px;}
+.plano-sim-slider-wrap label{display:flex;justify-content:space-between;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:4px;}
+.plano-sim-slider{width:100%;display:block;accent-color:var(--brand-a);height:22px;cursor:pointer;}
+.plano-sim-card.passado{padding:7px 14px;margin-bottom:-4px;}
+.plano-sim-card.passado .plano-sim-mes{font-size:11.5px;}
+.plano-sim-card.passado .plano-sim-chevron{width:18px;height:18px;font-size:11px;}
+.plano-sim-card.passado .plano-sim-linha{margin-top:6px;gap:6px;}
+.plano-sim-card.passado .plano-sim-stat{padding:5px 7px;}
+.plano-sim-card.passado .plano-sim-stat .lbl{font-size:8.5px;}
+.plano-sim-card.passado .plano-sim-stat .val{font-size:11px;}
+.historico-sim-detalhe{margin-top:10px;animation:planoSimAbrirEditor .22s ease;}
+.historico-sim-detalhe table{width:100%;border-collapse:collapse;font-size:11px;}
+.historico-sim-detalhe th,.historico-sim-detalhe td{padding:4px 6px;text-align:left;border-bottom:1px solid var(--line);}
+.historico-sim-detalhe th{color:var(--muted);font-weight:700;font-size:9.5px;text-transform:uppercase;}
+
 /* add wallet */
 .add-acc-card{
   flex:0 0 auto;width:96px;border-radius:var(--radius-m);border:1.5px dashed var(--line);
@@ -714,14 +753,27 @@ body.dark.alto-contraste{--text:#FFFFFF;--bg:#000000;--surface:#000000;--muted:#
 <div class="section-head">
 <div class="section-title"><span id="txt-icon-planeamento-anual" class="ttl-icon"></span><span id="txt-st-planeamento-anual">Planeamento anual</span></div>
 <div style="display:flex;gap:8px;align-items:center;">
-<button class="wallet-toggle" onclick="abrirAmpliarPlano()" title="Ampliar">⤢</button>
+<button class="wallet-toggle" id="btn-ampliar-plano" onclick="abrirAmpliarPlano()" title="Ampliar">⤢</button>
 <select id="p-conta" onchange="renderPlano()" style="border:1.5px solid var(--line);border-radius:10px;padding:6px 8px;font-size:12px;background:var(--surface);color:var(--text);"></select>
+</div>
+</div>
+<div class="hist-filters" style="margin-bottom:12px;">
+<div class="hist-chip active" id="plano-modo-view-planeamento" onclick="mudarPlanoModoView('planeamento')">📋 Planeamento</div>
+<div class="hist-chip" id="plano-modo-view-simulacao" onclick="mudarPlanoModoView('simulacao')">🧮 Simulação</div>
+</div>
+<div id="plano-simulacao-aviso" style="display:none;flex-direction:column;gap:8px;font-size:11px;color:var(--muted);margin:-6px 0 12px;">
+<span>Testa cenários sem alterar o planeamento real — clica num mês para simular os números.</span>
+<div class="row2">
+<button class="link-btn" style="white-space:nowrap;flex:1;" onclick="abrirHistoricoSimulacao()">🕐 Histórico</button>
+<button class="link-btn" style="white-space:nowrap;flex:1;" onclick="guardarSimulacaoHistorico()">💾 Guardar no histórico</button>
+<button class="link-btn" style="white-space:nowrap;flex:1;" onclick="reporSimulacaoTudo()">↩️ Repor tudo</button>
 </div>
 </div>
 <div class="plan-card">
 <div id="plano-resumo-anual" style="display:flex;gap:8px;margin-bottom:14px;"></div>
-<table><thead><tr><th id="txt-th-mes">Mês</th><th id="txt-th-entradas">Entradas</th><th id="txt-th-gastos">Gastos</th><th id="txt-th-saldo">Saldo</th></tr></thead>
+<table id="plano-tabela-real"><thead><tr><th id="txt-th-mes">Mês</th><th id="txt-th-entradas">Entradas</th><th id="txt-th-gastos">Gastos</th><th id="txt-th-saldo">Saldo</th></tr></thead>
 <tbody id="plano-body"></tbody></table>
+<div id="plano-simulacao-cards" class="plano-sim-lista" style="display:none;"></div>
 </div>
 </div>
 
@@ -779,6 +831,26 @@ body.dark.alto-contraste{--text:#FFFFFF;--bg:#000000;--surface:#000000;--muted:#
 <button class="link-btn" style="margin-bottom:10px;" onclick="toggleVsRealidade()" id="btn-vs-realidade">📊 Ver Planeado vs Realidade</button>
 <div id="plano-vs-realidade-box" style="display:none;margin-bottom:14px;"></div>
 <div id="plano-tabela-ampliada" style="margin-top:14px;"></div>
+</div>
+</div>
+</div>
+
+<div class="sheet-overlay fw-overlay" id="historico-sim-sheet" onclick="minimizarOuFechar(event,'historico-sim-sheet')">
+<div class="fw-panel" id="historico-sim-panel" onclick="event.stopPropagation()">
+<div class="fw-edge fw-edge-n"></div><div class="fw-edge fw-edge-s"></div><div class="fw-edge fw-edge-e"></div><div class="fw-edge fw-edge-w"></div>
+<div class="fw-edge fw-edge-ne"></div><div class="fw-edge fw-edge-nw"></div><div class="fw-edge fw-edge-se"></div><div class="fw-edge fw-edge-sw"></div>
+<div class="fw-header">
+<div class="fw-header-main">
+<div class="sheet-title">🕐 Histórico de simulação</div>
+<div class="sheet-sub" id="historico-sim-sub"></div>
+</div>
+<div class="fw-header-actions">
+<button onclick="fecharHistoricoSimulacao()" title="Fechar">✕</button>
+</div>
+</div>
+<div class="fw-content">
+<button class="sheet-btn primary" style="width:100%;margin-bottom:12px;" onclick="guardarSimulacaoHistorico()">💾 Guardar simulação atual no histórico</button>
+<div id="historico-sim-lista" style="display:flex;flex-direction:column;gap:8px;"></div>
 </div>
 </div>
 </div>
@@ -1894,6 +1966,12 @@ let smdContasSelecionadas=null;
 let faceIdAtivo=lerJSON('faceIdAtivo',false);
 let faceIdCredencialId=lerJSON('faceIdCredencialId',null);
 let resumoMensalSoMesAtual=lerJSON('resumoMensalSoMesAtual',true);
+let planoModoView='planeamento';
+let planoSimulacao=lerJSON('planoSimulacao',{});
+let planoSimMesAberto=null;
+let planoSimulacaoHistorico=lerJSON('planoSimulacaoHistorico',{});
+let historicoSimAbertoId=null;
+let historicoSimMesEditando=null;
 let saudacaoIndex=0;
 const saudacaoEmojis=['👋','😀','🤑','💸','🐷','😎'];
 
@@ -2944,6 +3022,7 @@ criarJanelaFlutuante(document.getElementById('wishlist-panel'));
 criarJanelaFlutuante(document.getElementById('novidades-panel'));
 criarJanelaFlutuante(document.getElementById('wishlist-detalhe-panel'));
 criarJanelaFlutuante(document.getElementById('saldo-medio-panel'));
+criarJanelaFlutuante(document.getElementById('historico-sim-panel'));
 window.reporJanelaAdmin=function(){
   if(janelaFlutuanteAdmin) janelaFlutuanteAdmin.reset();
   showToast('Janela reposta ao tamanho e posição original');
@@ -4993,6 +5072,41 @@ function fecharAmpliarCategorias(e){
 }
  
 function renderPlano(){
+  if(planoModoView==='simulacao'){ renderPlanoSimulacao(); return; }
+  renderPlanoReal();
+}
+function mudarPlanoModoView(modo){
+  planoModoView=modo;
+  planoSimMesAberto=null;
+  document.getElementById('plano-modo-view-planeamento').classList.toggle('active',modo==='planeamento');
+  document.getElementById('plano-modo-view-simulacao').classList.toggle('active',modo==='simulacao');
+  document.getElementById('btn-ampliar-plano').style.display = modo==='simulacao' ? 'none' : '';
+  document.getElementById('plano-simulacao-aviso').style.display = modo==='simulacao' ? 'flex' : 'none';
+  document.getElementById('plano-tabela-real').style.display = modo==='simulacao' ? 'none' : '';
+  document.getElementById('plano-simulacao-cards').style.display = modo==='simulacao' ? 'flex' : 'none';
+  renderPlano();
+}
+function garantirSimulacao(conta){
+  if(!planoSimulacao[conta] && planeamento[conta] && planeamento[conta].length){
+    planoSimulacao[conta]=planeamento[conta].map(linha=>[...linha]);
+    gravarJSON('planoSimulacao',planoSimulacao);
+  }
+}
+function baseInicialSimulacao(conta){
+  const original=planeamento[conta];
+  if(!original || !original.length) return 0;
+  return original[0][3]-original[0][1]+original[0][2];
+}
+function recalcularSaldosSimulacao(conta){
+  const linhas=planoSimulacao[conta];
+  if(!linhas) return;
+  let anterior=baseInicialSimulacao(conta);
+  linhas.forEach(linha=>{
+    linha[3]=anterior+linha[1]-linha[2];
+    anterior=linha[3];
+  });
+}
+function renderPlanoReal(){
   const conta=document.getElementById('p-conta').value;
   const body=document.getElementById('plano-body');
   const linhas=planeamento[conta]||[];
@@ -5032,6 +5146,285 @@ function renderPlano(){
       <div class="plano-resumo-stat"><div class="lbl">Gastos (ano)</div><div class="val" style="color:var(--neg);">${moeda()}${fmt(totalGastos)}</div></div>
       <div class="plano-resumo-stat"><div class="lbl">Saldo final</div><div class="val">${moeda()}${fmt(saldoFinal)}</div></div>`;
   }
+}
+function renderPlanoSimulacao(){
+  const conta=document.getElementById('p-conta').value;
+  const cont=document.getElementById('plano-simulacao-cards');
+  const card=document.querySelector('#panel-plano .plan-card');
+  cont.innerHTML='';
+  if(!planeamento[conta] || planeamento[conta].length===0){
+    if(card) card.style.display='none';
+    let vazio=document.getElementById('plano-vazio-info');
+    if(!vazio){
+      vazio=document.createElement('div');
+      vazio.id='plano-vazio-info';
+      vazio.style.cssText='color:var(--muted);font-size:13px;padding:18px 4px;text-align:center;';
+      card.parentNode.insertBefore(vazio, card.nextSibling);
+    }
+    vazio.textContent=textoEfetivo('txt-empty-planeamento');
+    vazio.style.display='block';
+    return;
+  }
+  garantirSimulacao(conta);
+  if(card) card.style.display='';
+  const vazio=document.getElementById('plano-vazio-info');
+  if(vazio) vazio.style.display='none';
+  const linhas=planoSimulacao[conta];
+  const original=planeamento[conta];
+  const mesAtualIdx=new Date().getMonth();
+  const mesAtualNome=nomesMeses[mesAtualIdx];
+  let totalEntradas=0,totalGastos=0;
+  linhas.forEach(([mes,e,g,s],i)=>{
+    totalEntradas+=e; totalGastos+=g;
+    const anterior=linhas[i-1];
+    let tendIcon = anterior ? (s>anterior[3]?'📈':(s<anterior[3]?'📉':'')) : '';
+    const ehMesAtual = mes===mesAtualNome;
+    const ehPassado = i<mesAtualIdx;
+    const aberto = planoSimMesAberto===i;
+    const deltaSaldo = original[i] ? s-original[i][3] : 0;
+    const foiEditado = original[i] && (original[i][1]!==e || original[i][2]!==g);
+    const maxSlider = Math.max(e,g,100)*3;
+    const card2=document.createElement('div');
+    card2.className='plano-sim-card'+(ehMesAtual?' atual':'')+(aberto?' aberto':'')+(ehPassado&&!aberto?' passado':'');
+    card2.innerHTML=`
+      <div class="plano-sim-topo">
+        <span class="plano-sim-mes">${esc(mes)}${ehMesAtual?' <span class="plano-sim-tag-atual">atual</span>':''}${foiEditado?' <span class="plano-sim-tag-editado">✎ editado</span>':''}</span>
+        <span class="plano-sim-chevron">${aberto?'－':'＋'}</span>
+      </div>
+      <div class="plano-sim-linha">
+        <div class="plano-sim-stat"><span class="lbl">Entradas</span><span class="val" style="color:var(--pos);">${moeda()}${fmt(e)}</span></div>
+        <div class="plano-sim-stat"><span class="lbl">Gastos</span><span class="val" style="color:var(--neg);">${moeda()}${fmt(g)}</span></div>
+        <div class="plano-sim-stat"><span class="lbl">Saldo ${tendIcon}</span><span class="val">${moeda()}${fmt(s)}</span></div>
+      </div>
+      ${foiEditado?`<div class="plano-sim-delta ${deltaSaldo>=0?'pos':'neg'}">${deltaSaldo>=0?'+':''}${moeda()}${fmt(deltaSaldo)} vs. plano real</div>`:''}
+      <div class="plano-sim-editor" style="display:${aberto?'block':'none'};">
+        <div class="row2" style="margin:10px 0 8px;">
+          <div class="field"><label>Entradas simuladas</label><input type="number" step="0.01" id="sim-input-entradas" value="${e}"></div>
+          <div class="field"><label>Gastos simulados</label><input type="number" step="0.01" id="sim-input-gastos" value="${g}"></div>
+        </div>
+        <div class="plano-sim-slider-wrap">
+          <label>Entradas <span id="sim-slider-entradas-val">${moeda()}${fmt(e)}</span></label>
+          <input type="range" class="plano-sim-slider" id="sim-slider-entradas" min="0" max="${maxSlider}" step="1" value="${e}">
+        </div>
+        <div class="plano-sim-slider-wrap">
+          <label>Gastos <span id="sim-slider-gastos-val">${moeda()}${fmt(g)}</span></label>
+          <input type="range" class="plano-sim-slider" id="sim-slider-gastos" min="0" max="${maxSlider}" step="1" value="${g}">
+        </div>
+        <div class="row2">
+          <button class="sheet-btn primary" style="flex:1;" onclick="event.stopPropagation();guardarSimulacaoMes(${i})">Guardar simulação</button>
+          <button class="sheet-btn" style="flex:1;" onclick="event.stopPropagation();reporSimulacaoMes(${i})">↩️ Repor real</button>
+        </div>
+      </div>`;
+    card2.addEventListener('click',(e)=>{
+      if(e.target.closest('.plano-sim-editor')) return;
+      planoSimMesAberto = aberto ? null : i;
+      renderPlanoSimulacao();
+    });
+    if(aberto){
+      const inpE=card2.querySelector('#sim-input-entradas');
+      const inpG=card2.querySelector('#sim-input-gastos');
+      const sldE=card2.querySelector('#sim-slider-entradas');
+      const sldG=card2.querySelector('#sim-slider-gastos');
+      const valE=card2.querySelector('#sim-slider-entradas-val');
+      const valG=card2.querySelector('#sim-slider-gastos-val');
+      sldE.addEventListener('input',ev=>{ inpE.value=ev.target.value; valE.textContent=moeda()+fmt(parseFloat(ev.target.value)||0); });
+      sldG.addEventListener('input',ev=>{ inpG.value=ev.target.value; valG.textContent=moeda()+fmt(parseFloat(ev.target.value)||0); });
+      inpE.addEventListener('input',ev=>{ sldE.value=ev.target.value||0; valE.textContent=moeda()+fmt(parseFloat(ev.target.value)||0); });
+      inpG.addEventListener('input',ev=>{ sldG.value=ev.target.value||0; valG.textContent=moeda()+fmt(parseFloat(ev.target.value)||0); });
+    }
+    cont.appendChild(card2);
+  });
+  const resumo=document.getElementById('plano-resumo-anual');
+  if(resumo){
+    const saldoFinal=linhas[linhas.length-1][3];
+    const saldoFinalReal=original[original.length-1][3];
+    const deltaFinal=saldoFinal-saldoFinalReal;
+    resumo.innerHTML=`
+      <div class="plano-resumo-stat"><div class="lbl">Entradas (sim.)</div><div class="val" style="color:var(--pos);">${moeda()}${fmt(totalEntradas)}</div></div>
+      <div class="plano-resumo-stat"><div class="lbl">Gastos (sim.)</div><div class="val" style="color:var(--neg);">${moeda()}${fmt(totalGastos)}</div></div>
+      <div class="plano-resumo-stat"><div class="lbl">Saldo final (sim.)</div><div class="val">${moeda()}${fmt(saldoFinal)}</div><div style="font-size:9.5px;font-weight:700;margin-top:2px;color:${deltaFinal>=0?'var(--pos)':'var(--neg)'};">${deltaFinal>=0?'+':''}${moeda()}${fmt(deltaFinal)} vs. real</div></div>`;
+  }
+}
+function guardarSimulacaoMes(i){
+  const conta=document.getElementById('p-conta').value;
+  const linhas=planoSimulacao[conta];
+  if(!linhas || !linhas[i]) return;
+  const novaEntrada=parseFloat(document.getElementById('sim-input-entradas').value)||0;
+  const novoGasto=parseFloat(document.getElementById('sim-input-gastos').value)||0;
+  linhas[i][1]=novaEntrada;
+  linhas[i][2]=novoGasto;
+  recalcularSaldosSimulacao(conta);
+  gravarJSON('planoSimulacao',planoSimulacao);
+  showToast('Simulação guardada — o planeamento real não foi alterado','🧮');
+  renderPlanoSimulacao();
+}
+function reporSimulacaoMes(i){
+  const conta=document.getElementById('p-conta').value;
+  const original=planeamento[conta];
+  const linhas=planoSimulacao[conta];
+  if(!linhas || !original || !original[i]) return;
+  linhas[i][1]=original[i][1];
+  linhas[i][2]=original[i][2];
+  recalcularSaldosSimulacao(conta);
+  gravarJSON('planoSimulacao',planoSimulacao);
+  showToast('Mês reposto com os valores reais','↩️');
+  renderPlanoSimulacao();
+}
+function reporSimulacaoTudo(){
+  const conta=document.getElementById('p-conta').value;
+  if(!planeamento[conta]) return;
+  planoSimulacao[conta]=planeamento[conta].map(linha=>[...linha]);
+  gravarJSON('planoSimulacao',planoSimulacao);
+  showToast('Simulação reposta com os valores reais','↩️');
+  renderPlanoSimulacao();
+}
+/* -- histórico de simulações -- */
+function abrirHistoricoSimulacao(){
+  const conta=document.getElementById('p-conta').value;
+  document.getElementById('historico-sim-sub').textContent=`Conta: ${conta}`;
+  document.getElementById('historico-sim-sheet').classList.add('open');
+  renderHistoricoSimulacao();
+}
+function fecharHistoricoSimulacao(e){
+  if(e && e.target && e.target.id!=='historico-sim-sheet') return;
+  restaurarJanela('historico-sim-sheet');
+  document.getElementById('historico-sim-sheet').classList.remove('open');
+}
+function guardarSimulacaoHistorico(){
+  const conta=document.getElementById('p-conta').value;
+  garantirSimulacao(conta);
+  if(!planoSimulacao[conta]) { showToast('Não há simulação para guardar','⚠️'); return; }
+  if(!planoSimulacaoHistorico[conta]) planoSimulacaoHistorico[conta]=[];
+  planoSimulacaoHistorico[conta].unshift({
+    id: Date.now()+'-'+Math.floor(Math.random()*10000),
+    data: new Date().toISOString(),
+    nota: '',
+    baseInicial: baseInicialSimulacao(conta),
+    dados: planoSimulacao[conta].map(linha=>[...linha])
+  });
+  gravarJSON('planoSimulacaoHistorico',planoSimulacaoHistorico);
+  showToast('Simulação guardada no histórico','💾');
+  renderHistoricoSimulacao();
+}
+function renderHistoricoSimulacao(){
+  const conta=document.getElementById('p-conta').value;
+  const lista=document.getElementById('historico-sim-lista');
+  if(!lista) return;
+  const entradas=planoSimulacaoHistorico[conta]||[];
+  if(entradas.length===0){ lista.innerHTML='<div style="color:var(--muted);font-size:12.5px;text-align:center;padding:12px 4px;">Ainda não guardaste nenhuma simulação no histórico.</div>'; return; }
+  lista.innerHTML='';
+  entradas.forEach(entrada=>{
+    const saldoFinal=entrada.dados[entrada.dados.length-1][3];
+    const dataFormatada=new Date(entrada.data).toLocaleString('pt-PT',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    const aberto=historicoSimAbertoId===entrada.id;
+    const item=document.createElement('div');
+    item.style.cssText='background:var(--bg);border-radius:14px;padding:12px;';
+    let corpoTabela='';
+    entrada.dados.forEach(([mes,e,g,s],mi)=>{
+      const editando = aberto && historicoSimMesEditando && historicoSimMesEditando.entryId===entrada.id && historicoSimMesEditando.mesIdx===mi;
+      corpoTabela+=`<tr data-mes-idx="${mi}" data-entry-id="${esc(entrada.id)}" style="cursor:pointer;${editando?'background:var(--surface-2);':''}"><td>${esc(mes)}</td><td>${moeda()}${fmt(e)}</td><td>${moeda()}${fmt(g)}</td><td>${moeda()}${fmt(s)}</td></tr>`;
+      if(editando){
+        corpoTabela+=`<tr><td colspan="4" style="background:var(--surface-2);">
+          <div style="padding:8px 2px;">
+            <div class="row2" style="margin-bottom:8px;">
+              <div class="field"><label>Entradas</label><input type="number" step="0.01" id="hist-edit-entradas" value="${e}"></div>
+              <div class="field"><label>Gastos</label><input type="number" step="0.01" id="hist-edit-gastos" value="${g}"></div>
+            </div>
+            <div class="row2">
+              <button class="sheet-btn primary" style="flex:1;" onclick="event.stopPropagation();guardarEdicaoHistoricoMes('${esc(entrada.id)}',${mi})">Guardar</button>
+              <button class="sheet-btn" style="flex:1;" onclick="event.stopPropagation();historicoSimMesEditando=null;renderHistoricoSimulacao();">Cancelar</button>
+            </div>
+          </div>
+        </td></tr>`;
+      }
+    });
+    item.innerHTML=`
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <span style="font-size:12px;font-weight:700;">🕐 ${esc(dataFormatada)}</span>
+        <span style="font-size:11.5px;font-weight:700;color:var(--brand-a);">Saldo final: ${moeda()}${fmt(saldoFinal)}</span>
+      </div>
+      <input type="text" placeholder="Adiciona uma nota a esta simulação..." value="${esc(entrada.nota||'')}" data-hist-id="${entrada.id}" style="width:100%;padding:7px 9px;border-radius:8px;border:1.5px solid var(--line);background:var(--surface);color:var(--text);font-size:11.5px;margin-bottom:8px;">
+      <div class="row2">
+        <button class="sheet-btn" style="flex:1;" onclick="toggleHistoricoSimulacaoAberto('${entrada.id}')">${aberto?'🔼 Esconder':'👁️ Ver simulação'}</button>
+        <button class="sheet-btn primary" style="flex:1;" onclick="aplicarHistoricoSimulacao('${entrada.id}')">✎ Aplicar</button>
+        <button class="sheet-btn danger" style="flex:1;" onclick="eliminarHistoricoSimulacao('${entrada.id}')">Eliminar</button>
+      </div>
+      <div class="historico-sim-detalhe" style="display:${aberto?'block':'none'};">
+        <div style="font-size:10.5px;color:var(--muted);margin-bottom:6px;">Clica num mês para editar os valores desta simulação guardada.</div>
+        <table><thead><tr><th>Mês</th><th>Entradas</th><th>Gastos</th><th>Saldo</th></tr></thead><tbody>${corpoTabela}</tbody></table>
+      </div>`;
+    item.querySelector('input[data-hist-id]').addEventListener('change',e=>{
+      mudarNotaHistoricoSimulacao(entrada.id,e.target.value);
+    });
+    item.querySelectorAll('tr[data-mes-idx]').forEach(tr=>{
+      tr.addEventListener('click',()=>{
+        const mi=parseInt(tr.dataset.mesIdx);
+        const eid=tr.dataset.entryId;
+        const jaAberto = historicoSimMesEditando && historicoSimMesEditando.entryId===eid && historicoSimMesEditando.mesIdx===mi;
+        historicoSimMesEditando = jaAberto ? null : {entryId:eid, mesIdx:mi};
+        renderHistoricoSimulacao();
+      });
+    });
+    lista.appendChild(item);
+  });
+}
+function toggleHistoricoSimulacaoAberto(id){
+  historicoSimAbertoId = historicoSimAbertoId===id ? null : id;
+  historicoSimMesEditando=null;
+  renderHistoricoSimulacao();
+}
+function recalcularSaldosHistorico(entrada){
+  const base = (typeof entrada.baseInicial==='number') ? entrada.baseInicial : (entrada.dados[0][3]-entrada.dados[0][1]+entrada.dados[0][2]);
+  let anterior=base;
+  entrada.dados.forEach(linha=>{
+    linha[3]=anterior+linha[1]-linha[2];
+    anterior=linha[3];
+  });
+}
+function guardarEdicaoHistoricoMes(entryId,mesIdx){
+  const conta=document.getElementById('p-conta').value;
+  const entradas=planoSimulacaoHistorico[conta]||[];
+  const entrada=entradas.find(x=>x.id===entryId);
+  if(!entrada || !entrada.dados[mesIdx]) return;
+  const novaEntrada=parseFloat(document.getElementById('hist-edit-entradas').value)||0;
+  const novoGasto=parseFloat(document.getElementById('hist-edit-gastos').value)||0;
+  if(typeof entrada.baseInicial!=='number') entrada.baseInicial=entrada.dados[0][3]-entrada.dados[0][1]+entrada.dados[0][2];
+  entrada.dados[mesIdx][1]=novaEntrada;
+  entrada.dados[mesIdx][2]=novoGasto;
+  recalcularSaldosHistorico(entrada);
+  gravarJSON('planoSimulacaoHistorico',planoSimulacaoHistorico);
+  historicoSimMesEditando=null;
+  showToast('Simulação guardada atualizada','💾');
+  renderHistoricoSimulacao();
+}
+function mudarNotaHistoricoSimulacao(id,valor){
+  const conta=document.getElementById('p-conta').value;
+  const entradas=planoSimulacaoHistorico[conta]||[];
+  const entrada=entradas.find(x=>x.id===id);
+  if(!entrada) return;
+  entrada.nota=valor;
+  gravarJSON('planoSimulacaoHistorico',planoSimulacaoHistorico);
+}
+function aplicarHistoricoSimulacao(id){
+  const conta=document.getElementById('p-conta').value;
+  const entradas=planoSimulacaoHistorico[conta]||[];
+  const entrada=entradas.find(x=>x.id===id);
+  if(!entrada) return;
+  planoSimulacao[conta]=entrada.dados.map(linha=>[...linha]);
+  gravarJSON('planoSimulacao',planoSimulacao);
+  planoSimMesAberto=null;
+  fecharHistoricoSimulacao();
+  if(planoModoView!=='simulacao') mudarPlanoModoView('simulacao');
+  else renderPlanoSimulacao();
+  showToast('Simulação do histórico aplicada','🕐');
+}
+function eliminarHistoricoSimulacao(id){
+  const conta=document.getElementById('p-conta').value;
+  if(!planoSimulacaoHistorico[conta]) return;
+  planoSimulacaoHistorico[conta]=planoSimulacaoHistorico[conta].filter(x=>x.id!==id);
+  gravarJSON('planoSimulacaoHistorico',planoSimulacaoHistorico);
+  renderHistoricoSimulacao();
+  showToast('Entrada do histórico eliminada','🗑️');
 }
 
 /* liga o planeamento (orçamento mensal) aos movimentos reais para calcular se o orçamento foi cumprido */
