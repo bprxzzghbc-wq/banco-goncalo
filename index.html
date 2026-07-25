@@ -527,6 +527,80 @@ body.dark.alto-contraste{--text:#FFFFFF;--bg:#000000;--surface:#000000;--muted:#
 @media (prefers-reduced-motion: reduce){
   #splash, .tab-panel, .ripple, .confetti-piece{animation:none !important;}
 }
+
+/* ==================================================================
+   Painel de administrador — refinamento visual (só aparência, as
+   mesmas opções/funcionalidades continuam todas exatamente iguais)
+   ================================================================== */
+#cores-sheet-panel{box-shadow:0 30px 74px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.03) inset;}
+#cores-sheet-panel .fw-header{
+  background:linear-gradient(135deg, rgba(108,76,241,0.14), rgba(255,95,168,0.07));
+  position:relative;
+}
+#cores-sheet-panel .fw-header::after{
+  content:'';position:absolute;left:0;right:0;bottom:-1px;height:1px;
+  background:linear-gradient(90deg, transparent, var(--brand-a), transparent);opacity:0.5;
+}
+#cores-sheet-panel .fw-content{scrollbar-width:thin;}
+#cores-sheet-panel .fw-content::-webkit-scrollbar{width:6px;}
+#cores-sheet-panel .fw-content::-webkit-scrollbar-track{background:transparent;}
+#cores-sheet-panel .fw-content::-webkit-scrollbar-thumb{background:var(--line);border-radius:999px;}
+#cores-sheet-panel .fw-content::-webkit-scrollbar-thumb:hover{background:var(--muted);}
+
+#cores-sheet-panel .acc-subtabs{
+  overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;
+  background:var(--bg);border-radius:14px;padding:4px;gap:2px;
+}
+#cores-sheet-panel .acc-subtabs::-webkit-scrollbar{display:none;}
+#cores-sheet-panel .acc-subtab{
+  flex:0 0 auto;white-space:nowrap;padding:8px 14px;border-radius:11px;
+  transition:background .25s cubic-bezier(.22,1,.36,1),color .25s ease,transform .15s ease;
+}
+#cores-sheet-panel .acc-subtab.active{
+  background:linear-gradient(135deg,var(--brand-a),var(--brand-b));color:#fff;
+  box-shadow:0 6px 16px -4px rgba(108,76,241,0.55);
+}
+#cores-sheet-panel .acc-subtab:active{transform:scale(0.95);}
+
+#cores-sheet-panel .btn-main{
+  transition:transform .15s ease, box-shadow .2s ease, filter .2s ease;
+}
+#cores-sheet-panel .btn-main:hover{filter:brightness(1.04);}
+#cores-sheet-panel .btn-main:active{transform:scale(0.97);}
+#cores-sheet-panel .link-btn{
+  display:inline-flex;align-items:center;gap:5px;background:var(--surface-2);
+  padding:9px 13px;border-radius:11px;transition:background .18s ease,transform .15s ease;
+}
+#cores-sheet-panel .link-btn:hover{background:var(--bg);}
+#cores-sheet-panel .link-btn:active{transform:scale(0.97);}
+#cores-sheet-panel .sheet-btn{transition:transform .15s ease, filter .2s ease;}
+#cores-sheet-panel .sheet-btn:active{transform:scale(0.96);}
+
+#cores-sheet-panel input[type=checkbox]{
+  -webkit-appearance:none;appearance:none;width:42px !important;height:24px !important;
+  border-radius:999px !important;background:var(--surface-2);border:1.5px solid var(--line);
+  position:relative;cursor:pointer;transition:background .25s ease,border-color .25s ease;flex-shrink:0;
+}
+#cores-sheet-panel input[type=checkbox]::before{
+  content:'';position:absolute;top:2px;left:2px;width:17px;height:17px;border-radius:50%;
+  background:#fff;box-shadow:0 1px 4px rgba(0,0,0,0.35);
+  transition:transform .25s cubic-bezier(.22,1,.36,1);
+}
+#cores-sheet-panel input[type=checkbox]:checked{
+  background:linear-gradient(135deg,var(--brand-a),var(--brand-b));border-color:transparent;
+}
+#cores-sheet-panel input[type=checkbox]:checked::before{transform:translateX(18px);}
+
+#cores-sheet-panel select, #cores-sheet-panel input[type=text], #cores-sheet-panel input[type=number],
+#cores-sheet-panel input[type=color], #cores-sheet-panel input[type=range]{
+  transition:border-color .18s ease, box-shadow .18s ease;
+}
+#cores-sheet-panel select:focus, #cores-sheet-panel input[type=text]:focus, #cores-sheet-panel input[type=number]:focus{
+  outline:none;border-color:var(--brand-a) !important;box-shadow:0 0 0 3px rgba(108,76,241,0.15);
+}
+
+@keyframes adminTabFade{ 0%{opacity:0;transform:translateY(5px);} 100%{opacity:1;transform:translateY(0);} }
+.admin-tab-fade{animation:adminTabFade .28s cubic-bezier(.22,1,.36,1);}
 </style>
 </head>
 <body>
@@ -3084,6 +3158,10 @@ function mudarAdminTab(tab){
   });
   const caixaScroll=document.getElementById('admin-tab-'+tab).closest('.fw-content');
   if(caixaScroll) caixaScroll.scrollTop=0;
+  const painelAtivo=document.getElementById('admin-tab-'+tab);
+  painelAtivo.classList.remove('admin-tab-fade');
+  void painelAtivo.offsetWidth;
+  painelAtivo.classList.add('admin-tab-fade');
   if(tab==='editar') renderEditorPagina();
   if(tab==='ferramentas') atualizarStatusFerramentas();
   if(tab==='assistente'){
@@ -3467,7 +3545,12 @@ const iaIndiceLocais=[
   {label:'Mais opções de cores e estilo',keywords:['mais opções','mais cores','daltonismo','alto contraste'],ir:()=>{ abrirCores(); mudarAdminTab('mais'); }},
   {label:'Ferramentas',keywords:['ferramentas','backup automático','meta de poupança','juros compostos','conversor de moeda','tarefas rápidas','relatório mensal','backup semanal','backup mensal'],ir:()=>{ abrirCores(); mudarAdminTab('ferramentas'); }},
   {label:'Esconder informação da conta Dela',keywords:['esconder dela','esconde dela','esconder a dela','privacidade da dela','esconder informação dela'],ir:()=>{ abrirCores(); mudarAdminTab('ferramentas'); setTimeout(()=>destacarElemento(document.getElementById('ferr-toggle-esconder-dela').closest('label')),200); }},
-  {label:'Editar textos, secções e estilo por página',keywords:['editar','editor','textos da app','secções da página','tela de reorganização','estilo da página','assistente'],ir:()=>{ abrirCores(); mudarAdminTab('editar'); }}
+  {label:'Editar textos, secções e estilo por página',keywords:['editar','editor','textos da app','secções da página','tela de reorganização','estilo da página'],ir:()=>{ abrirCores(); mudarAdminTab('editar'); }},
+  {label:'Assistente inteligente',keywords:['assistente','assistente inteligente','falar com a ia','conversar com a ia','chat da ia'],ir:()=>{ abrirCores(); mudarAdminTab('assistente'); }},
+  {label:'Simulação do planeamento',keywords:['simulação','simulacao','simular gastos','cenário','cenario','what if','testar cenário'],ir:()=>{ irParaAba('plano'); setTimeout(()=>{ mudarPlanoModoView('simulacao'); destacarElemento(document.getElementById('plano-simulacao-cards')); },150); }},
+  {label:'Histórico de simulação',keywords:['histórico de simulação','historico de simulacao','simulações guardadas','simulacoes guardadas'],ir:()=>{ irParaAba('plano'); mudarPlanoModoView('simulacao'); setTimeout(()=>abrirHistoricoSimulacao(),200); }},
+  {label:'Face ID',keywords:['face id','faceid','biometria','desbloquear com a cara','reconhecimento facial'],ir:()=>{ abrirCores(); mudarAdminTab('ferramentas'); setTimeout(()=>{ const el=document.getElementById('ferr-btn-face-id'); if(el) destacarElemento(el); },200); }},
+  {label:'Saldo médio diário',keywords:['saldo médio diário','saldo medio diario','média diária','media diaria'],ir:()=>abrirSaldoMedio()}
 ];
 function pontuarLocal(t,local){
   let pontos=0;
