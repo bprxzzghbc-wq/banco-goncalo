@@ -496,7 +496,7 @@ body.dark.alto-contraste{--text:#FFFFFF;--bg:#000000;--surface:#000000;--muted:#
 .wallet-card-logo{font-size:18px;opacity:0.9;}
 .wallet-card-balance{font-family:'Sora',sans-serif;font-weight:800;font-size:32px;margin-top:22px;letter-spacing:-0.01em;position:relative;z-index:1;}
 .wallet-card-bottom{display:flex;justify-content:space-between;align-items:center;margin-top:18px;font-size:10.5px;opacity:0.78;letter-spacing:0.06em;position:relative;z-index:1;}
-.wallet-card-bottom #wallet-card-chip{background:rgba(255,255,255,0.16);padding:3px 10px;border-radius:999px;font-weight:700;letter-spacing:0.02em;}
+.wallet-card-bottom span:first-child{background:rgba(255,255,255,0.16);padding:3px 10px;border-radius:999px;font-weight:700;letter-spacing:0.02em;}
 .wallet-section-title{font-size:12px;font-weight:700;color:var(--muted);margin:4px 2px 8px;}
 .wallet-tx-row{display:flex;align-items:center;gap:10px;padding:9px 2px;border-bottom:1px solid var(--line);}
 .wallet-tx-row:last-child{border-bottom:none;}
@@ -506,6 +506,27 @@ body.dark.alto-contraste{--text:#FFFFFF;--bg:#000000;--surface:#000000;--muted:#
 .wallet-tx-sub{font-size:10.5px;color:var(--muted);margin-top:1px;}
 .wallet-tx-amt{font-size:13px;font-weight:700;white-space:nowrap;margin-left:auto;}
 .wallet-tx-chevron{color:var(--muted);font-size:14px;margin-left:2px;}
+input.switch-toggle{
+  -webkit-appearance:none;appearance:none;width:42px;height:24px;border-radius:999px;background:var(--surface);
+  border:1.5px solid var(--line);position:relative;cursor:pointer;transition:background .25s ease,border-color .25s ease;flex-shrink:0;
+}
+input.switch-toggle::before{
+  content:'';position:absolute;top:2px;left:2px;width:17px;height:17px;border-radius:50%;background:#fff;
+  box-shadow:0 1px 4px rgba(0,0,0,0.35);transition:transform .25s cubic-bezier(.22,1,.36,1);
+}
+input.switch-toggle:checked{background:linear-gradient(135deg,var(--brand-a),var(--brand-b));border-color:transparent;}
+input.switch-toggle:checked::before{transform:translateX(18px);}
+.wallet-cards-carousel{
+  display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding:4px 0 10px;margin:0 -4px 4px;
+  -webkit-overflow-scrolling:touch;scrollbar-width:none;
+}
+.wallet-cards-carousel::-webkit-scrollbar{display:none;}
+.wallet-cards-carousel .wallet-card{
+  flex:0 0 86%;scroll-snap-align:center;margin:4px 4px 8px;
+}
+.wallet-carousel-dots{display:flex;justify-content:center;gap:6px;margin-bottom:14px;}
+.wallet-carousel-dot{width:6px;height:6px;border-radius:50%;background:var(--line);transition:background .2s ease,transform .2s ease;}
+.wallet-carousel-dot.active{background:var(--brand-a);transform:scale(1.35);}
 .sheet-notes{
   width:100%;min-height:70px;border-radius:var(--radius-s);border:1.5px solid var(--line);
   background:var(--surface-2);padding:10px;font-size:13px;font-family:'Inter',sans-serif;color:var(--text);resize:vertical;
@@ -644,6 +665,7 @@ body.dark.alto-contraste{--text:#FFFFFF;--bg:#000000;--surface:#000000;--muted:#
 </style>
 </head>
 <body>
+<script>try{if(JSON.parse(localStorage.getItem('modoEscuroAtivo')||'false')){document.body.classList.add('dark');}}catch(e){}</script>
 <div id="splash">
 <div class="orb">👋</div>
 <div class="greet">Olá, <span id="txt-nome-splash">Gonçalo</span></div>
@@ -663,7 +685,7 @@ body.dark.alto-contraste{--text:#FFFFFF;--bg:#000000;--surface:#000000;--muted:#
 </div>
 </div>
  
-<div class="hero" onclick="abrirSaldoTotal()" style="cursor:pointer;">
+<div class="hero" onclick="abrirSaldoOuCarteira()" style="cursor:pointer;">
 <div class="hero-top">
 <div class="hero-label">Saldo total <span style="opacity:0.6;font-size:10.5px;">· toca para ver mais</span></div>
 <div class="pill" id="status-chip">Estável</div>
@@ -1648,7 +1670,11 @@ body.dark.alto-contraste{--text:#FFFFFF;--bg:#000000;--surface:#000000;--muted:#
 <div style="font-family:'Sora',sans-serif;font-size:44px;font-weight:800;letter-spacing:-0.02em;" id="saldo-sheet-total">€0,00</div>
 <div id="saldo-sheet-chip" style="display:inline-block;margin-top:6px;font-size:11px;font-weight:600;padding:4px 12px;border-radius:999px;background:var(--surface-2);"></div>
 <div style="margin-top:12px;">
-<button class="sheet-btn" style="display:inline-flex;align-items:center;gap:7px;width:auto;padding:9px 18px;" onclick="fecharSaldoTotal();abrirCarteiraApple();">🍎 Ver em modo carteira</button>
+<button class="sheet-btn" style="display:inline-flex;align-items:center;gap:7px;width:auto;padding:9px 18px;" onclick="fecharSaldoTotal();abrirCarteiraApple();"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="display:inline-block;flex-shrink:0;"><path d="M16.365 1.43c0 1.14-.493 2.27-1.177 3.08-.744.9-1.99 1.57-2.987 1.57-.12 0-.23-.02-.29-.03-.017-.09-.05-.28-.05-.47 0-1.14.572-2.27 1.206-2.98.732-.85 2.02-1.51 3.06-1.55.03.13.05.26.05.38zm4.565 15.71c-.03.07-.463 1.58-1.518 3.12-.86 1.25-1.75 2.5-3.15 2.53-1.37.03-1.81-.81-3.38-.81-1.57 0-2.06.79-3.36.84-1.34.05-2.36-1.35-3.24-2.6-1.76-2.55-3.1-7.21-1.29-10.35.9-1.56 2.51-2.55 4.25-2.58 1.32-.02 2.57.89 3.38.89.8 0 2.32-1.1 3.91-.94.67.03 2.54.27 3.75 2.03-.1.06-2.24 1.31-2.22 3.9.02 3.1 2.72 4.13 2.75 4.15z"/></svg> Ver em modo carteira</button>
+<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--surface-2);border-radius:14px;padding:10px 14px;margin-top:10px;text-align:left;">
+<div style="font-size:12px;font-weight:600;">Abrir sempre o saldo em modo Apple</div>
+<input type="checkbox" class="switch-toggle toggle-modo-apple" onchange="mudarModoAppleWallet(this.checked)">
+</div>
 </div>
 </div>
 <div style="display:flex;gap:10px;margin-bottom:16px;">
@@ -1672,7 +1698,7 @@ body.dark.alto-contraste{--text:#FFFFFF;--bg:#000000;--surface:#000000;--muted:#
 <div class="fw-edge fw-edge-ne"></div><div class="fw-edge fw-edge-nw"></div><div class="fw-edge fw-edge-se"></div><div class="fw-edge fw-edge-sw"></div>
 <div class="fw-header">
 <div class="fw-header-main">
-<div class="sheet-title">🍎 Carteira</div>
+<div class="sheet-title" style="display:flex;align-items:center;gap:7px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0;"><path d="M16.365 1.43c0 1.14-.493 2.27-1.177 3.08-.744.9-1.99 1.57-2.987 1.57-.12 0-.23-.02-.29-.03-.017-.09-.05-.28-.05-.47 0-1.14.572-2.27 1.206-2.98.732-.85 2.02-1.51 3.06-1.55.03.13.05.26.05.38zm4.565 15.71c-.03.07-.463 1.58-1.518 3.12-.86 1.25-1.75 2.5-3.15 2.53-1.37.03-1.81-.81-3.38-.81-1.57 0-2.06.79-3.36.84-1.34.05-2.36-1.35-3.24-2.6-1.76-2.55-3.1-7.21-1.29-10.35.9-1.56 2.51-2.55 4.25-2.58 1.32-.02 2.57.89 3.38.89.8 0 2.32-1.1 3.91-.94.67.03 2.54.27 3.75 2.03-.1.06-2.24 1.31-2.22 3.9.02 3.1 2.72 4.13 2.75 4.15z"/></svg> Carteira</div>
 <div class="sheet-sub">O teu saldo, ao estilo Apple Wallet</div>
 </div>
 <div class="fw-header-actions">
@@ -1680,18 +1706,13 @@ body.dark.alto-contraste{--text:#FFFFFF;--bg:#000000;--surface:#000000;--muted:#
 </div>
 </div>
 <div class="fw-content">
-<div class="wallet-card" id="wallet-card">
-<div class="wallet-card-top">
-<span class="wallet-card-brand">Gonçalo</span>
-<span class="wallet-card-logo">🍎</span>
+<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--surface-2);border-radius:14px;padding:10px 14px;margin-bottom:14px;">
+<div style="font-size:12px;font-weight:600;">Abrir sempre o saldo em modo Apple</div>
+<input type="checkbox" class="switch-toggle toggle-modo-apple" onchange="mudarModoAppleWallet(this.checked)">
 </div>
-<div class="wallet-card-balance" id="wallet-card-saldo">€0,00</div>
-<div class="wallet-card-bottom">
-<span id="wallet-card-chip">Estável</span>
-<span class="wallet-card-dots">•••• •••• •••• 4291</span>
-</div>
-</div>
-<div class="wallet-section-title">Transações mais recentes</div>
+<div class="wallet-cards-carousel" id="wallet-cards-carousel"></div>
+<div class="wallet-carousel-dots" id="wallet-carousel-dots"></div>
+<div class="wallet-section-title"><span id="wallet-section-title-texto">Transações mais recentes</span></div>
 <div id="wallet-lista"></div>
 <button class="sheet-btn primary" style="margin-top:12px;width:100%;" onclick="fecharCarteiraApple();irParaAba('movimentos');">Ver mais →</button>
 </div>
@@ -2107,6 +2128,8 @@ let estiloPorPagina=lerJSON('estiloPorPagina',{});
 let ordemSecoesPorPagina=lerJSON('ordemSecoesPorPagina',{});
 let iaChatHistorico=[];
 let ferrEsconderDela=lerJSON('ferrEsconderDela',false);
+let modoAppleWallet=lerJSON('modoAppleWallet',false);
+let carteiraContaAtiva=null;
 let planoModoPercentagem='ano';
 let planoMesSelecionado=null;
 let smdPeriodo='mes';
@@ -2204,6 +2227,8 @@ function dinheiro(n){ const v=fmt(n); return moedaPosicao==='depois' ? v+moeda()
 function fmtSigned(n){ const v=Number(n)||0; if(!sinalSempre) return fmt(v); return (v>=0?'+':'-')+fmt(Math.abs(v)); }
 function dinheiroSigned(n){ const v=fmtSigned(n); return moedaPosicao==='depois' ? v+moeda() : moeda()+v; }
 function hashColor(str){let h=0;str=str||'';for(let i=0;i<str.length;i++)h=str.charCodeAt(i)+((h<<5)-h);return accentPalette[Math.abs(h)%accentPalette.length];}
+function hashNum4(str){let h=0;str=str||'';for(let i=0;i<str.length;i++)h=str.charCodeAt(i)+((h<<5)-h);return String(Math.abs(h)%10000).padStart(4,'0');}
+function appleIconSVG(size){ size=size||18; return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="currentColor" style="display:block;"><path d="M16.365 1.43c0 1.14-.493 2.27-1.177 3.08-.744.9-1.99 1.57-2.987 1.57-.12 0-.23-.02-.29-.03-.017-.09-.05-.28-.05-.47 0-1.14.572-2.27 1.206-2.98.732-.85 2.02-1.51 3.06-1.55.03.13.05.26.05.38zm4.565 15.71c-.03.07-.463 1.58-1.518 3.12-.86 1.25-1.75 2.5-3.15 2.53-1.37.03-1.81-.81-3.38-.81-1.57 0-2.06.79-3.36.84-1.34.05-2.36-1.35-3.24-2.6-1.76-2.55-3.1-7.21-1.29-10.35.9-1.56 2.51-2.55 4.25-2.58 1.32-.02 2.57.89 3.38.89.8 0 2.32-1.1 3.91-.94.67.03 2.54.27 3.75 2.03-.1.06-2.24 1.31-2.22 3.9.02 3.1 2.72 4.13 2.75 4.15z"/></svg>`; }
  
 function countUp(el,to,duration=900){
   const from=0;
@@ -2259,7 +2284,10 @@ function esconderSplash(){
 }
 setTimeout(esconderSplash,1400);
  
-function toggleDark(){document.body.classList.toggle('dark');}
+function toggleDark(){
+  document.body.classList.toggle('dark');
+  gravarJSON('modoEscuroAtivo',document.body.classList.contains('dark'));
+}
 function toggleForm(){const f=document.getElementById('form-card');f.style.display=f.style.display==='none'?'block':'none';}
  
 document.querySelectorAll('.seg-btn').forEach(t=>t.addEventListener('click',()=>{
@@ -2308,6 +2336,7 @@ function showToastUndo(msg){
 function abrirSaldoTotal(){
   let total=0,sm=0,sc=0;
   for(const n in abas){total+=abas[n]; if(n!=="Moedas carteira"){sm+=abas[n]; if(n!=="Cartão") sc+=abas[n];}}
+  document.querySelectorAll('.toggle-modo-apple').forEach(el=>{ el.checked=modoAppleWallet; });
   const sheet=document.getElementById('saldo-sheet');
   const totalEl=document.getElementById('saldo-sheet-total');
   totalEl.textContent='€0,00';
@@ -2330,22 +2359,65 @@ function fecharSaldoTotal(e){
   if(e && e.target && e.target.id!=='saldo-sheet') return;
   document.getElementById('saldo-sheet').classList.remove('open');
 }
+function statusSaldo(total){ return total<0?'Atenção':total<500?'Baixo':total<2000?'Estável':'Forte'; }
+function abrirSaldoOuCarteira(){
+  if(modoAppleWallet) abrirCarteiraApple();
+  else abrirSaldoTotal();
+}
+function mudarModoAppleWallet(v){
+  modoAppleWallet=v;
+  gravarJSON('modoAppleWallet',v);
+  document.querySelectorAll('.toggle-modo-apple').forEach(el=>{ el.checked=v; });
+  showToast(v?'A partir de agora o saldo abre sempre em modo Apple':'Modo Apple desativado — o saldo volta a abrir no modo normal','🍎');
+}
 function abrirCarteiraApple(){
-  let total=0;
-  for(const n in abas){ if(ferrEsconderDela && n.toLowerCase()==='dela') continue; total+=abas[n]; }
-  const saldoEl=document.getElementById('wallet-card-saldo');
-  if(saldoEl) saldoEl.textContent=dinheiro(total);
-  const chipEl=document.getElementById('wallet-card-chip');
-  if(chipEl) chipEl.textContent = total<0?'Atenção':total<500?'Baixo':total<2000?'Estável':'Forte';
+  const contas=Object.keys(abas).filter(n=>!(ferrEsconderDela && n.toLowerCase()==='dela'));
+  const total=contas.reduce((s,n)=>s+abas[n],0);
+  const carrossel=document.getElementById('wallet-cards-carousel');
+  const dotsEl=document.getElementById('wallet-carousel-dots');
+  carrossel.innerHTML='';
+  dotsEl.innerHTML='';
+  const cartoes=[{nome:'Todas as contas',valor:total,total:true},...contas.map(n=>({nome:n,valor:abas[n]}))];
+  cartoes.forEach((c,i)=>{
+    const card=document.createElement('div');
+    card.className='wallet-card wallet-card-slide';
+    card.dataset.idx=i;
+    if(!c.total) card.dataset.nome=c.nome;
+    card.innerHTML=`
+      <div class="wallet-card-top">
+        <span class="wallet-card-brand">${esc(c.nome)}</span>
+        <span class="wallet-card-logo">${appleIconSVG(18)}</span>
+      </div>
+      <div class="wallet-card-balance">${dinheiro(c.valor)}</div>
+      <div class="wallet-card-bottom">
+        <span>${statusSaldo(c.valor)}</span>
+        <span class="wallet-card-dots">•••• •••• •••• ${hashNum4(c.nome)}</span>
+      </div>`;
+    carrossel.appendChild(card);
+    const dot=document.createElement('span');
+    dot.className='wallet-carousel-dot'+(i===0?' active':'');
+    dotsEl.appendChild(dot);
+  });
+  carrossel.scrollLeft=0;
+  carteiraContaAtiva=null;
+  atualizarListaTransacoesCarteira(null);
+  configurarScrollCarteiraWallet();
+  document.querySelectorAll('.toggle-modo-apple').forEach(el=>{ el.checked=modoAppleWallet; });
+  document.getElementById('carteira-sheet').classList.add('open');
+}
+function atualizarListaTransacoesCarteira(contaFiltro){
   let itens=[];
   Object.keys(movimentos).forEach(m=>{
     movimentos[m].forEach((x,i)=>{
       if(ferrEsconderDela && (x.aba||'').toLowerCase()==='dela') return;
+      if(contaFiltro && x.aba!==contaFiltro) return;
       itens.push({m,i,x});
     });
   });
   itens.sort((a,b)=>(b.x.data||'').localeCompare(a.x.data||''));
   itens=itens.slice(0,8);
+  const tituloEl=document.getElementById('wallet-section-title-texto');
+  if(tituloEl) tituloEl.textContent = contaFiltro ? `Transações — ${contaFiltro}` : 'Transações mais recentes';
   const lista=document.getElementById('wallet-lista');
   lista.innerHTML='';
   if(itens.length===0){
@@ -2367,7 +2439,29 @@ function abrirCarteiraApple(){
       lista.appendChild(row);
     });
   }
-  document.getElementById('carteira-sheet').classList.add('open');
+}
+function configurarScrollCarteiraWallet(){
+  const carrossel=document.getElementById('wallet-cards-carousel');
+  if(!carrossel || carrossel._scrollLigado) return;
+  carrossel._scrollLigado=true;
+  let temporizador=null;
+  carrossel.addEventListener('scroll',()=>{
+    clearTimeout(temporizador);
+    temporizador=setTimeout(()=>{
+      const cartoes=[...carrossel.querySelectorAll('.wallet-card-slide')];
+      if(cartoes.length===0) return;
+      const centro=carrossel.scrollLeft+carrossel.clientWidth/2;
+      let melhorIdx=0,melhorDist=Infinity;
+      cartoes.forEach((c,i)=>{
+        const meio=c.offsetLeft+c.offsetWidth/2;
+        const d=Math.abs(meio-centro);
+        if(d<melhorDist){melhorDist=d;melhorIdx=i;}
+      });
+      document.querySelectorAll('#wallet-carousel-dots .wallet-carousel-dot').forEach((d,i)=>d.classList.toggle('active',i===melhorIdx));
+      const contaAtiva=cartoes[melhorIdx].dataset.nome||null;
+      if(contaAtiva!==carteiraContaAtiva){ carteiraContaAtiva=contaAtiva; atualizarListaTransacoesCarteira(contaAtiva); }
+    },120);
+  },{passive:true});
 }
 function fecharCarteiraApple(e){
   if(e && e.target && e.target.id!=='carteira-sheet') return;
