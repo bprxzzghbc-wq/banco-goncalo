@@ -2230,9 +2230,17 @@ function confetti(){
   }
 }
  
-window.addEventListener('load',()=>{
-  setTimeout(()=>document.getElementById('splash').classList.add('hide'),1400);
-});
+/* nota: já não dependemos do evento "load" da janela — esse evento só dispara depois
+   de TODOS os recursos externos (fontes do Google, o script do Chart.js do cdnjs)
+   terminarem de carregar, e se a rede do utilizador bloquear ou demorar a aceder a
+   esses recursos, o "load" pode nunca disparar, deixando o ecrã de arranque preso
+   para sempre. Como este <script> já corre no fim do <body>, o DOM já está pronto
+   aqui, por isso escondemos o splash diretamente, sem esperar por mais nada. */
+function esconderSplash(){
+  const s=document.getElementById('splash');
+  if(s) s.classList.add('hide');
+}
+setTimeout(esconderSplash,1400);
  
 function toggleDark(){document.body.classList.toggle('dark');}
 function toggleForm(){const f=document.getElementById('form-card');f.style.display=f.style.display==='none'?'block':'none';}
