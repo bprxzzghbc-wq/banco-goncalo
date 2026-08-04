@@ -54,6 +54,106 @@ body.dark{
   --line:#2A2436;--pos-soft:#123829;--neg-soft:#3A1917;
   --shadow:0 20px 50px -16px rgba(0,0,0,0.6);--shadow-sm:0 8px 20px -10px rgba(0,0,0,0.55);
 }
+/* ===== Versão de computador — site de banco antigo, limpo e branco (anos 2000) ===== */
+body.modo-computador{
+  --bg:#f3f3ee;--surface:#ffffff;--surface-2:#f6f6f2;--text:#1a1a1a;--muted:#5a5a54;
+  --line:#c7c7bd;--brand-a:#2b5c8a;--brand-b:#2b5c8a;--pos:#1a5c2e;--pos-soft:#eef5ef;
+  --neg:#8c1c1c;--neg-soft:#f7ecec;--amber:#8c6d1c;
+  --radius-l:0px;--radius-m:0px;--radius-s:0px;--radius-btn:0px;
+  --shadow:none;--shadow-sm:none;
+}
+body.modo-computador,body.modo-computador .app{
+  font-family:Arial,Helvetica,sans-serif;background-image:none;
+}
+body.modo-computador .acc-card,body.modo-computador .tx,body.modo-computador .chart-card,body.modo-computador .form-card,
+body.modo-computador .fw-panel,body.modo-computador .sheet-panel,body.modo-computador .resumo-row,body.modo-computador .wallet-card,
+body.modo-computador .plan-card,body.modo-computador .mini-form,body.modo-computador .rec-item,body.modo-computador .nota-item{
+  border:none !important;border-bottom:1px solid var(--line) !important;box-shadow:none !important;background:var(--surface) !important;
+}
+body.modo-computador .hero{
+  background:#fff !important;color:var(--text) !important;border:none !important;border-bottom:2px solid var(--brand-a) !important;
+  border-radius:0 !important;box-shadow:none !important;padding:16px 2px 18px;
+}
+body.modo-computador .hero::after{display:none;}
+body.modo-computador .hero-label{color:var(--muted);font-family:Arial,Helvetica,sans-serif;font-size:11px;text-transform:uppercase;letter-spacing:0.04em;}
+body.modo-computador .hero-num{font-family:Georgia,'Times New Roman',serif;font-style:italic;color:var(--text);font-weight:700;}
+body.modo-computador .pill{background:none !important;color:var(--muted);font-weight:400;padding:0;}
+body.modo-computador .hero-sub{color:var(--muted);}
+body.modo-computador .hero-sub b{color:var(--text);font-family:Arial,Helvetica,sans-serif;}
+body.modo-computador .greet b{color:var(--text);font-family:Georgia,'Times New Roman',serif;font-style:italic;}
+body.modo-computador .segment{background:var(--brand-a) !important;border-radius:0 !important;padding:0;border:none;}
+body.modo-computador .seg-btn{color:#eef3f8;border-radius:0 !important;font-family:Arial,Helvetica,sans-serif;font-size:12px;}
+body.modo-computador .seg-btn.active{background:#173350 !important;color:#fff !important;box-shadow:none !important;}
+body.modo-computador .section-title{font-family:Georgia,'Times New Roman',serif;font-weight:400;font-style:italic;color:var(--text);font-size:15px;}
+body.modo-computador .section-head{border-bottom:1px solid var(--line);padding-bottom:6px;}
+body.modo-computador .btn-main{
+  background:#eeece4 !important;color:#1a1a1a !important;border:1px solid #9a9a90 !important;border-radius:0 !important;
+  box-shadow:inset 0 1px 0 #fff !important;font-family:Arial,Helvetica,sans-serif;font-weight:700;
+  text-transform:none;letter-spacing:0;font-size:12.5px !important;
+}
+body.modo-computador .sheet-btn,body.modo-computador .icon-btn,body.modo-computador .wallet-toggle{
+  border-radius:0 !important;font-family:Arial,Helvetica,sans-serif;box-shadow:none !important;
+}
+body.modo-computador .link-btn{color:#0000EE !important;text-decoration:underline;background:none !important;font-weight:400;}
+body.modo-computador .acc-name,body.modo-computador .tx-title,body.modo-computador .rec-title{font-family:Arial,Helvetica,sans-serif;}
+body.modo-computador .acc-val,body.modo-computador .tx-amt,body.modo-computador .num{font-family:Arial,Helvetica,sans-serif !important;}
+body.modo-computador .wallet-card{background:#fff !important;border:1px solid var(--line) !important;color:var(--text) !important;box-shadow:none !important;}
+body.modo-computador .wallet-card-brand{font-family:Georgia,'Times New Roman',serif;font-style:italic;color:var(--text);}
+body.modo-computador .wallet-card-balance{font-family:Arial,Helvetica,sans-serif;color:var(--text);}
+body.modo-computador .wallet-card::before,body.modo-computador .wallet-card::after{display:none;}
+body.modo-computador input.switch-toggle:checked{background:var(--brand-a) !important;}
+body.modo-computador .dot,body.modo-computador .acc-dot{background:var(--brand-a) !important;border-radius:0 !important;width:6px;height:6px;}
+body.modo-computador .tx-avatar,body.modo-computador .wallet-tx-avatar{border-radius:0 !important;background:var(--surface-2) !important;border:1px solid var(--line);}
+body.modo-computador .confetti-piece,body.modo-computador .snow-piece{display:none !important;}
+body.modo-computador #resumo-mensal-head,
+body.modo-computador #resumo-mensal-legenda-conta,
+body.modo-computador #resumo-mensal-lista,
+body.modo-computador #secao-gastos-categoria,
+body.modo-computador #secao-evolucao-mensal,
+body.modo-computador #secao-recorrentes,
+body.modo-computador #secao-notas-gerais,
+body.modo-computador #w-search-field,
+body.modo-computador #wallet-view-btn,
+body.modo-computador #m-search-field,
+body.modo-computador .filters,
+body.modo-computador #f-mes-chips,
+body.modo-computador #contagem-filtro-info,
+body.modo-computador #btn-wishlist-topbar,
+body.modo-computador .seg-btn[data-tab="plano"],
+body.modo-computador #txt-swipe-hint{
+  display:none !important;
+}
+body.modo-computador .acc-card,body.modo-computador .tx{
+  border:1px solid var(--line) !important;border-bottom:1px solid var(--line) !important;
+}
+body.modo-computador #secao-export{
+  border:none !important;background:none !important;margin-top:18px;padding-top:12px;
+  border-top:1px solid var(--line) !important;text-align:center;
+}
+body.modo-computador #secao-export .section-head{display:none !important;}
+body.modo-computador #secao-export .row2{display:block;}
+body.modo-computador #secao-export .row2 .btn-main{
+  display:inline !important;width:auto !important;background:none !important;border:none !important;box-shadow:none !important;
+  color:#0000EE !important;text-decoration:underline;font-weight:400 !important;font-size:11px !important;
+  padding:0 !important;margin:0 6px;text-transform:none !important;font-family:Arial,Helvetica,sans-serif;
+}
+body.modo-computador #secao-export .row2 .btn-main:first-child::before{content:'';}
+body.modo-computador #secao-export .row2 .btn-main:last-child::before{content:'| ';color:var(--muted);text-decoration:none;}
+body.modo-computador #secao-export-hint{display:none !important;}
+body.modo-computador .wallet-scroll{gap:0;margin:0;padding:0;}
+body.modo-computador .wallet-scroll .acc-card{margin-right:-1px;}
+body.modo-computador .tx-list{gap:0;}
+body.modo-computador .tx-list > div{margin-bottom:-1px;}
+body.modo-computador ::-webkit-scrollbar-thumb{background:var(--brand-a);}
+#letterhead-computador{display:none;text-align:center;padding:8px 6px 14px;margin-bottom:6px;border-bottom:2px double var(--line);}
+body.modo-computador #letterhead-computador{display:block;text-align:left;border-bottom:2px solid var(--brand-a);padding:14px 2px 10px;}
+.lh-toprow{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+#letterhead-computador .lh-nome{font-size:15px;font-weight:700;letter-spacing:0.12em;color:var(--brand-a);text-transform:uppercase;}
+body.modo-computador #letterhead-computador .lh-nome{font-family:Georgia,'Times New Roman',serif;font-style:italic;font-weight:400;font-size:23px;color:#1a1a1a;letter-spacing:0;text-transform:none;}
+.lh-toplinks{display:none;}
+body.modo-computador .lh-toplinks{display:block;font-family:Arial,Helvetica,sans-serif;font-size:9.5px;color:var(--brand-a);white-space:normal;}
+#letterhead-computador .lh-sub{font-size:9.5px;letter-spacing:0.18em;color:var(--muted);margin-top:3px;text-transform:uppercase;}
+body.modo-computador #letterhead-computador .lh-sub{font-family:Arial,Helvetica,sans-serif;letter-spacing:0.05em;}
 .app{max-width:var(--app-max-width,460px);margin:0 auto;padding:20px 16px 70px;}
 h1,h2,.num{font-family:'Sora',sans-serif;}
  
@@ -665,7 +765,8 @@ input.switch-toggle:checked::before{transform:translateX(18px);}
 </style>
 </head>
 <body>
-<script>try{if(JSON.parse(localStorage.getItem('modoEscuroAtivo')||'false')){document.body.classList.add('dark');}}catch(e){}</script>
+<script>try{if(JSON.parse(localStorage.getItem('modoEscuroAtivo')||'false')){document.body.classList.add('dark');}}catch(e){}
+try{if(JSON.parse(localStorage.getItem('modoComputador')||'false')){document.body.classList.add('modo-computador');}}catch(e){}</script>
 <div id="splash">
 <div class="orb">👋</div>
 <div class="greet">Olá, <span id="txt-nome-splash">Gonçalo</span></div>
@@ -673,6 +774,13 @@ input.switch-toggle:checked::before{transform:translateX(18px);}
 </div>
 <div class="app">
 
+<div id="letterhead-computador">
+<div class="lh-toprow">
+<div class="lh-nome">Gonçalo Mutual</div>
+<div class="lh-toplinks">Open an Account &nbsp;|&nbsp; Bank Locations &nbsp;|&nbsp; Help &nbsp;|&nbsp; Contact Us</div>
+</div>
+<div class="lh-sub">Online Banking · Member FDIC</div>
+</div>
 <div class="topbar">
 <div>
 <div class="greet">Olá, <b><span id="txt-nome-topbar">Gonçalo</span></b> 👋</div>
@@ -692,9 +800,9 @@ input.switch-toggle:checked::before{transform:translateX(18px);}
 </div>
 <div class="hero-num"><sup>€</sup><span id="total">0,00</span></div>
 <div class="hero-sub">
-<div>Sem moedas<b id="sem-moedas">€0,00</b></div>
-<div>Sem moedas + cartão<b id="sem-cartao">€0,00</b></div>
-<div id="dias-ultimo-lancamento" style="display:none;">Último lançamento<b id="dias-ultimo-valor"></b></div>
+<div><span id="hero-lbl-sm">Sem moedas</span><b id="sem-moedas">€0,00</b></div>
+<div><span id="hero-lbl-sc">Sem moedas + cartão</span><b id="sem-cartao">€0,00</b></div>
+<div id="dias-ultimo-lancamento" style="display:none;"><span id="hero-lbl-dias">Último lançamento</span><b id="dias-ultimo-valor"></b></div>
 </div>
 </div>
  
@@ -710,7 +818,7 @@ input.switch-toggle:checked::before{transform:translateX(18px);}
 <div class="section-title"><span id="txt-icon-contas" class="ttl-icon"></span><span id="txt-st-contas">As tuas contas</span> <span id="total-contas-span" style="color:var(--muted);font-weight:500;font-size:12px;"></span></div>
 <button class="wallet-toggle" id="wallet-view-btn" onclick="toggleWalletView()" title="Alternar vista" aria-label="Alternar entre vista horizontal e vertical">⇄</button>
 </div>
-<div class="field" style="margin-bottom:10px;">
+<div class="field" id="w-search-field" style="margin-bottom:10px;">
 <input type="text" id="w-search" placeholder="Pesquisar conta..." oninput="renderWallet()">
 </div>
 <div class="wallet-scroll" id="wallet"></div>
@@ -733,7 +841,7 @@ input.switch-toggle:checked::before{transform:translateX(18px);}
 <button class="btn-main" style="background:var(--surface-2);color:var(--text);box-shadow:none;" onclick="document.getElementById('import-file').click()"><span id="txt-btn-importar">Importar dados</span></button>
 </div>
 <input type="file" id="import-file" accept="application/json" style="display:none;" onchange="importarDados(this.files[0])">
-<div style="font-size:11px;color:var(--muted);text-align:center;margin-top:6px;"><span id="txt-export-hint">Guarda o ficheiro para não perderes os teus dados entre sessões.</span></div>
+<div id="secao-export-hint" style="font-size:11px;color:var(--muted);text-align:center;margin-top:6px;"><span id="txt-export-hint">Guarda o ficheiro para não perderes os teus dados entre sessões.</span></div>
 </div>
 </div>
 
@@ -820,14 +928,14 @@ input.switch-toggle:checked::before{transform:translateX(18px);}
 <div id="lista-rec" style="display:flex;flex-direction:column;gap:8px;"></div>
 </div>
  
-<div class="section-head"><div class="section-title"><span id="txt-icon-resumo-mensal" class="ttl-icon"></span><span id="txt-st-resumo-mensal">Resumo mensal</span></div>
+<div class="section-head" id="resumo-mensal-head"><div class="section-title"><span id="txt-icon-resumo-mensal" class="ttl-icon"></span><span id="txt-st-resumo-mensal">Resumo mensal</span></div>
 <button class="link-btn" id="btn-resumo-mensal-toggle" onclick="toggleResumoMensalMinimizado()"></button>
 </div>
 <div id="resumo-mensal-legenda-conta" style="display:none;font-size:11px;font-weight:600;color:var(--brand-a);margin:-4px 0 8px;"></div>
 <div id="resumo-mensal-lista" style="display:flex;flex-direction:column;gap:8px;margin-bottom:6px;"></div>
  
 <div class="section-head"><div class="section-title"><span id="txt-st-movimentos-lista">Movimentos</span></div></div>
-<div class="field" style="margin-bottom:8px;">
+<div class="field" id="m-search-field" style="margin-bottom:8px;">
 <input type="text" id="m-search" placeholder="Pesquisar por descrição ou categoria..." oninput="render()">
 </div>
 <div class="filters">
@@ -1159,6 +1267,13 @@ input.switch-toggle:checked::before{transform:translateX(18px);}
 </div>
 
 <div id="admin-tab-mais" style="display:none;">
+<div style="background:var(--bg);border-radius:14px;padding:12px 14px;margin-bottom:16px;border:1.5px dashed var(--brand-a);">
+<label style="display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer;">
+<span style="font-size:13px;font-weight:700;">💻 Versão de computador<span style="display:block;font-size:10.5px;font-weight:500;color:var(--muted);margin-top:2px;">Estilo banco privado americano, Nova Iorque, anos 2000</span></span>
+<input type="checkbox" id="toggle-modo-computador" class="switch-toggle" onchange="mudarModoComputador(this.checked)">
+</label>
+<button class="sheet-btn" style="width:100%;margin-top:10px;" onclick="mudarModoComputador(true);">💾 Abrir sempre a app assim</button>
+</div>
 <label style="display:block;font-size:11px;font-weight:700;color:var(--brand-a);margin-bottom:10px;">Mais cores</label>
 <label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px;">Ângulo do gradiente do topo: <span id="cor-hero-angle-val">135°</span></label>
 <input type="range" id="cor-hero-angle" min="0" max="360" value="135" style="width:100%;margin-bottom:16px;">
@@ -2130,6 +2245,7 @@ let iaChatHistorico=[];
 let ferrEsconderDela=lerJSON('ferrEsconderDela',false);
 let modoAppleWallet=lerJSON('modoAppleWallet',false);
 let carteiraContaAtiva=null;
+let modoComputador=lerJSON('modoComputador',false);
 let planoModoPercentagem='ano';
 let planoMesSelecionado=null;
 let smdPeriodo='mes';
@@ -2257,7 +2373,7 @@ function addRipple(e){
 document.querySelectorAll('.btn-main, .icon-btn, .seg-btn, .link-btn').forEach(b=>b.addEventListener('click',addRipple));
  
 function confetti(){
-  if(confettiAtivo===false) return;
+  if(confettiAtivo===false || modoComputador) return;
   const colors=accentPalette;
   for(let i=0;i<24;i++){
     const p=document.createElement('div');
@@ -2287,6 +2403,40 @@ setTimeout(esconderSplash,1400);
 function toggleDark(){
   document.body.classList.toggle('dark');
   gravarJSON('modoEscuroAtivo',document.body.classList.contains('dark'));
+}
+const labelsComputador={
+  'hero-lbl-sm':'On Deposit',
+  'hero-lbl-sc':'Available Now',
+  'hero-lbl-dias':'Last Deposit',
+  'txt-st-contas':'Account Summary',
+  'txt-st-novo-lancamento':'Make a Payment',
+  'txt-st-movimentos-lista':'Recent Payments',
+  'txt-btn-registar-lancamento':'Submit Payment',
+  'txt-navlabel-saldos':'Account Home',
+  'txt-navlabel-movimentos':'Payments'
+};
+function aplicarLabelsComputador(v){
+  Object.keys(labelsComputador).forEach(id=>{
+    const el=document.getElementById(id);
+    if(!el) return;
+    if(v){
+      if(el.dataset.origTxt===undefined) el.dataset.origTxt=el.textContent;
+      el.textContent=labelsComputador[id];
+    }else if(el.dataset.origTxt!==undefined){
+      el.textContent=el.dataset.origTxt;
+      delete el.dataset.origTxt;
+    }
+  });
+}
+function mudarModoComputador(v){
+  modoComputador=v;
+  gravarJSON('modoComputador',v);
+  document.body.classList.toggle('modo-computador',v);
+  const chk=document.getElementById('toggle-modo-computador');
+  if(chk) chk.checked=v;
+  aplicarLabelsComputador(v);
+  try{ render(); }catch(e){}
+  showToast(v?'Versão de computador ativada — a app vai abrir sempre assim':'Versão de computador desativada','💻');
 }
 function toggleForm(){const f=document.getElementById('form-card');f.style.display=f.style.display==='none'?'block':'none';}
  
@@ -3766,6 +3916,7 @@ const iaIndiceLocais=[
   {label:'Bloqueio por PIN',keywords:['pin','bloqueio','senha','password','cadeado','bloquear a app'],ir:()=>{ abrirCores(); mudarAdminTab('diversao'); setTimeout(()=>destacarElemento(document.getElementById('pin-status-info')),200); }},
   {label:'Mais opções de cores e estilo',keywords:['mais opções','mais cores','daltonismo','alto contraste'],ir:()=>{ abrirCores(); mudarAdminTab('mais'); }},
   {label:'Ferramentas',keywords:['ferramentas','backup automático','meta de poupança','juros compostos','conversor de moeda','tarefas rápidas','relatório mensal','backup semanal','backup mensal'],ir:()=>{ abrirCores(); mudarAdminTab('ferramentas'); }},
+  {label:'Versão de computador',keywords:['versao de computador','versão de computador','modo computador','estilo banco americano','nova iorque','anos 2000'],ir:()=>{ abrirCores(); mudarAdminTab('mais'); setTimeout(()=>destacarElemento(document.getElementById('toggle-modo-computador').closest('div')),200); }},
   {label:'Esconder informação da conta Dela',keywords:['esconder dela','esconde dela','esconder a dela','privacidade da dela','esconder informação dela'],ir:()=>{ abrirCores(); mudarAdminTab('ferramentas'); setTimeout(()=>destacarElemento(document.getElementById('ferr-toggle-esconder-dela').closest('label')),200); }},
   {label:'Editar textos, secções e estilo por página',keywords:['editar','editor','textos da app','secções da página','tela de reorganização','estilo da página'],ir:()=>{ abrirCores(); mudarAdminTab('editar'); }},
   {label:'Assistente inteligente',keywords:['assistente','assistente inteligente','falar com a ia','conversar com a ia','chat da ia'],ir:()=>{ abrirCores(); mudarAdminTab('assistente'); }},
@@ -5104,6 +5255,7 @@ function tocarSom(freq,dur){
 }
 
 function avatarConteudo(x){
+  if(modoComputador) return esc((x.desc||'?').trim().charAt(0).toUpperCase()||'?');
   if(avatarEstilo==='inicial') return esc((x.desc||'?').trim().charAt(0).toUpperCase()||'?');
   if(avatarEstilo==='cor') return '';
   return mostrarEmojis?(catEmoji[x.categoria]||'✨'):'';
@@ -6738,6 +6890,12 @@ if(ferrAvisoInatividadeDias>0 && ferrUltimoUso){
 ferrUltimoUso=new Date().toISOString();
 gravarJSON('ferrUltimoUso',ferrUltimoUso);
 configurarBackupAutoInterval();
+try{
+  document.body.classList.toggle('modo-computador',modoComputador);
+  const chkComputador=document.getElementById('toggle-modo-computador');
+  if(chkComputador) chkComputador.checked=modoComputador;
+  aplicarLabelsComputador(modoComputador);
+}catch(e){ console.error('modo computador inicial falhou',e); }
 
 /* ---- arranque ---- */
 try{ renderWallet(); }catch(e){ console.error('renderWallet falhou',e); }
