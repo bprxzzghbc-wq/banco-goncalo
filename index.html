@@ -5658,16 +5658,16 @@ function renderPlanoSimulacao(){
       ${foiEditado?`<div class="plano-sim-delta ${deltaSaldo>=0?'pos':'neg'}">${deltaSaldo>=0?'+':''}${moeda()}${fmt(deltaSaldo)} vs. plano real</div>`:''}
       <div class="plano-sim-editor" style="display:${aberto?'block':'none'};">
         <div class="row2" style="margin:10px 0 8px;">
-          <div class="field"><label>Entradas simuladas</label><input type="number" step="0.01" id="sim-input-entradas" value="${e}"></div>
-          <div class="field"><label>Gastos simulados</label><input type="number" step="0.01" id="sim-input-gastos" value="${g}"></div>
+          <div class="field"><label>Entradas simuladas</label><input type="number" step="0.01" id="sim-input-entradas-${i}" value="${e}"></div>
+          <div class="field"><label>Gastos simulados</label><input type="number" step="0.01" id="sim-input-gastos-${i}" value="${g}"></div>
         </div>
         <div class="plano-sim-slider-wrap">
-          <label>Entradas <span id="sim-slider-entradas-val">${moeda()}${fmt(e)}</span></label>
-          <input type="range" class="plano-sim-slider" id="sim-slider-entradas" min="0" max="${maxSlider}" step="1" value="${e}">
+          <label>Entradas <span id="sim-slider-entradas-val-${i}">${moeda()}${fmt(e)}</span></label>
+          <input type="range" class="plano-sim-slider" id="sim-slider-entradas-${i}" min="0" max="${maxSlider}" step="1" value="${e}">
         </div>
         <div class="plano-sim-slider-wrap">
-          <label>Gastos <span id="sim-slider-gastos-val">${moeda()}${fmt(g)}</span></label>
-          <input type="range" class="plano-sim-slider" id="sim-slider-gastos" min="0" max="${maxSlider}" step="1" value="${g}">
+          <label>Gastos <span id="sim-slider-gastos-val-${i}">${moeda()}${fmt(g)}</span></label>
+          <input type="range" class="plano-sim-slider" id="sim-slider-gastos-${i}" min="0" max="${maxSlider}" step="1" value="${g}">
         </div>
         <div class="row2">
           <button class="sheet-btn primary" style="flex:1;" onclick="event.stopPropagation();guardarSimulacaoMes(${i})">Guardar simulação</button>
@@ -5680,12 +5680,12 @@ function renderPlanoSimulacao(){
       renderPlanoSimulacao();
     });
     if(aberto){
-      const inpE=card2.querySelector('#sim-input-entradas');
-      const inpG=card2.querySelector('#sim-input-gastos');
-      const sldE=card2.querySelector('#sim-slider-entradas');
-      const sldG=card2.querySelector('#sim-slider-gastos');
-      const valE=card2.querySelector('#sim-slider-entradas-val');
-      const valG=card2.querySelector('#sim-slider-gastos-val');
+      const inpE=card2.querySelector('#sim-input-entradas-'+i);
+      const inpG=card2.querySelector('#sim-input-gastos-'+i);
+      const sldE=card2.querySelector('#sim-slider-entradas-'+i);
+      const sldG=card2.querySelector('#sim-slider-gastos-'+i);
+      const valE=card2.querySelector('#sim-slider-entradas-val-'+i);
+      const valG=card2.querySelector('#sim-slider-gastos-val-'+i);
       sldE.addEventListener('input',ev=>{ inpE.value=ev.target.value; valE.textContent=moeda()+fmt(parseFloat(ev.target.value)||0); });
       sldG.addEventListener('input',ev=>{ inpG.value=ev.target.value; valG.textContent=moeda()+fmt(parseFloat(ev.target.value)||0); });
       inpE.addEventListener('input',ev=>{ sldE.value=ev.target.value||0; valE.textContent=moeda()+fmt(parseFloat(ev.target.value)||0); });
@@ -5708,8 +5708,8 @@ function guardarSimulacaoMes(i){
   const conta=document.getElementById('p-conta').value;
   const linhas=planoSimulacao[conta];
   if(!linhas || !linhas[i]) return;
-  const novaEntrada=parseFloat(document.getElementById('sim-input-entradas').value)||0;
-  const novoGasto=parseFloat(document.getElementById('sim-input-gastos').value)||0;
+  const novaEntrada=parseFloat(document.getElementById('sim-input-entradas-'+i).value)||0;
+  const novoGasto=parseFloat(document.getElementById('sim-input-gastos-'+i).value)||0;
   linhas[i][1]=novaEntrada;
   linhas[i][2]=novoGasto;
   recalcularSaldosSimulacao(conta);
